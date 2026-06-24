@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { CheckCircle2, Info, Undo2, XCircle } from 'lucide-react'
+import { t } from '../i18n'
 
 type ToastKind = 'success' | 'error' | 'info'
 interface ToastAction {
@@ -38,7 +39,7 @@ export const toast = {
   info: (m: string) => useToastStore.getState().push('info', m),
   /** A toast with an "撤销" action; stays visible longer. */
   undo: (m: string, onUndo: () => void) =>
-    useToastStore.getState().push('info', m, { label: '撤销', onClick: onUndo }, 6000),
+    useToastStore.getState().push('info', m, { label: t('撤销'), onClick: onUndo }, 6000),
   /** A toast with a custom labeled action button; stays visible long. */
   action: (m: string, label: string, onClick: () => void, ms = 12000) =>
     useToastStore.getState().push('info', m, { label, onClick }, ms)

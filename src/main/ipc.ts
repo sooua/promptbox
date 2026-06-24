@@ -9,6 +9,7 @@ import type {
   AssetKind,
   ExportBundle,
   ImportMode,
+  Language,
   PromptInput,
   ThemeMode
 } from '@shared/types'
@@ -57,6 +58,7 @@ function writeSkillFolder(folder: string, asset: Asset): string {
 import type { Repository } from './store/repository'
 import { loadSettings, saveSettings } from './store/config'
 import { updateHotkey } from './system'
+import { setMainLanguage } from './i18n'
 import type { BackupManager } from './backup'
 
 export function registerIpc(repo: Repository): void {
@@ -263,6 +265,13 @@ export function registerIpc(repo: Repository): void {
   ipcMain.handle(IPC.settingsSetTheme, (_e, theme: ThemeMode) => {
     const current = loadSettings()
     return saveSettings({ ...current, theme, dataDir: repo.getDataDir() })
+  })
+
+  ipcMain.handle(IPC.settingsSetLanguage, (_e, language: Language) => {
+    const current = loadSettings()
+    const settings = saveSettings({ ...current, language, dataDir: repo.getDataDir() })
+    setMainLanguage(language)
+    return settings
   })
 
   ipcMain.handle(IPC.settingsSetHotkey, (_e, accelerator: string) => {

@@ -18,15 +18,17 @@ import { assetToText } from '@shared/assetFormat'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
 import { toast } from './Toast'
+import { useT } from '../i18n'
 
 export function AssetEditor(): React.JSX.Element {
   const asset = useStore((s) => s.assets.find((a) => a.id === s.selectedAssetId) ?? null)
+  const t = useT()
 
   if (!asset) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center bg-canvas text-faint">
         <FileCode size={40} className="mb-3 opacity-40" />
-        <p className="font-serif text-base">选择左侧资产，或新建一个开始</p>
+        <p className="font-serif text-base">{t('选择左侧资产，或新建一个开始')}</p>
       </div>
     )
   }
@@ -43,6 +45,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
   const exportAsset = useStore((s) => s.exportAsset)
   const installAsset = useStore((s) => s.installAsset)
   const mergeMcp = useStore((s) => s.mergeMcp)
+  const t = useT()
 
   const [tab, setTab] = useState<'edit' | 'history'>('edit')
   const [menuOpen, setMenuOpen] = useState(false)
@@ -85,23 +88,23 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
 
   async function copyFormatted() {
     await navigator.clipboard.writeText(assetToText(asset))
-    toast.success('已复制为对应格式')
+    toast.success(t('已复制为对应格式'))
   }
   async function handleExport() {
     const res = await exportAsset(asset.id)
-    if (res.ok) toast.success('已导出到文件')
+    if (res.ok) toast.success(t('已导出到文件'))
   }
   async function doInstall(preset?: string) {
     setMenuOpen(false)
     const r = await installAsset(asset.id, preset)
-    if (r.ok) toast.success(`已安装到 ${r.path}`)
-    else toast.error('安装失败或已取消')
+    if (r.ok) toast.success(t('已安装到 {path}', { path: r.path ?? '' }))
+    else toast.error(t('安装失败或已取消'))
   }
   async function doMerge(preset?: string) {
     setMenuOpen(false)
     const r = await mergeMcp(asset.id, preset)
-    if (r.ok) toast.success(`已合并 ${r.server} → ${r.path}`)
-    else toast.error('合并失败或已取消')
+    if (r.ok) toast.success(t('已合并 {server} → {path}', { server: r.server ?? '', path: r.path ?? '' }))
+    else toast.error(t('合并失败或已取消'))
   }
   function addTag(raw: string) {
     const tag = raw.trim().replace(/^#/, '')
@@ -111,7 +114,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
   async function handleDelete() {
     const snapshot = asset
     await deleteAsset(asset.id)
-    toast.undo(`已删除「${snapshot.name}」`, () => {
+    toast.undo(t('已删除「{name}」', { name: snapshot.name }), () => {
       void useStore.getState().restoreAsset(snapshot)
     })
   }
@@ -119,7 +122,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
   return (
     <div className="flex flex-1 flex-col bg-canvas">
       {/* Toolbar */}
-      <div className="app-drag app-drag-pad flex items-center gap-2 border-b border-line px-6 py-3.5">
+      <div className="flex items-center gap-2 border-b border-line px-6 py-3.5">
         <span className="rounded-md bg-surface-2 px-2 py-0.5 text-[11px] uppercase tracking-wide text-muted">
           {asset.kind}
         </span>
@@ -130,29 +133,29 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
             schedule({ name: e.target.value })
           }}
           className="min-w-0 flex-1 bg-transparent font-mono text-lg font-medium text-ink outline-none placeholder:text-faint"
-          placeholder="名称"
+          placeholder={t('名称')}
         />
-        <TBtn title="收藏" active={asset.favorite} onClick={() => toggleAssetFavorite(asset.id)}>
+        <TBtn title={t('收藏')} active={asset.favorite} onClick={() => toggleAssetFavorite(asset.id)}>
           <Star size={17} fill={asset.favorite ? 'currentColor' : 'none'} />
         </TBtn>
-        <TBtn title="复制为格式文本" onClick={copyFormatted}>
+        <TBtn title={t('复制为格式文本')} onClick={copyFormatted}>
           <Copy size={17} />
         </TBtn>
-        <TBtn title="导出到文件" onClick={handleExport}>
+        <TBtn title={t('导出到文件')} onClick={handleExport}>
           <Download size={17} />
         </TBtn>
         <TBtn
-          title="创建副本"
+          title={t('创建副本')}
           onClick={async () => {
             await duplicateAsset(asset.id)
-            toast.success('已创建副本')
+            toast.success(t('已创建副本'))
           }}
         >
           <CopyPlus size={17} />
         </TBtn>
 
         <div className="relative">
-          <TBtn title="分发 / 安装到工具" active={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
+          <TBtn title={t('分发 / 安装到工具')} active={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
             <Share2 size={17} />
           </TBtn>
           {menuOpen && (
@@ -162,37 +165,37 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
                 {asset.kind === 'mcp' ? (
                   <>
                     <MenuItem onClick={() => doMerge('cursor')}>
-                      合并到 Cursor<span className="text-faint">~/.cursor/mcp.json</span>
+                      {t('合并到 Cursor')}<span className="text-faint">~/.cursor/mcp.json</span>
                     </MenuItem>
                     <MenuItem onClick={() => doMerge('windsurf')}>
-                      合并到 Windsurf<span className="text-faint">~/.codeium/windsurf/mcp_config.json</span>
+                      {t('合并到 Windsurf')}<span className="text-faint">~/.codeium/windsurf/mcp_config.json</span>
                     </MenuItem>
                     <MenuItem onClick={() => doMerge('cline')}>
-                      合并到 Cline<span className="text-faint">VS Code 扩展设置</span>
+                      {t('合并到 Cline')}<span className="text-faint">{t('VS Code 扩展设置')}</span>
                     </MenuItem>
                     <MenuItem onClick={() => doMerge('vscode-project')}>
-                      合并到 VS Code 项目<span className="text-faint">&lt;项目&gt;/.vscode/mcp.json</span>
+                      {t('合并到 VS Code 项目')}<span className="text-faint">&lt;{t('项目')}&gt;/.vscode/mcp.json</span>
                     </MenuItem>
                     <MenuItem onClick={() => doMerge('claude-project')}>
-                      合并到 Claude Code 项目<span className="text-faint">&lt;项目&gt;/.mcp.json</span>
+                      {t('合并到 Claude Code 项目')}<span className="text-faint">&lt;{t('项目')}&gt;/.mcp.json</span>
                     </MenuItem>
-                    <MenuItem onClick={() => doMerge()}>选择 mcp.json 合并…</MenuItem>
+                    <MenuItem onClick={() => doMerge()}>{t('选择 mcp.json 合并…')}</MenuItem>
                   </>
                 ) : (
                   <>
                     <MenuItem onClick={() => doInstall('claude')}>
-                      安装到 Claude（全局）
+                      {t('安装到 Claude（全局）')}
                       <span className="text-faint">
                         ~/.claude/{asset.kind === 'skill' ? 'skills' : 'agents'}
                       </span>
                     </MenuItem>
                     <MenuItem onClick={() => doInstall('claude-project')}>
-                      安装到 Claude 项目
+                      {t('安装到 Claude 项目')}
                       <span className="text-faint">
-                        &lt;项目&gt;/.claude/{asset.kind === 'skill' ? 'skills' : 'agents'}
+                        &lt;{t('项目')}&gt;/.claude/{asset.kind === 'skill' ? 'skills' : 'agents'}
                       </span>
                     </MenuItem>
-                    <MenuItem onClick={() => doInstall()}>选择目录安装…</MenuItem>
+                    <MenuItem onClick={() => doInstall()}>{t('选择目录安装…')}</MenuItem>
                   </>
                 )}
               </div>
@@ -200,7 +203,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
           )}
         </div>
 
-        <TBtn title="删除" danger onClick={handleDelete}>
+        <TBtn title={t('删除')} danger onClick={handleDelete}>
           <Trash2 size={17} />
         </TBtn>
       </div>
@@ -213,7 +216,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
             setDescription(e.target.value)
             schedule({ description: e.target.value })
           }}
-          placeholder="一句话描述（会写入 description 字段）"
+          placeholder={t('一句话描述（会写入 description 字段）')}
           className="w-full bg-transparent text-xs text-muted outline-none placeholder:text-faint"
         />
         <div className="flex flex-wrap items-center gap-2">
@@ -222,7 +225,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
             onChange={(e) => flush({ categoryId: e.target.value || null })}
             className="rounded-md border border-line-strong bg-surface px-2 py-1 text-xs text-ink outline-none focus:border-focus"
           >
-            <option value="">未分类</option>
+            <option value="">{t('未分类')}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -251,7 +254,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
                 addTag(tagDraft)
               }
             }}
-            placeholder="添加标签…"
+            placeholder={t('添加标签…')}
             className="w-24 bg-transparent text-[11px] text-ink outline-none placeholder:text-faint"
           />
         </div>
@@ -260,10 +263,10 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-line px-4">
         <AssetTab active={tab === 'edit'} onClick={() => setTab('edit')} icon={<Pencil size={14} />}>
-          编辑
+          {t('编辑')}
         </AssetTab>
         <AssetTab active={tab === 'history'} onClick={() => setTab('history')} icon={<HistoryIcon size={14} />}>
-          历史
+          {t('历史')}
           {asset.versions.length > 0 && (
             <span className="ml-1 rounded-full bg-surface-2 px-1.5 text-[10px] text-faint">
               {asset.versions.length}
@@ -281,7 +284,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
         ) : (
           <div className="flex h-full flex-col gap-3">
             {asset.kind === 'skill' && (
-              <Field label="allowed-tools（可选，逗号分隔）">
+              <Field label={t('allowed-tools（可选，逗号分隔）')}>
                 <input
                   value={asset.meta.allowedTools ?? ''}
                   onChange={(e) => setMeta('allowedTools', e.target.value)}
@@ -292,7 +295,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
             )}
             {asset.kind === 'agent' && (
               <div className="flex gap-2">
-                <Field label="tools（逗号分隔）">
+                <Field label={t('tools（逗号分隔）')}>
                   <input
                     value={asset.meta.tools ?? ''}
                     onChange={(e) => setMeta('tools', e.target.value)}
@@ -312,7 +315,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
             )}
             <div className="flex flex-1 flex-col">
               <div className="mb-1 text-xs text-muted">
-                {asset.kind === 'skill' ? 'SKILL.md 正文' : '系统提示（System Prompt）'}
+                {asset.kind === 'skill' ? t('SKILL.md 正文') : t('系统提示（System Prompt）')}
               </div>
               <textarea
                 value={content}
@@ -322,7 +325,7 @@ function Editor({ asset }: { asset: Asset }): React.JSX.Element {
                 }}
                 onBlur={() => flush({ content })}
                 spellCheck={false}
-                placeholder="使用 Markdown 编写…"
+                placeholder={t('使用 Markdown 编写…')}
                 className="min-h-[200px] flex-1 resize-none rounded-2xl border border-line-strong bg-surface p-5 font-mono text-sm leading-[1.7] text-ink outline-none focus:border-focus"
               />
             </div>
@@ -343,6 +346,7 @@ function SkillFiles({
   files: AssetFile[]
   onChange(files: AssetFile[]): void
 }): React.JSX.Element {
+  const t = useT()
   const [openIdx, setOpenIdx] = useState<number | null>(null)
   function update(i: number, patch: Partial<AssetFile>) {
     onChange(files.map((f, idx) => (idx === i ? { ...f, ...patch } : f)))
@@ -354,17 +358,17 @@ function SkillFiles({
   return (
     <div className="rounded-2xl border border-line-strong bg-surface p-3">
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted">附带文件（随 Skill 文件夹一起导出/安装）</span>
+        <span className="text-xs font-medium text-muted">{t('附带文件（随 Skill 文件夹一起导出/安装）')}</span>
         <button
           onClick={add}
           className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-1 text-xs text-muted transition hover:border-brand hover:text-brand"
         >
           <FilePlus2 size={12} />
-          添加文件
+          {t('添加文件')}
         </button>
       </div>
       {files.length === 0 ? (
-        <div className="py-3 text-center text-xs text-faint">暂无附带文件</div>
+        <div className="py-3 text-center text-xs text-faint">{t('暂无附带文件')}</div>
       ) : (
         <div className="space-y-1.5">
           {files.map((f, i) => (
@@ -373,11 +377,11 @@ function SkillFiles({
                 <input
                   value={f.path}
                   onChange={(e) => update(i, { path: e.target.value })}
-                  placeholder="相对路径，如 scripts/run.py"
+                  placeholder={t('相对路径，如 scripts/run.py')}
                   className="flex-1 bg-transparent font-mono text-xs text-ink outline-none"
                 />
                 <button onClick={() => setOpenIdx(openIdx === i ? null : i)} className="text-xs text-faint hover:text-ink">
-                  {openIdx === i ? '收起' : '编辑'}
+                  {openIdx === i ? t('收起') : t('编辑')}
                 </button>
                 <button
                   onClick={() => onChange(files.filter((_, idx) => idx !== i))}
@@ -392,7 +396,7 @@ function SkillFiles({
                   onChange={(e) => update(i, { content: e.target.value })}
                   rows={6}
                   spellCheck={false}
-                  placeholder="文件内容…"
+                  placeholder={t('文件内容…')}
                   className="w-full resize-y rounded-b-lg border-t border-line bg-canvas p-3 font-mono text-xs text-ink outline-none"
                 />
               )}
@@ -411,10 +415,11 @@ function AssetHistory({
   asset: Asset
   onRestore(assetId: string, versionId: string): Promise<void>
 }): React.JSX.Element {
+  const t = useT()
   if (asset.versions.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
-        暂无历史版本。修改后自动留存上一版。
+        {t('暂无历史版本。修改后自动留存上一版。')}
       </div>
     )
   }
@@ -427,17 +432,17 @@ function AssetHistory({
             <button
               onClick={async () => {
                 await onRestore(asset.id, v.id)
-                toast.success('已恢复到该版本')
+                toast.success(t('已恢复到该版本'))
               }}
               className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted transition hover:border-brand hover:text-brand"
             >
               <RotateCcw size={11} />
-              恢复
+              {t('恢复')}
             </button>
           </div>
           <div className="mt-1 text-[10px] text-faint">{formatDate(v.createdAt)}</div>
           <pre className="mt-2 max-h-24 overflow-hidden whitespace-pre-wrap font-mono text-[11px] text-muted">
-            {(v.content || Object.entries(v.meta).map(([k, val]) => `${k}: ${val}`).join('\n')).slice(0, 220) || '（空）'}
+            {(v.content || Object.entries(v.meta).map(([k, val]) => `${k}: ${val}`).join('\n')).slice(0, 220) || t('（空）')}
           </pre>
         </div>
       ))}
@@ -481,29 +486,30 @@ function McpFields({
   asset: Asset
   setMeta(key: string, value: string): void
 }): React.JSX.Element {
+  const t = useT()
   const transport = asset.meta.transport || 'stdio'
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
-        <Field label="传输方式">
+        <Field label={t('传输方式')}>
           <select
             value={transport}
             onChange={(e) => setMeta('transport', e.target.value)}
             className={fieldCls}
           >
-            <option value="stdio">stdio（本地命令）</option>
-            <option value="sse">SSE（远程）</option>
-            <option value="http">HTTP（远程）</option>
+            <option value="stdio">{t('stdio（本地命令）')}</option>
+            <option value="sse">{t('SSE（远程）')}</option>
+            <option value="http">{t('HTTP（远程）')}</option>
           </select>
         </Field>
-        <Field label="输出格式（不同工具的 JSON 键名）">
+        <Field label={t('输出格式（不同工具的 JSON 键名）')}>
           <select
             value={asset.meta.schemaKey || 'mcpServers'}
             onChange={(e) => setMeta('schemaKey', e.target.value)}
             className={fieldCls}
           >
-            <option value="mcpServers">mcpServers（Claude / Cursor）</option>
-            <option value="servers">servers（VS Code）</option>
+            <option value="mcpServers">{t('mcpServers（Claude / Cursor）')}</option>
+            <option value="servers">{t('servers（VS Code）')}</option>
           </select>
         </Field>
       </div>
@@ -518,7 +524,7 @@ function McpFields({
               className={fieldCls}
             />
           </Field>
-          <Field label="args（每行一个）">
+          <Field label={t('args（每行一个）')}>
             <textarea
               rows={4}
               value={asset.meta.args ?? ''}
@@ -527,7 +533,7 @@ function McpFields({
               className={`${fieldCls} resize-y font-mono`}
             />
           </Field>
-          <Field label="env（每行 KEY=VALUE）">
+          <Field label={t('env（每行 KEY=VALUE）')}>
             <textarea
               rows={2}
               value={asset.meta.env ?? ''}
@@ -547,7 +553,7 @@ function McpFields({
               className={fieldCls}
             />
           </Field>
-          <Field label="headers（每行 KEY=VALUE，可选）">
+          <Field label={t('headers（每行 KEY=VALUE，可选）')}>
             <textarea
               rows={2}
               value={asset.meta.headers ?? ''}
@@ -560,7 +566,7 @@ function McpFields({
       )}
 
       <div>
-        <div className="mb-1 text-xs text-muted">mcp.json 预览</div>
+        <div className="mb-1 text-xs text-muted">{t('mcp.json 预览')}</div>
         <pre className="overflow-auto rounded-xl border border-line-strong bg-surface p-3 font-mono text-xs text-ink">
           {assetToText(asset)}
         </pre>

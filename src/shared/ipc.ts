@@ -35,6 +35,7 @@ export const IPC = {
 
   settingsGet: 'settings:get',
   settingsSetTheme: 'settings:setTheme',
+  settingsSetLanguage: 'settings:setLanguage',
   settingsSetHotkey: 'settings:setHotkey',
   settingsChooseDataDir: 'settings:chooseDataDir',
   settingsOpenDataDir: 'settings:openDataDir',
@@ -62,6 +63,8 @@ export const IPC = {
   updateCheck: 'update:check',
   updateInstall: 'update:install',
   updateGetVersion: 'update:getVersion',
+
+  appQuit: 'app:quit',
 
   /** main -> renderer: request the command palette to open */
   paletteOpen: 'palette:open',

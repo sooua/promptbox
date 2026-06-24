@@ -9,7 +9,9 @@ import { SettingsView } from './components/SettingsView'
 import { CommandPalette } from './components/CommandPalette'
 import { QuickFill } from './components/QuickFill'
 import { CloudSyncModal } from './components/CloudSyncModal'
+import { TitleBar } from './components/TitleBar'
 import { ToastHost, toast } from './components/Toast'
+import { t, useT } from './i18n'
 
 function useThemeEffect(): void {
   const theme = useStore((s) => s.settings?.theme ?? 'system')
@@ -66,7 +68,7 @@ function useGlobalKeys(): void {
         e.preventDefault()
         if (s.view === 'settings') return
         if (s.workspace === 'prompts') {
-          void s.createPrompt({ title: '未命名 Prompt', content: '', categoryId: null })
+          void s.createPrompt({ title: t('未命名 Prompt'), content: '', categoryId: null })
         } else {
           void s.createAsset(s.workspace)
         }
@@ -75,15 +77,15 @@ function useGlobalKeys(): void {
         if (s.view === 'settings') return
         e.preventDefault()
         if (s.workspace === 'prompts') {
-          if (s.selectedId) void s.duplicatePrompt(s.selectedId).then(() => toast.success('已创建副本'))
+          if (s.selectedId) void s.duplicatePrompt(s.selectedId).then(() => toast.success(t('已创建副本')))
         } else if (s.selectedAssetId) {
-          void s.duplicateAsset(s.selectedAssetId).then(() => toast.success('已创建副本'))
+          void s.duplicateAsset(s.selectedAssetId).then(() => toast.success(t('已创建副本')))
         }
       } else if (k === 's') {
         // edits autosave; flush any pending debounce and confirm.
         e.preventDefault()
         window.dispatchEvent(new CustomEvent('promptbox:flush-save'))
-        toast.success('已保存')
+        toast.success(t('已保存'))
       } else if (k === 'f') {
         // focus the current list's search box
         e.preventDefault()
@@ -112,6 +114,7 @@ export default function App(): React.JSX.Element {
   const workspace = useStore((s) => s.workspace)
 
   const openPalette = useStore((s) => s.openPalette)
+  const t = useT()
 
   useThemeEffect()
   useGlobalKeys()
@@ -132,12 +135,12 @@ export default function App(): React.JSX.Element {
       useStore.getState().setUpdateStatus(status)
       if (status.state === 'downloaded') {
         toast.action(
-          `新版本 ${status.version ?? ''} 已下载`,
-          '重启安装',
+          t('新版本 {version} 已下载', { version: status.version ?? '' }),
+          t('重启安装'),
           () => void useStore.getState().installUpdate()
         )
       } else if (status.state === 'error') {
-        toast.error(`检查更新失败：${status.message ?? '请稍后重试'}`)
+        toast.error(t('检查更新失败：{msg}', { msg: status.message ?? t('请稍后重试') }))
       }
     })
   }, [])
@@ -149,7 +152,7 @@ export default function App(): React.JSX.Element {
     return window.api.onSyncChanged((result) => {
       void useStore.getState().onAutoSync(result)
       if (result.status === 'error') {
-        if (!lastWasError) toast.error(`自动同步失败：${result.message ?? '请检查网络或凭证'}`)
+        if (!lastWasError) toast.error(t('自动同步失败：{msg}', { msg: result.message ?? t('请检查网络或凭证') }))
         lastWasError = true
       } else {
         lastWasError = false
@@ -168,27 +171,30 @@ export default function App(): React.JSX.Element {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center bg-canvas font-serif text-faint">
-        加载中…
+        {t('加载中…')}
       </div>
     )
   }
 
   return (
-    <div className="flex h-full bg-canvas text-ink">
-      <Sidebar />
-      {view === 'settings' ? (
-        <SettingsView />
-      ) : workspace === 'prompts' ? (
-        <>
-          <PromptList />
-          <EditorPanel />
-        </>
-      ) : (
-        <>
-          <AssetList kind={workspace} />
-          <AssetEditor />
-        </>
-      )}
+    <div className="flex h-full flex-col bg-canvas text-ink">
+      <TitleBar />
+      <div className="flex min-h-0 flex-1">
+        <Sidebar />
+        {view === 'settings' ? (
+          <SettingsView />
+        ) : workspace === 'prompts' ? (
+          <>
+            <PromptList />
+            <EditorPanel />
+          </>
+        ) : (
+          <>
+            <AssetList kind={workspace} />
+            <AssetEditor />
+          </>
+        )}
+      </div>
       {paletteOpen && <CommandPalette />}
       {cloudOpen && <CloudSyncModal />}
       <QuickFill />

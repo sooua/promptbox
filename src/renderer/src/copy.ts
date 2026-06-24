@@ -1,5 +1,6 @@
 import { useStore } from './store'
 import { toast } from './components/Toast'
+import { t } from './i18n'
 
 /**
  * Single entry point for "copy this prompt" from the fast paths (command
@@ -18,6 +19,6 @@ export async function requestCopy(id: string): Promise<void> {
   }
 
   const ok = await s.copyAndUse(id)
-  if (ok) toast.success('已复制到剪贴板')
-  else toast.error('复制失败')
+  if (ok) toast.success(t('已复制到剪贴板'))
+  else toast.error(t('复制失败'))
 }

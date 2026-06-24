@@ -1,4 +1,5 @@
 import type { PromptVariable } from '@shared/types'
+import { useT } from '../i18n'
 
 const inputCls =
   'w-full rounded-xl border border-line-strong bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-focus'
@@ -18,11 +19,12 @@ export function VariableInput({
   /** highlight as a missing required field */
   invalid?: boolean
 }): React.JSX.Element {
+  const t = useT()
   const cls = invalid ? `${inputCls} border-rose-400 focus:border-rose-400` : inputCls
   if (variable.type === 'select' && variable.options?.length) {
     return (
       <select autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)} className={cls}>
-        <option value="">（请选择）</option>
+        <option value="">{t('（请选择）')}</option>
         {variable.options.map((o) => (
           <option key={o} value={o}>
             {o}
@@ -38,7 +40,7 @@ export function VariableInput({
         rows={3}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={variable.defaultValue || `输入 ${variable.name}…`}
+        placeholder={variable.defaultValue || t('输入 {name}…', { name: variable.name })}
         className={`${cls} resize-y`}
       />
     )
@@ -50,7 +52,7 @@ export function VariableInput({
         autoFocus={autoFocus}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={variable.defaultValue || `输入 ${variable.name}…`}
+        placeholder={variable.defaultValue || t('输入 {name}…', { name: variable.name })}
         className={cls}
       />
     )
@@ -60,7 +62,7 @@ export function VariableInput({
       autoFocus={autoFocus}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={variable.defaultValue || `输入 ${variable.name}…`}
+      placeholder={variable.defaultValue || t('输入 {name}…', { name: variable.name })}
       className={cls}
     />
   )

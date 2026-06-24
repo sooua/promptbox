@@ -13,17 +13,20 @@ import {
   Database,
   Info
 } from 'lucide-react'
-import type { BackupInfo, ThemeMode } from '@shared/types'
+import type { BackupInfo, Language, ThemeMode } from '@shared/types'
 import { HOTKEY_PRESETS } from '@shared/types'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
+import { useT } from '../i18n'
 import { toast } from './Toast'
 
 export function SettingsView(): React.JSX.Element {
+  const t = useT()
   const settings = useStore((s) => s.settings)
   const prompts = useStore((s) => s.prompts)
   const categories = useStore((s) => s.categories)
   const setTheme = useStore((s) => s.setTheme)
+  const setLanguage = useStore((s) => s.setLanguage)
   const setHotkey = useStore((s) => s.setHotkey)
   const chooseDataDir = useStore((s) => s.chooseDataDir)
   const openDataDir = useStore((s) => s.openDataDir)
@@ -32,20 +35,20 @@ export function SettingsView(): React.JSX.Element {
 
   async function handleExport() {
     const res = await exportData()
-    if (res.ok) toast.success('数据已导出')
+    if (res.ok) toast.success(t('数据已导出'))
   }
 
   async function handleHotkey(accelerator: string) {
     const ok = await setHotkey(accelerator)
-    if (ok) toast.success('全局热键已更新')
-    else toast.error('该热键被系统或其他应用占用，请换一个')
+    if (ok) toast.success(t('全局热键已更新'))
+    else toast.error(t('该热键被系统或其他应用占用，请换一个'))
   }
 
   async function handleImport(mode: 'merge' | 'replace') {
-    if (mode === 'replace' && !confirm('替换导入会覆盖当前全部数据，确定继续？')) return
+    if (mode === 'replace' && !confirm(t('替换导入会覆盖当前全部数据，确定继续？'))) return
     const res = await importData(mode)
-    if (res.ok) toast.success('导入完成')
-    else toast.error('导入失败或已取消')
+    if (res.ok) toast.success(t('导入完成'))
+    else toast.error(t('导入失败或已取消'))
   }
 
   const themes: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
@@ -53,28 +56,49 @@ export function SettingsView(): React.JSX.Element {
     { value: 'dark', label: '深色', icon: <Moon size={15} /> },
     { value: 'system', label: '跟随系统', icon: <Monitor size={15} /> }
   ]
+  const languages: { value: Language; label: string }[] = [
+    { value: 'zh', label: '中文' },
+    { value: 'en', label: 'English' }
+  ]
 
   return (
     <div className="flex-1 overflow-y-auto bg-canvas">
       <div className="mx-auto max-w-2xl px-8 py-10">
-        <h1 className="mb-7 font-serif text-[32px] leading-tight text-ink">设置</h1>
+        <h1 className="mb-7 font-serif text-[32px] leading-tight text-ink">{t('设置')}</h1>
 
         {/* Appearance */}
-        <Section title="外观">
-          <Row label="主题">
+        <Section title={t('外观')}>
+          <Row label={t('主题')}>
             <div className="flex gap-2">
-              {themes.map((t) => (
+              {themes.map((th) => (
                 <button
-                  key={t.value}
-                  onClick={() => setTheme(t.value)}
+                  key={th.value}
+                  onClick={() => setTheme(th.value)}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
-                    settings?.theme === t.value
+                    settings?.theme === th.value
                       ? 'border-brand/40 bg-brand/10 text-brand'
                       : 'border-line-strong text-muted hover:border-ring hover:text-ink'
                   }`}
                 >
-                  {t.icon}
-                  {t.label}
+                  {th.icon}
+                  {t(th.label)}
+                </button>
+              ))}
+            </div>
+          </Row>
+          <Row label={t('语言')}>
+            <div className="flex gap-2">
+              {languages.map((lng) => (
+                <button
+                  key={lng.value}
+                  onClick={() => setLanguage(lng.value)}
+                  className={`rounded-xl border px-3 py-1.5 text-sm transition ${
+                    (settings?.language ?? 'zh') === lng.value
+                      ? 'border-brand/40 bg-brand/10 text-brand'
+                      : 'border-line-strong text-muted hover:border-ring hover:text-ink'
+                  }`}
+                >
+                  {lng.label}
                 </button>
               ))}
             </div>
@@ -82,8 +106,8 @@ export function SettingsView(): React.JSX.Element {
         </Section>
 
         {/* Quick launch */}
-        <Section title="快速调用">
-          <Row label="全局热键" description="在任意应用中唤起命令面板，托盘后台运行时也生效">
+        <Section title={t('快速调用')}>
+          <Row label={t('全局热键')} description={t('在任意应用中唤起命令面板，托盘后台运行时也生效')}>
             <select
               value={settings?.globalHotkey ?? ''}
               onChange={(e) => handleHotkey(e.target.value)}
@@ -99,67 +123,69 @@ export function SettingsView(): React.JSX.Element {
         </Section>
 
         {/* Data */}
-        <Section title="数据存储">
-          <Row label="数据目录" description="数据保存在本机此目录">
+        <Section title={t('数据存储')}>
+          <Row label={t('数据目录')} description={t('数据保存在本机此目录')}>
             <code className="max-w-xs truncate rounded-lg bg-surface-2 px-2.5 py-1.5 font-mono text-xs text-muted">
               {settings?.dataDir ?? '—'}
             </code>
           </Row>
           <div className="flex gap-2 pt-1">
             <ActionButton icon={<Database size={15} />} onClick={chooseDataDir}>
-              更改目录
+              {t('更改目录')}
             </ActionButton>
             <ActionButton icon={<FolderOpen size={15} />} onClick={openDataDir}>
-              打开目录
+              {t('打开目录')}
             </ActionButton>
           </div>
         </Section>
 
         {/* Import / Export */}
-        <Section title="导入 / 导出">
+        <Section title={t('导入 / 导出')}>
           <div className="flex flex-wrap gap-2">
             <ActionButton icon={<Download size={15} />} onClick={handleExport}>
-              导出全部
+              {t('导出全部')}
             </ActionButton>
             <ActionButton icon={<Upload size={15} />} onClick={() => handleImport('merge')}>
-              导入（合并）
+              {t('导入（合并）')}
             </ActionButton>
             <ActionButton icon={<Upload size={15} />} danger onClick={() => handleImport('replace')}>
-              导入（替换）
+              {t('导入（替换）')}
             </ActionButton>
           </div>
         </Section>
 
         {/* Shortcuts */}
-        <Section title="快捷键">
+        <Section title={t('快捷键')}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            <ShortcutRow keys="⌘/Ctrl + K" label="命令面板(搜索全部资产)" />
-            <ShortcutRow keys="⌘/Ctrl + N" label="在当前工作区新建" />
-            <ShortcutRow keys="⌘/Ctrl + D" label="复制当前条目" />
-            <ShortcutRow keys="⌘/Ctrl + S" label="立即保存" />
-            <ShortcutRow keys="⌘/Ctrl + F" label="聚焦列表搜索" />
-            <ShortcutRow keys="⌘/Ctrl + 1~4" label="切换 Prompts / Skill / Agent / MCP" />
-            <ShortcutRow keys="⌘/Ctrl + ," label="打开设置" />
-            <ShortcutRow keys="⌘/Ctrl + Z" label="编辑器撤销 / 重做" />
-            <ShortcutRow keys="↑ ↓ / Enter" label="列表选择 / 复制" />
-            <ShortcutRow keys="Esc" label="关闭弹窗 / 返回" />
+            <ShortcutRow keys="⌘/Ctrl + K" label={t('命令面板(搜索全部资产)')} />
+            <ShortcutRow keys="⌘/Ctrl + N" label={t('在当前工作区新建')} />
+            <ShortcutRow keys="⌘/Ctrl + D" label={t('复制当前条目')} />
+            <ShortcutRow keys="⌘/Ctrl + S" label={t('立即保存')} />
+            <ShortcutRow keys="⌘/Ctrl + F" label={t('聚焦列表搜索')} />
+            <ShortcutRow keys="⌘/Ctrl + 1~4" label={t('切换 Prompts / Skill / Agent / MCP')} />
+            <ShortcutRow keys="⌘/Ctrl + ," label={t('打开设置')} />
+            <ShortcutRow keys="⌘/Ctrl + Z" label={t('编辑器撤销 / 重做')} />
+            <ShortcutRow keys="↑ ↓ / Enter" label={t('列表选择 / 复制')} />
+            <ShortcutRow keys="Esc" label={t('关闭弹窗 / 返回')} />
           </div>
         </Section>
 
         {/* Backups */}
-        <Section title="数据快照">
+        <Section title={t('数据快照')}>
           <BackupSection />
         </Section>
 
         {/* About & Update */}
-        <Section title="关于与更新">
+        <Section title={t('关于与更新')}>
           <UpdateRow />
           <div className="mt-4 flex items-center gap-2 text-xs text-faint">
             <Info size={14} className="shrink-0" />
             <p>
-              PromptBox · 本地 AI Prompt 资产库 ·{' '}
-              <span className="text-muted">{prompts.length}</span> 个 Prompt、
-              <span className="text-muted">{categories.length}</span> 个分类
+              {t('PromptBox · 本地 AI Prompt 资产库')} ·{' '}
+              {t('{prompts} 个 Prompt、{categories} 个分类', {
+                prompts: prompts.length,
+                categories: categories.length
+              })}
             </p>
           </div>
         </Section>
@@ -169,6 +195,7 @@ export function SettingsView(): React.JSX.Element {
 }
 
 function UpdateRow(): React.JSX.Element {
+  const t = useT()
   const appVersion = useStore((s) => s.appVersion)
   const updateStatus = useStore((s) => s.updateStatus)
   const checkUpdate = useStore((s) => s.checkUpdate)
@@ -179,9 +206,9 @@ function UpdateRow(): React.JSX.Element {
     setChecking(true)
     const s = await checkUpdate()
     setChecking(false)
-    if (s.state === 'dev') toast.info('开发模式下不检查更新，打包后生效')
-    else if (s.state === 'none') toast.success('已是最新版本')
-    else if (s.state === 'error') toast.error(`检查失败：${s.message ?? ''}`)
+    if (s.state === 'dev') toast.info(t('开发模式下不检查更新，打包后生效'))
+    else if (s.state === 'none') toast.success(t('已是最新版本'))
+    else if (s.state === 'error') toast.error(t('检查失败：{message}', { message: s.message ?? '' }))
   }
 
   const st = updateStatus?.state
@@ -189,19 +216,19 @@ function UpdateRow(): React.JSX.Element {
   const statusText = ((): string => {
     switch (st) {
       case 'checking':
-        return '正在检查更新…'
+        return t('正在检查更新…')
       case 'available':
-        return `发现新版本 ${updateStatus?.version ?? ''}，正在后台下载…`
+        return t('发现新版本 {version}，正在后台下载…', { version: updateStatus?.version ?? '' })
       case 'downloading':
-        return `下载中 ${updateStatus?.percent ?? 0}%`
+        return t('下载中 {percent}%', { percent: updateStatus?.percent ?? 0 })
       case 'downloaded':
-        return `新版本 ${updateStatus?.version ?? ''} 已就绪，重启即可安装`
+        return t('新版本 {version} 已就绪，重启即可安装', { version: updateStatus?.version ?? '' })
       case 'none':
-        return '已是最新版本'
+        return t('已是最新版本')
       case 'error':
-        return `检查失败：${updateStatus?.message ?? ''}`
+        return t('检查失败：{message}', { message: updateStatus?.message ?? '' })
       case 'dev':
-        return '开发模式，打包后可更新'
+        return t('开发模式，打包后可更新')
       default:
         return ''
     }
@@ -210,7 +237,7 @@ function UpdateRow(): React.JSX.Element {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3">
       <div className="min-w-0">
-        <div className="text-sm text-ink">版本 v{appVersion || '—'}</div>
+        <div className="text-sm text-ink">{t('版本 v{version}', { version: appVersion || '—' })}</div>
         {statusText && <div className="mt-0.5 text-xs text-faint">{statusText}</div>}
       </div>
       {st === 'downloaded' ? (
@@ -219,7 +246,7 @@ function UpdateRow(): React.JSX.Element {
           className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-sm text-[#faf9f5] transition hover:bg-brand-strong"
         >
           <Download size={15} />
-          重启安装
+          {t('重启安装')}
         </button>
       ) : (
         <button
@@ -228,7 +255,7 @@ function UpdateRow(): React.JSX.Element {
           className="flex items-center gap-1.5 rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-muted transition hover:border-ring hover:text-ink disabled:opacity-50"
         >
           <RefreshCw size={15} className={busy ? 'animate-spin' : ''} />
-          检查更新
+          {t('检查更新')}
         </button>
       )}
     </div>
@@ -242,6 +269,7 @@ function formatSize(bytes: number): string {
 }
 
 function BackupSection(): React.JSX.Element {
+  const t = useT()
   const listBackups = useStore((s) => s.listBackups)
   const createBackup = useStore((s) => s.createBackup)
   const restoreBackup = useStore((s) => s.restoreBackup)
@@ -260,30 +288,30 @@ function BackupSection(): React.JSX.Element {
   async function handleCreate() {
     await createBackup()
     await refresh()
-    toast.success('已创建快照')
+    toast.success(t('已创建快照'))
   }
 
   async function handleRestore(b: BackupInfo) {
-    if (!confirm(`从 ${formatDate(b.createdAt)} 的快照恢复？当前数据会被替换。`)) return
+    if (!confirm(t('从 {date} 的快照恢复？当前数据会被替换。', { date: formatDate(b.createdAt) }))) return
     const ok = await restoreBackup(b.file)
-    if (ok) toast.success('已从快照恢复')
-    else toast.error('恢复失败')
+    if (ok) toast.success(t('已从快照恢复'))
+    else toast.error(t('恢复失败'))
   }
 
   return (
     <div>
-      <p className="mb-3 text-xs text-faint">自动保存快照，最多保留 20 份。</p>
+      <p className="mb-3 text-xs text-faint">{t('自动保存快照，最多保留 20 份。')}</p>
       <div className="mb-3 flex flex-wrap gap-2">
         <ActionButton icon={<Camera size={15} />} onClick={handleCreate}>
-          立即备份
+          {t('立即备份')}
         </ActionButton>
         <ActionButton icon={<FolderOpen size={15} />} onClick={openBackupDir}>
-          打开备份文件夹
+          {t('打开备份文件夹')}
         </ActionButton>
       </div>
       {backups.length === 0 ? (
         <div className="rounded-xl border border-dashed border-line-strong py-6 text-center text-xs text-faint">
-          暂无快照
+          {t('暂无快照')}
         </div>
       ) : (
         <div className="space-y-1.5">
@@ -304,7 +332,7 @@ function BackupSection(): React.JSX.Element {
                 className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand"
               >
                 <RotateCcw size={12} />
-                恢复
+                {t('恢复')}
               </button>
             </div>
           ))}

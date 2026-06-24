@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { extractVariableNames } from '@shared/variables'
+import { useT } from '../i18n'
 
 interface Props {
   value: string
@@ -90,6 +91,7 @@ export function HighlightedEditor({
   placeholder,
   suggestions
 }: Props): React.JSX.Element {
+  const t = useT()
   const taRef = useRef<HTMLTextAreaElement>(null)
   const preRef = useRef<HTMLPreElement>(null)
 
@@ -306,7 +308,7 @@ export function HighlightedEditor({
                   }`}
                 >
                   <code className="var-chip">{`{{${name}}}`}</code>
-                  {!suggestions.includes(name) && <span className="text-faint">新建</span>}
+                  {!suggestions.includes(name) && <span className="text-faint">{t('新建')}</span>}
                 </button>
               </li>
             ))}
@@ -315,11 +317,11 @@ export function HighlightedEditor({
       </div>
 
       <div className="mt-2 flex items-center gap-4 px-1 text-[11px] text-faint">
-        <span>{counts.chars} 字符</span>
-        <span>{counts.lines} 行</span>
-        <span>{counts.vars} 个变量</span>
+        <span>{t('{n} 字符', { n: counts.chars })}</span>
+        <span>{t('{n} 行', { n: counts.lines })}</span>
+        <span>{t('{n} 个变量', { n: counts.vars })}</span>
         <span className="ml-auto">
-          输入 <code className="var-chip">{'{{'}</code> 触发变量补全
+          {t('输入')} <code className="var-chip">{'{{'}</code> {t('触发变量补全')}
         </span>
       </div>
     </div>

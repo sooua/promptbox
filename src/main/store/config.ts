@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import type { AppSettings, ThemeMode } from '@shared/types'
+import type { AppSettings, Language, ThemeMode } from '@shared/types'
 import { DEFAULT_HOTKEY } from '@shared/types'
 
 /**
@@ -22,6 +22,7 @@ export function loadSettings(): AppSettings {
   const fallback: AppSettings = {
     dataDir: defaultDataDir(),
     theme: 'system',
+    language: 'zh',
     globalHotkey: DEFAULT_HOTKEY
   }
   try {
@@ -30,6 +31,7 @@ export function loadSettings(): AppSettings {
     return {
       dataDir: parsed.dataDir || fallback.dataDir,
       theme: (parsed.theme as ThemeMode) || fallback.theme,
+      language: (parsed.language as Language) || fallback.language,
       globalHotkey: parsed.globalHotkey || fallback.globalHotkey
     }
   } catch {

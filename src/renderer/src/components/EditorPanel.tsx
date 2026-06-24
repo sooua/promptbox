@@ -19,21 +19,23 @@ import { HighlightedEditor } from './HighlightedEditor'
 import { VariableFiller } from './VariableFiller'
 import { VersionHistory } from './VersionHistory'
 import { toast } from './Toast'
+import { useT } from '../i18n'
 
 type Tab = 'edit' | 'preview' | 'variables' | 'history'
 
 export function EditorPanel(): React.JSX.Element {
   const selectedId = useStore((s) => s.selectedId)
   const prompt = useStore((s) => s.prompts.find((p) => p.id === s.selectedId) ?? null)
+  const t = useT()
 
   if (!prompt) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center bg-canvas text-faint">
         <FileText size={40} className="mb-3 opacity-40" />
-        <p className="font-serif text-base">选择左侧 Prompt，或新建一个开始</p>
+        <p className="font-serif text-base">{t('选择左侧 Prompt，或新建一个开始')}</p>
         <p className="mt-2 text-xs text-faint">
-          <kbd className="rounded border border-line-strong px-1">Ctrl/⌘ + N</kbd> 新建 ·{' '}
-          <kbd className="rounded border border-line-strong px-1">Ctrl/⌘ + K</kbd> 快速调用
+          <kbd className="rounded border border-line-strong px-1">Ctrl/⌘ + N</kbd> {t('新建')} ·{' '}
+          <kbd className="rounded border border-line-strong px-1">Ctrl/⌘ + K</kbd> {t('快速调用')}
         </p>
       </div>
     )
@@ -51,6 +53,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   const toggleFavorite = useStore((s) => s.toggleFavorite)
   const togglePin = useStore((s) => s.togglePin)
   const recordUse = useStore((s) => s.recordUse)
+  const t = useT()
 
   // Known variable names across all prompts, offered in {{ }} autocomplete.
   const suggestions = useMemo(() => {
@@ -110,7 +113,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   async function copyContent() {
     await navigator.clipboard.writeText(content)
     void recordUse(prompt.id)
-    toast.success('已复制 Prompt 内容')
+    toast.success(t('已复制 Prompt 内容'))
   }
 
   function addTag(raw: string) {
@@ -130,7 +133,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   async function handleDelete() {
     const snapshot = prompt
     await deletePrompt(prompt.id)
-    toast.undo(`已删除「${snapshot.title}」`, () => {
+    toast.undo(t('已删除「{title}」', { title: snapshot.title }), () => {
       void useStore.getState().restorePrompt(snapshot)
     })
   }
@@ -138,7 +141,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   return (
     <div className="flex flex-1 flex-col bg-canvas">
       {/* Toolbar */}
-      <div className="app-drag app-drag-pad flex items-center gap-2 border-b border-line px-6 py-3.5">
+      <div className="flex items-center gap-2 border-b border-line px-6 py-3.5">
         <input
           value={title}
           onChange={(e) => {
@@ -146,31 +149,31 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
             scheduleSave({ title: e.target.value })
           }}
           className="min-w-0 flex-1 bg-transparent font-serif text-[22px] leading-tight text-ink outline-none placeholder:text-faint"
-          placeholder="Prompt 标题"
+          placeholder={t('Prompt 标题')}
         />
         <ToolbarButton
-          title={prompt.pinned ? '取消置顶' : '置顶'}
+          title={prompt.pinned ? t('取消置顶') : t('置顶')}
           active={prompt.pinned}
           onClick={() => togglePin(prompt.id)}
         >
           <Pin size={17} className="-rotate-45" fill={prompt.pinned ? 'currentColor' : 'none'} />
         </ToolbarButton>
-        <ToolbarButton title="收藏" active={prompt.favorite} onClick={() => toggleFavorite(prompt.id)}>
+        <ToolbarButton title={t('收藏')} active={prompt.favorite} onClick={() => toggleFavorite(prompt.id)}>
           <Star size={17} fill={prompt.favorite ? 'currentColor' : 'none'} />
         </ToolbarButton>
-        <ToolbarButton title="复制内容" onClick={copyContent}>
+        <ToolbarButton title={t('复制内容')} onClick={copyContent}>
           <Copy size={17} />
         </ToolbarButton>
         <ToolbarButton
-          title="创建副本"
+          title={t('创建副本')}
           onClick={async () => {
             await duplicatePrompt(prompt.id)
-            toast.success('已创建副本')
+            toast.success(t('已创建副本'))
           }}
         >
           <CopyPlus size={17} />
         </ToolbarButton>
-        <ToolbarButton title="删除" danger onClick={handleDelete}>
+        <ToolbarButton title={t('删除')} danger onClick={handleDelete}>
           <Trash2 size={17} />
         </ToolbarButton>
       </div>
@@ -182,7 +185,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           onChange={(e) => flushSave({ categoryId: e.target.value || null })}
           className="rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-xs text-ink outline-none focus:border-focus"
         >
-          <option value="">未分类</option>
+          <option value="">{t('未分类')}</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}
@@ -214,7 +217,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
                 removeTag(prompt.tags[prompt.tags.length - 1])
               }
             }}
-            placeholder="添加标签…"
+            placeholder={t('添加标签…')}
             className="w-24 bg-transparent text-[11px] text-ink outline-none placeholder:text-faint"
           />
         </div>
@@ -228,7 +231,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
             setDescription(e.target.value)
             scheduleSave({ description: e.target.value })
           }}
-          placeholder="一句话描述（可选）"
+          placeholder={t('一句话描述（可选）')}
           className="w-full bg-transparent text-xs text-muted outline-none placeholder:text-faint"
         />
       </div>
@@ -236,17 +239,17 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-line px-4">
         <TabButton active={tab === 'edit'} onClick={() => setTab('edit')} icon={<Pencil size={14} />}>
-          编辑
+          {t('编辑')}
         </TabButton>
         <TabButton active={tab === 'preview'} onClick={() => setTab('preview')} icon={<Eye size={14} />}>
-          预览
+          {t('预览')}
         </TabButton>
         <TabButton
           active={tab === 'variables'}
           onClick={() => setTab('variables')}
           icon={<Wand2 size={14} />}
         >
-          变量
+          {t('变量')}
           {prompt.variables.length > 0 && (
             <span className="ml-1 rounded-full bg-brand/15 px-1.5 text-[10px] text-brand">
               {prompt.variables.length}
@@ -258,7 +261,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           onClick={() => setTab('history')}
           icon={<HistoryIcon size={14} />}
         >
-          历史
+          {t('历史')}
           {prompt.versions.length > 0 && (
             <span className="ml-1 rounded-full bg-surface-2 px-1.5 text-[10px] text-faint">
               {prompt.versions.length}
@@ -277,7 +280,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
               scheduleSave({ content: v })
             }}
             onBlur={() => flushSave({ content })}
-            placeholder={'在此编写 Prompt，使用 {{变量名}} 创建可填充模板…\n\n支持 Markdown 语法。'}
+            placeholder={t('在此编写 Prompt，使用 {{变量名}} 创建可填充模板…\n\n支持 Markdown 语法。')}
             suggestions={suggestions}
           />
         )}

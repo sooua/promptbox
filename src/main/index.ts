@@ -1,4 +1,4 @@
-import { app, shell, dialog, BrowserWindow, nativeTheme } from 'electron'
+import { app, shell, dialog, ipcMain, BrowserWindow, nativeTheme } from 'electron'
 import { join } from 'path'
 import { IPC } from '@shared/ipc'
 import appIconPath from '../../resources/icon.png?asset'
@@ -8,6 +8,7 @@ import { registerIpc, registerBackupIpc } from './ipc'
 import { BackupManager } from './backup'
 import { seedIfEmpty } from './seed'
 import { setupSystem, destroySystem } from './system'
+import { setMainLanguage, mt } from './i18n'
 import { SyncEngine } from './sync/engine'
 import { registerSyncIpc } from './sync/ipc'
 import { setupAutoUpdate } from './update'
@@ -27,7 +28,7 @@ function overlayColors(): { color: string; symbolColor: string } {
     : { color: '#f5f4ed', symbolColor: '#5e5d59' }
 }
 
-const TITLEBAR_HEIGHT = 52
+const TITLEBAR_HEIGHT = 40
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -105,6 +106,7 @@ app.whenReady().then(() => {
   if (settings.theme !== 'system') {
     nativeTheme.themeSource = settings.theme
   }
+  setMainLanguage(settings.language)
 
   const repo = new PromptRepository(settings.dataDir)
   seedIfEmpty(repo)
@@ -120,8 +122,11 @@ app.whenReady().then(() => {
   // Surface unrecoverable write failures instead of silently losing edits.
   repo.onError((err) => {
     dialog.showErrorBox(
-      'PromptBox 无法保存数据',
-      `写入数据文件失败，最近的修改可能仅保存在内存中。\n请检查磁盘空间或文件权限。\n\n${err.message}`
+      mt('PromptBox 无法保存数据'),
+      mt(
+        '写入数据文件失败，最近的修改可能仅保存在内存中。\n请检查磁盘空间或文件权限。\n\n{msg}',
+        { msg: err.message }
+      )
     )
   })
 
@@ -131,11 +136,11 @@ app.whenReady().then(() => {
   const recovery = repo.takeLoadRecovery()
   if (recovery) {
     const detail = recovery.restoredFrom
-      ? `已从备份「${recovery.restoredFrom}」恢复数据。`
-      : '未找到可用备份，已以空数据启动。'
+      ? mt('已从备份「{file}」恢复数据。', { file: recovery.restoredFrom })
+      : mt('未找到可用备份，已以空数据启动。')
     dialog.showErrorBox(
-      'PromptBox 数据文件已损坏',
-      `原文件已保留为「${recovery.quarantined}」。\n${detail}`
+      mt('PromptBox 数据文件已损坏'),
+      mt('原文件已保留为「{file}」。\n{detail}', { file: recovery.quarantined, detail })
     )
   }
 
@@ -162,6 +167,12 @@ app.whenReady().then(() => {
     beforeInstall: () => {
       isQuitting = true
     }
+  })
+
+  // Quit from the in-app menu (the window close button only hides to tray).
+  ipcMain.handle(IPC.appQuit, () => {
+    isQuitting = true
+    app.quit()
   })
 
   app.on('activate', () => {

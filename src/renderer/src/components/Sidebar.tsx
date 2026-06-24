@@ -22,6 +22,7 @@ import type { AssetKind } from '@shared/types'
 import { useStore, type CategoryFilter, type Workspace } from '../store'
 import { collectTags } from '../selectors'
 import { toast } from './Toast'
+import { useT } from '../i18n'
 
 const WORKSPACES: { id: Workspace; label: string; icon: React.ReactNode }[] = [
   { id: 'prompts', label: 'Prompts', icon: <Blocks size={16} /> },
@@ -49,6 +50,7 @@ export function Sidebar(): React.JSX.Element {
   const workspace = useStore((s) => s.workspace)
   const setWorkspace = useStore((s) => s.setWorkspace)
 
+  const t = useT()
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [dragId, setDragId] = useState<string | null>(null)
@@ -82,18 +84,18 @@ export function Sidebar(): React.JSX.Element {
     await createCategory(name, color)
     setNewName('')
     setAdding(false)
-    toast.success('已创建分类')
+    toast.success(t('已创建分类'))
   }
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-canvas">
-      <div className="app-drag flex items-center gap-2.5 px-5 py-5">
+      <div className="flex items-center gap-2.5 px-5 py-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-[#faf9f5]">
           <Box size={18} />
         </div>
         <div>
           <div className="font-serif text-[17px] leading-tight text-ink">PromptBox</div>
-          <div className="text-[11px] text-faint">本地 Prompt 资产库</div>
+          <div className="text-[11px] text-faint">{t('本地 Prompt 资产库')}</div>
         </div>
       </div>
 
@@ -119,49 +121,49 @@ export function Sidebar(): React.JSX.Element {
         <AssetNav kind={workspace} />
       ) : (
       <nav className="flex-1 overflow-y-auto px-2.5 pb-2">
-        <SectionLabel>资产库</SectionLabel>
+        <SectionLabel>{t('资产库')}</SectionLabel>
         <NavItem
           icon={<Layers size={15} />}
-          label="全部"
+          label={t('全部')}
           active={view === 'library' && categoryFilter === 'all'}
           count={prompts.length}
           onClick={() => setCategoryFilter('all')}
         />
         <NavItem
           icon={<Star size={15} />}
-          label="收藏"
+          label={t('收藏')}
           active={view === 'library' && categoryFilter === 'favorites'}
           count={favCount}
           onClick={() => setCategoryFilter('favorites')}
         />
         <NavItem
           icon={<Clock size={15} />}
-          label="最近使用"
+          label={t('最近使用')}
           active={view === 'library' && categoryFilter === 'recent'}
           count={recentCount}
           onClick={() => setCategoryFilter('recent')}
         />
         <NavItem
           icon={<Flame size={15} />}
-          label="最常用"
+          label={t('最常用')}
           active={view === 'library' && categoryFilter === 'frequent'}
           count={frequentCount}
           onClick={() => setCategoryFilter('frequent')}
         />
         <NavItem
           icon={<Inbox size={15} />}
-          label="未分类"
+          label={t('未分类')}
           active={view === 'library' && categoryFilter === 'uncategorized'}
           count={uncatCount}
           onClick={() => setCategoryFilter('uncategorized')}
         />
 
         <div className="mt-4 flex items-center justify-between pr-1">
-          <SectionLabel>分类</SectionLabel>
+          <SectionLabel>{t('分类')}</SectionLabel>
           <button
             className="rounded-md p-1 text-faint transition hover:bg-surface-2 hover:text-ink"
             onClick={() => setAdding(true)}
-            title="新建分类"
+            title={t('新建分类')}
           >
             <Plus size={14} />
           </button>
@@ -188,7 +190,7 @@ export function Sidebar(): React.JSX.Element {
             className={`group relative rounded-lg transition ${
               dragId === c.id ? 'opacity-40' : ''
             } ${overId === c.id ? 'ring-1 ring-brand/50' : ''}`}
-            title="拖拽可调整排序"
+            title={t('拖拽可调整排序')}
           >
             <NavItem
               icon={
@@ -203,16 +205,16 @@ export function Sidebar(): React.JSX.Element {
               onClick={() => setCategoryFilter(c.id as CategoryFilter)}
             />
             <div className="absolute right-1 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 group-hover:flex">
-              <span className="cursor-grab text-faint active:cursor-grabbing" title="拖拽排序">
+              <span className="cursor-grab text-faint active:cursor-grabbing" title={t('拖拽排序')}>
                 <GripVertical size={13} />
               </span>
               <button
                 className="rounded p-1 text-faint hover:text-error"
-                title="删除分类"
+                title={t('删除分类')}
                 onClick={async (e) => {
                   e.stopPropagation()
                   await deleteCategory(c.id)
-                  toast.info('分类已删除，相关 Prompt 移至未分类')
+                  toast.info(t('分类已删除，相关 Prompt 移至未分类'))
                 }}
               >
                 <Trash2 size={13} />
@@ -234,14 +236,14 @@ export function Sidebar(): React.JSX.Element {
                 setNewName('')
               }
             }}
-            placeholder="分类名称…"
+            placeholder={t('分类名称…')}
             className="mx-2 mt-1 w-[calc(100%-1rem)] rounded-[10px] border border-line-strong bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-focus"
           />
         )}
 
         {tags.length > 0 && (
           <>
-            <SectionLabel className="mt-4">标签</SectionLabel>
+            <SectionLabel className="mt-4">{t('标签')}</SectionLabel>
             <div className="flex flex-wrap gap-1.5 px-2 py-1">
               {tags.map(({ tag, count }) => (
                 <button
@@ -272,16 +274,16 @@ export function Sidebar(): React.JSX.Element {
           onClick={() => setView('settings')}
           className={`flex flex-1 items-center gap-2 px-5 py-3.5 text-sm transition ${
             view === 'settings'
-              ? 'bg-surface-2 font-medium text-ink'
+              ? 'font-medium text-brand'
               : 'text-muted hover:bg-surface-2 hover:text-ink'
           }`}
         >
           <Settings size={16} />
-          设置
+          {t('设置')}
         </button>
         <button
           onClick={openCloud}
-          title="云同步"
+          title={t('云同步')}
           className="relative flex items-center px-4 text-muted transition hover:bg-surface-2 hover:text-ink"
         >
           <Cloud size={16} />
@@ -302,6 +304,7 @@ function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
   const setAssetFavOnly = useStore((s) => s.setAssetFavOnly)
   const setAssetCategory = useStore((s) => s.setAssetCategory)
   const importAssets = useStore((s) => s.importAssets)
+  const t = useT()
 
   const ofKind = assets.filter((a) => a.kind === kind)
   const favCount = ofKind.filter((a) => a.favorite).length
@@ -309,13 +312,13 @@ function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
 
   async function handleImport() {
     const res = await importAssets(kind)
-    if (res.ok) toast.success(`已导入 ${res.count} 个资产`)
-    else toast.error('导入失败或已取消')
+    if (res.ok) toast.success(t('已导入 {count} 个资产', { count: res.count }))
+    else toast.error(t('导入失败或已取消'))
   }
 
   return (
     <nav className="flex-1 overflow-y-auto px-2.5 pb-2">
-      <SectionLabel>资产</SectionLabel>
+      <SectionLabel>{t('资产')}</SectionLabel>
       <button
         onClick={() => setAssetCategory(null)}
         className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition ${
@@ -325,7 +328,7 @@ function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
         <span className="flex w-4 justify-center text-faint">
           <Layers size={15} />
         </span>
-        <span className="flex-1 text-left">全部</span>
+        <span className="flex-1 text-left">{t('全部')}</span>
         <span className="text-[11px] text-faint">{ofKind.length}</span>
       </button>
       <button
@@ -337,13 +340,13 @@ function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
         <span className="flex w-4 justify-center text-faint">
           <Star size={15} />
         </span>
-        <span className="flex-1 text-left">收藏</span>
+        <span className="flex-1 text-left">{t('收藏')}</span>
         <span className="text-[11px] text-faint">{favCount}</span>
       </button>
 
       {categories.length > 0 && (
         <>
-          <SectionLabel className="mt-3">分类</SectionLabel>
+          <SectionLabel className="mt-3">{t('分类')}</SectionLabel>
           {categories.map((c) => {
             const count = ofKind.filter((a) => a.categoryId === c.id).length
             return (
@@ -376,7 +379,7 @@ function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
           className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-line-strong py-1.5 text-xs text-muted transition hover:border-brand hover:text-brand"
         >
           <Upload size={13} />
-          从文件导入
+          {t('从文件导入')}
         </button>
       </div>
     </nav>

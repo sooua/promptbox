@@ -118,9 +118,8 @@ body {
 .app-drag :where(button, a, input, select, textarea, label, [role='button'], [role='option'], [contenteditable='true']) {
   -webkit-app-region: no-drag;
 }
-/* Reserve room on the right-most top bar for the window-control overlay. */
-.app-drag-pad {
-  padding-right: 140px;
+.app-no-drag {
+  -webkit-app-region: no-drag;
 }
 
 /* Rendered markdown styling (scoped to .md). */

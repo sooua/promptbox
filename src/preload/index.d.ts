@@ -13,6 +13,7 @@ import type {
   S3ConfigInput,
   SyncResult,
   SyncState,
+  Language,
   SyncVersion,
   ThemeMode,
   UpdateStatus,
@@ -59,6 +60,7 @@ export interface PromptBoxApi {
   settings: {
     get(): Promise<AppSettings>
     setTheme(theme: ThemeMode): Promise<AppSettings>
+    setLanguage(language: Language): Promise<AppSettings>
     setHotkey(accelerator: string): Promise<{ ok: boolean; settings: AppSettings }>
     chooseDataDir(): Promise<AppSettings | null>
     openDataDir(): Promise<void>
@@ -86,6 +88,8 @@ export interface PromptBoxApi {
     listVersions(): Promise<SyncVersion[]>
     restoreVersion(id: string): Promise<SyncResult>
   }
+  /** Quit the app entirely (the window close button only hides to tray). */
+  quit(): Promise<void>
   update: {
     check(): Promise<UpdateStatus>
     install(): Promise<void>

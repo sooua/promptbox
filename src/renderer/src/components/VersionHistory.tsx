@@ -5,15 +5,17 @@ import { useStore } from '../store'
 import { formatDate } from '../selectors'
 import { DiffView } from './DiffView'
 import { toast } from './Toast'
+import { useT } from '../i18n'
 
 export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Element {
   const restoreVersion = useStore((s) => s.restoreVersion)
   const [diffId, setDiffId] = useState<string | null>(null)
+  const t = useT()
 
   if (prompt.versions.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
-        暂无历史版本。修改后自动留存上一版。
+        {t('暂无历史版本。修改后自动留存上一版。')}
       </div>
     )
   }
@@ -22,7 +24,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted">
         <History size={14} />
-        历史版本（{prompt.versions.length}）
+        {t('历史版本（{n}）', { n: prompt.versions.length })}
       </div>
       {prompt.versions.map((v) => (
         <div key={v.id} className="rounded-xl border border-line-strong bg-surface p-3">
@@ -38,18 +40,18 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                 }`}
               >
                 <GitCompare size={11} />
-                改动
+                {t('改动')}
               </button>
               <button
                 onClick={async () => {
-                  if (!confirm(`恢复到 ${formatDate(v.createdAt)} 的版本？当前内容会存入历史。`)) return
+                  if (!confirm(t('恢复到 {date} 的版本？当前内容会存入历史。', { date: formatDate(v.createdAt) }))) return
                   await restoreVersion(prompt.id, v.id)
-                  toast.success('已恢复到该版本')
+                  toast.success(t('已恢复到该版本'))
                 }}
                 className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted transition hover:border-brand hover:text-brand"
               >
                 <RotateCcw size={11} />
-                恢复
+                {t('恢复')}
               </button>
             </div>
           </div>
@@ -60,7 +62,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
             </div>
           ) : (
             <pre className="mt-2 max-h-24 overflow-hidden whitespace-pre-wrap font-mono text-[11px] text-muted">
-              {v.content.slice(0, 220) || '（空）'}
+              {v.content.slice(0, 220) || t('（空）')}
             </pre>
           )}
         </div>

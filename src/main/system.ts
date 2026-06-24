@@ -1,6 +1,7 @@
 import { BrowserWindow, Menu, Tray, globalShortcut, nativeImage } from 'electron'
 import { IPC } from '@shared/ipc'
 import trayIconPath from '../../resources/tray.png?asset'
+import { mt, onMainLanguageChange } from './i18n'
 
 interface SystemDeps {
   /** the live window, or null if it was destroyed */
@@ -36,10 +37,10 @@ function sendOpenPalette(win: BrowserWindow): void {
 function buildTrayMenu(): void {
   if (!tray || !deps) return
   const menu = Menu.buildFromTemplate([
-    { label: '显示 PromptBox', click: () => summon(false) },
-    { label: '快速调用…', click: () => summon(true) },
+    { label: mt('显示 PromptBox'), click: () => summon(false) },
+    { label: mt('快速调用…'), click: () => summon(true) },
     { type: 'separator' },
-    { label: '退出', click: () => deps?.quit() }
+    { label: mt('退出'), click: () => deps?.quit() }
   ])
   tray.setContextMenu(menu)
 }
@@ -65,8 +66,13 @@ export function setupSystem(options: SystemDeps & { accelerator: string }): void
 
   const image = nativeImage.createFromPath(trayIconPath)
   tray = new Tray(image.isEmpty() ? nativeImage.createEmpty() : image)
-  tray.setToolTip('PromptBox — 快速调用提示词')
+  tray.setToolTip(mt('PromptBox — 快速调用提示词'))
   buildTrayMenu()
+  // Rebuild the tray menu + tooltip when the UI language changes.
+  onMainLanguageChange(() => {
+    tray?.setToolTip(mt('PromptBox — 快速调用提示词'))
+    buildTrayMenu()
+  })
   // Left-click shows the window; right-click uses the context menu.
   tray.on('click', () => summon(false))
 

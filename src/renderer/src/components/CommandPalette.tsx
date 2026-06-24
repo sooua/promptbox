@@ -6,6 +6,7 @@ import { useStore } from '../store'
 import { categoryById, rankCommand, type CommandEntry } from '../selectors'
 import { requestCopy } from '../copy'
 import { toast } from './Toast'
+import { useT } from '../i18n'
 
 const MAX_RESULTS = 50
 
@@ -35,6 +36,7 @@ export function CommandPalette(): React.JSX.Element {
   const select = useStore((s) => s.select)
   const setWorkspace = useStore((s) => s.setWorkspace)
   const selectAsset = useStore((s) => s.selectAsset)
+  const t = useT()
 
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
@@ -64,7 +66,7 @@ export function CommandPalette(): React.JSX.Element {
       await requestCopy(entry.id)
     } else {
       await navigator.clipboard.writeText(assetToText(entry.asset))
-      toast.success(`已复制 ${KIND_LABEL[entry.asset.kind]} 格式文本`)
+      toast.success(t('已复制 {kind} 格式文本', { kind: KIND_LABEL[entry.asset.kind] }))
     }
   }
 
@@ -114,7 +116,7 @@ export function CommandPalette(): React.JSX.Element {
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="搜索 Prompt 与 Skill / Agent / MCP…"
+            placeholder={t('搜索 Prompt 与 Skill / Agent / MCP…')}
             role="combobox"
             aria-expanded={results.length > 0}
             aria-controls="command-results"
@@ -126,7 +128,7 @@ export function CommandPalette(): React.JSX.Element {
 
         <div id="command-results" role="listbox" className="max-h-[50vh] overflow-y-auto p-2">
           {results.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-faint">没有匹配的结果</div>
+            <div className="px-4 py-10 text-center text-sm text-faint">{t('没有匹配的结果')}</div>
           ) : (
             results.map((entry, i) => {
               const kind = entry.type === 'prompt' ? 'prompt' : entry.asset.kind
@@ -137,7 +139,7 @@ export function CommandPalette(): React.JSX.Element {
                   : undefined
               const subtitle =
                 entry.type === 'prompt'
-                  ? `${cat ? cat.name + ' · ' : ''}${entry.prompt.description || entry.prompt.content.slice(0, 60) || '空内容'}`
+                  ? `${cat ? cat.name + ' · ' : ''}${entry.prompt.description || entry.prompt.content.slice(0, 60) || t('空内容')}`
                   : entry.asset.description || entry.asset.content.slice(0, 60) || '—'
               const varCount = entry.type === 'prompt' ? entry.prompt.variables.length : 0
               return (
@@ -183,10 +185,10 @@ export function CommandPalette(): React.JSX.Element {
         </div>
 
         <div className="flex items-center gap-4 border-t border-line px-5 py-2.5 text-[11px] text-faint">
-          <Hint icon={<CornerDownLeft size={11} />}>复制</Hint>
-          <Hint icon={<Pencil size={11} />}>⌘/Ctrl + Enter 打开</Hint>
-          <Hint icon={<Search size={11} />}>↑↓ 选择</Hint>
-          <span className="ml-auto">Esc 关闭</span>
+          <Hint icon={<CornerDownLeft size={11} />}>{t('复制')}</Hint>
+          <Hint icon={<Pencil size={11} />}>{t('⌘/Ctrl + Enter 打开')}</Hint>
+          <Hint icon={<Search size={11} />}>{t('↑↓ 选择')}</Hint>
+          <span className="ml-auto">{t('Esc 关闭')}</span>
         </div>
       </div>
     </div>

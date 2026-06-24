@@ -5,8 +5,10 @@ import { categoryById, filterPrompts, relativeTime } from '../selectors'
 import { requestCopy } from '../copy'
 import { VirtualList } from './VirtualList'
 import { toast } from './Toast'
+import { useT } from '../i18n'
 
 export function PromptList(): React.JSX.Element {
+  const t = useT()
   const prompts = useStore((s) => s.prompts)
   const categories = useStore((s) => s.categories)
   const selectedId = useStore((s) => s.selectedId)
@@ -70,7 +72,7 @@ export function PromptList(): React.JSX.Element {
   async function batchDelete() {
     const snapshots = await bulkDeletePrompts(selectedIds)
     setSelected(new Set())
-    toast.undo(`已删除 ${snapshots.length} 项`, () => void bulkRestorePrompts(snapshots))
+    toast.undo(t('已删除 {n} 项', { n: snapshots.length }), () => void bulkRestorePrompts(snapshots))
   }
 
   function exportSelected() {
@@ -91,16 +93,16 @@ export function PromptList(): React.JSX.Element {
     a.download = `promptbox-export-${chosen.length}.json`
     a.click()
     URL.revokeObjectURL(url)
-    toast.success(`已导出 ${chosen.length} 项`)
+    toast.success(t('已导出 {n} 项', { n: chosen.length }))
   }
 
   async function handleNew() {
     await createPrompt({
-      title: '未命名 Prompt',
+      title: t('未命名 Prompt'),
       content: '',
       categoryId: isCategoryId(categoryFilter) ? (categoryFilter as string) : null
     })
-    toast.success('已创建 Prompt')
+    toast.success(t('已创建 Prompt'))
   }
 
   async function quickCopy(id: string) {
@@ -126,14 +128,14 @@ export function PromptList(): React.JSX.Element {
 
   return (
     <section className="flex w-80 shrink-0 flex-col border-r border-line bg-canvas">
-      <div className="app-drag flex items-center gap-2 p-3">
+      <div className="flex items-center gap-2 p-3">
         <button
           onClick={openPalette}
-          title="快速调用 (Ctrl/⌘ + K)"
+          title={t('快速调用 (Ctrl/⌘ + K)')}
           className="group relative flex flex-1 items-center gap-2 rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-2 text-left text-sm text-faint shadow-[0_0_0_1px_transparent] transition hover:shadow-[0_0_0_1px_var(--color-ring)]"
         >
           <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2" />
-          <span className="flex-1">快速调用…</span>
+          <span className="flex-1">{t('快速调用…')}</span>
           <kbd className="flex items-center gap-0.5 rounded-md border border-line-strong px-1 text-[10px] text-faint">
             <Command size={9} />K
           </kbd>
@@ -141,7 +143,7 @@ export function PromptList(): React.JSX.Element {
         <button
           onClick={handleNew}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-[#faf9f5] shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-brand-strong"
-          title="新建 Prompt"
+          title={t('新建 Prompt')}
         >
           <Plus size={18} />
         </button>
@@ -154,7 +156,7 @@ export function PromptList(): React.JSX.Element {
             data-search-input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="在当前列表内筛选…（Ctrl/⌘ + F）"
+            placeholder={t('在当前列表内筛选…（Ctrl/⌘ + F）')}
             className="w-full rounded-xl border border-line bg-transparent py-1.5 pl-8 pr-3 text-xs text-ink outline-none focus:border-focus"
           />
         </div>
@@ -162,7 +164,7 @@ export function PromptList(): React.JSX.Element {
 
       {tagFilters.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 px-3 pb-2 text-xs text-muted">
-          <span className="text-faint">标签（同时满足）</span>
+          <span className="text-faint">{t('标签（同时满足）')}</span>
           {tagFilters.map((t) => (
             <button
               key={t}
@@ -175,7 +177,7 @@ export function PromptList(): React.JSX.Element {
           ))}
           {tagFilters.length > 1 && (
             <button onClick={clearTagFilters} className="text-faint underline hover:text-ink">
-              清除
+              {t('清除')}
             </button>
           )}
         </div>
@@ -183,23 +185,23 @@ export function PromptList(): React.JSX.Element {
 
       {selected.size > 0 ? (
         <div className="mx-3 mb-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-brand/30 bg-brand/8 px-2.5 py-2 text-[11px]">
-          <span className="font-medium text-brand">已选 {selected.size} 项</span>
-          <button onClick={() => bulkSetFavorite(selectedIds, true)} className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand" title="收藏">
+          <span className="font-medium text-brand">{t('已选 {n} 项', { n: selected.size })}</span>
+          <button onClick={() => bulkSetFavorite(selectedIds, true)} className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand" title={t('收藏')}>
             <Star size={12} />
           </button>
           <select
             value=""
             onChange={(e) => {
               void bulkSetCategory(selectedIds, e.target.value || null)
-              toast.success('已移动所选项')
+              toast.success(t('已移动所选项'))
             }}
             className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted outline-none"
-            title="移动到分类"
+            title={t('移动到分类')}
           >
             <option value="" disabled>
-              移动到…
+              {t('移动到…')}
             </option>
-            <option value="">未分类</option>
+            <option value="">{t('未分类')}</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -208,44 +210,44 @@ export function PromptList(): React.JSX.Element {
           </select>
           <button
             onClick={() => {
-              const tag = window.prompt('为所选项添加标签：')
-              if (tag) void bulkAddTag(selectedIds, tag).then(() => toast.success('已添加标签'))
+              const tag = window.prompt(t('为所选项添加标签：'))
+              if (tag) void bulkAddTag(selectedIds, tag).then(() => toast.success(t('已添加标签')))
             }}
             className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand"
-            title="添加标签"
+            title={t('添加标签')}
           >
             <Tag size={12} />
           </button>
           <button
             onClick={exportSelected}
             className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand"
-            title="导出所选"
+            title={t('导出所选')}
           >
             <Download size={12} />
           </button>
           <button
             onClick={batchDelete}
             className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-error"
-            title="删除所选"
+            title={t('删除所选')}
           >
             <Trash2 size={12} />
           </button>
           <button onClick={() => setSelected(new Set())} className="ml-auto text-faint underline hover:text-ink">
-            清除
+            {t('清除')}
           </button>
         </div>
       ) : (
         <div className="flex items-center justify-between px-4 pb-1 text-[11px] text-faint">
-          <span>{filtered.length} 项</span>
-          <span className="hidden sm:inline">↑↓ 选择 · Enter 复制</span>
+          <span>{t('{n} 项', { n: filtered.length })}</span>
+          <span className="hidden sm:inline">{t('↑↓ 选择 · Enter 复制')}</span>
         </div>
       )}
 
       {filtered.length === 0 ? (
         <div className="flex-1 px-4 pt-16 text-center text-sm text-faint">
-          没有匹配的 Prompt。
+          {t('没有匹配的 Prompt。')}
           <br />
-          点击 <span className="text-brand">＋</span> 新建一个。
+          {t('点击')} <span className="text-brand">＋</span> {t('新建一个。')}
         </div>
       ) : (
         <VirtualList
@@ -279,7 +281,7 @@ export function PromptList(): React.JSX.Element {
                       <span className="truncate text-sm font-medium text-ink">{p.title}</span>
                     </div>
                     <div className="mt-0.5 line-clamp-2 text-xs text-faint">
-                      {p.description || p.content.slice(0, 80) || '空内容'}
+                      {p.description || p.content.slice(0, 80) || t('空内容')}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-0.5">
@@ -288,7 +290,7 @@ export function PromptList(): React.JSX.Element {
                         e.stopPropagation()
                         void togglePin(p.id)
                       }}
-                      title={p.pinned ? '取消置顶' : '置顶'}
+                      title={p.pinned ? t('取消置顶') : t('置顶')}
                       className={`rounded p-0.5 ${
                         p.pinned
                           ? 'text-brand'
@@ -302,7 +304,7 @@ export function PromptList(): React.JSX.Element {
                         e.stopPropagation()
                         void toggleFavorite(p.id)
                       }}
-                      title={p.favorite ? '取消收藏' : '收藏'}
+                      title={p.favorite ? t('取消收藏') : t('收藏')}
                       className={`rounded p-0.5 ${
                         p.favorite
                           ? 'text-brand'
@@ -329,7 +331,7 @@ export function PromptList(): React.JSX.Element {
                     </span>
                   ))}
                   {(p.useCount ?? 0) > 0 && (
-                    <span className="flex items-center gap-0.5" title="使用次数">
+                    <span className="flex items-center gap-0.5" title={t('使用次数')}>
                       <Copy size={9} />
                       {p.useCount}
                     </span>
@@ -342,11 +344,11 @@ export function PromptList(): React.JSX.Element {
                     e.stopPropagation()
                     void quickCopy(p.id)
                   }}
-                  title="复制内容"
+                  title={t('复制内容')}
                   className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-brand px-2 py-1 text-[10px] text-[#faf9f5] transition hover:bg-brand-strong group-hover:flex"
                 >
                   <Copy size={11} />
-                  复制
+                  {t('复制')}
                 </button>
               </div>
             )

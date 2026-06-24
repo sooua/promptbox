@@ -5,6 +5,8 @@
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
+export type Language = 'zh' | 'en'
+
 export type VariableType = 'text' | 'multiline' | 'select' | 'number' | 'date'
 
 export interface PromptVariable {
@@ -136,6 +138,8 @@ export interface AppSettings {
   /** absolute path to the directory where promptbox.json lives */
   dataDir: string
   theme: ThemeMode
+  /** UI language */
+  language: Language
   /** Electron accelerator string for the global quick-launch hotkey */
   globalHotkey: string
 }

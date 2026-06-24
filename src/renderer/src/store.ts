@@ -7,6 +7,7 @@ import type {
   BackupInfo,
   Category,
   ImportMode,
+  Language,
   Prompt,
   PromptInput,
   S3ConfigInput,
@@ -163,6 +164,7 @@ interface State {
 
   // settings
   setTheme(theme: ThemeMode): Promise<void>
+  setLanguage(language: Language): Promise<void>
   setHotkey(accelerator: string): Promise<boolean>
   chooseDataDir(): Promise<void>
   openDataDir(): Promise<void>
@@ -580,6 +582,11 @@ export const useStore = create<State>((set, get) => ({
 
   async setTheme(theme) {
     const settings = await api.settings.setTheme(theme)
+    set({ settings })
+  },
+
+  async setLanguage(language) {
+    const settings = await api.settings.setLanguage(language)
     set({ settings })
   },
 

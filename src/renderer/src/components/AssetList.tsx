@@ -5,10 +5,12 @@ import { useStore } from '../store'
 import { filterAssets, relativeTime } from '../selectors'
 import { VirtualList } from './VirtualList'
 import { toast } from './Toast'
+import { useT } from '../i18n'
 
 const KIND_LABEL: Record<AssetKind, string> = { skill: 'Skill', agent: 'Agent', mcp: 'MCP' }
 
 export function AssetList({ kind }: { kind: AssetKind }): React.JSX.Element {
+  const t = useT()
   const assets = useStore((s) => s.assets)
   const selectedAssetId = useStore((s) => s.selectedAssetId)
   const search = useStore((s) => s.assetSearch)
@@ -27,47 +29,47 @@ export function AssetList({ kind }: { kind: AssetKind }): React.JSX.Element {
 
   async function handleNew() {
     await createAsset(kind)
-    toast.success(`已新建 ${KIND_LABEL[kind]}`)
+    toast.success(t('已新建 {kind}', { kind: KIND_LABEL[kind] }))
   }
 
   function preview(content: string, meta: Record<string, string>): string {
     if (kind === 'mcp') {
       return meta.transport === 'stdio'
-        ? `${meta.command ?? ''} ${(meta.args ?? '').split('\n').join(' ')}`.trim() || '未配置'
-        : meta.url || '未配置'
+        ? `${meta.command ?? ''} ${(meta.args ?? '').split('\n').join(' ')}`.trim() || t('未配置')
+        : meta.url || t('未配置')
     }
-    return content.slice(0, 80) || '空内容'
+    return content.slice(0, 80) || t('空内容')
   }
 
   return (
     <section className="flex w-80 shrink-0 flex-col border-r border-line bg-canvas">
-      <div className="app-drag flex items-center gap-2 p-3">
+      <div className="flex items-center gap-2 p-3">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" />
           <input
             data-search-input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={`搜索 ${KIND_LABEL[kind]}…`}
+            placeholder={t('搜索 {kind}…', { kind: KIND_LABEL[kind] })}
             className="w-full rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-3 text-sm text-ink outline-none focus:border-focus"
           />
         </div>
         <button
           onClick={handleNew}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-[#faf9f5] transition hover:bg-brand-strong"
-          title={`新建 ${KIND_LABEL[kind]}`}
+          title={t('新建 {kind}', { kind: KIND_LABEL[kind] })}
         >
           <Plus size={18} />
         </button>
       </div>
 
-      <div className="px-4 pb-1 text-[11px] text-faint">{filtered.length} 项</div>
+      <div className="px-4 pb-1 text-[11px] text-faint">{t('{n} 项', { n: filtered.length })}</div>
 
       {filtered.length === 0 ? (
         <div className="flex-1 px-4 pt-16 text-center text-sm text-faint">
-          还没有 {KIND_LABEL[kind]}。
+          {t('还没有 {kind}。', { kind: KIND_LABEL[kind] })}
           <br />
-          点击 <span className="text-brand">＋</span> 新建，或从文件导入。
+          {t('点击')} <span className="text-brand">＋</span> {t('新建，或从文件导入。')}
         </div>
       ) : (
         <VirtualList
