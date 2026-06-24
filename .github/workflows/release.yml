@@ -1,0 +1,41 @@
+name: Release
+
+# Push a tag like v0.1.2 to build and publish all three platforms.
+# Each OS runner builds its own native target and uploads to the same
+# GitHub Release (created as a draft; publish it once all jobs finish).
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build and publish
+        env:
+          # electron-builder reads GH_TOKEN to create/upload the GitHub release.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run publish

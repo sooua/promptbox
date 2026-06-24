@@ -10,10 +10,16 @@ files:
 win:
   target: nsis
 mac:
-  target: dmg
+  # zip is required for electron-updater on macOS (dmg alone can't auto-update).
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+    - target: zip
+      arch: [arm64, x64]
   category: public.app-category.developer-tools
 linux:
-  target: AppImage
+  target:
+    - AppImage
   category: Development
 # Auto-update source. electron-updater reads this to find new releases; the build
 # publishes the installer + latest.yml here. Fill `owner` with your GitHub account,
