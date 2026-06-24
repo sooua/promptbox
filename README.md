@@ -1,53 +1,150 @@
 # PromptBox
 
-本地优先的 AI Prompt 资产管理工具 — 像管理代码片段一样管理你的 Prompt、角色设定、上下文模板与 AI 编程工作流。
+[![Release](https://img.shields.io/github/v/release/sooua/promptbox?label=release)](https://github.com/sooua/promptbox/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/sooua/promptbox/total)](https://github.com/sooua/promptbox/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-基于 **Electron + React + TypeScript + Tailwind CSS v4**，所有数据默认以 JSON 保存在本机，不上传任何服务器。
+**本地优先的 AI Prompt / Skill / Agent / MCP 资产管理桌面工具。**
 
-## 功能（MVP）
+像管理代码片段一样管理你的 Prompt、角色设定、上下文模板，以及 Claude Skill、Agent、MCP 配置。所有数据默认以 JSON 保存在本机，不上传任何服务器；云同步可选并端到端加密。
 
-- ✅ Prompt 创建 / 编辑 / 删除 / 复制 / 一键复制内容
-- ✅ 分类、标签、收藏、全局搜索
-- ✅ Markdown 编辑与实时预览
-- ✅ 变量化模板 `{{customer_name}}` `{{report_type}}` —— 变量自动识别、填充、复制结果
-- ✅ 本地 JSON 文件存储（可在设置中更改数据目录）
-- ✅ 数据导入 / 导出（合并 / 替换）
-- ✅ 简单版本历史（修改内容自动留存、可一键恢复）
-- ✅ 深色 / 浅色 / 跟随系统
-- ✅ 设置页（数据目录、主题、导入导出）
+基于 **Electron + React 18 + TypeScript + Tailwind CSS v4**，采用 Claude/Anthropic 暖色设计语言。
+
+## 下载安装
+
+前往 [**Releases**](https://github.com/sooua/promptbox/releases/latest) 下载：
+
+- **Windows** — `PromptBox-Setup-x.y.z.exe`
+
+> 安装包未做代码签名，首次运行 Windows 可能弹出 SmartScreen 提示，点击「更多信息 → 仍要运行」即可。
+> 安装后内置在线更新：发布新版本后会自动检测、后台下载、一键重启安装。
+
+## 功能
+
+### 统一资产库
+
+在一个应用里管理四类资产，各自有专属工作区，并共享分类、标签、收藏、置顶：
+
+- **Prompt** — Markdown 正文，实时预览
+- **Skill** — `SKILL.md` 正文 + 附带文件，可导出 / 导入 / 一键安装
+- **Agent** — 系统提示 + 工具 / 模型元数据
+- **MCP** — `stdio` / `sse` / `http` 配置，可一键合并到本地 MCP 配置
+
+### 变量模板
+
+- `{{变量名}}` 自动识别，填充后一键复制结果
+- 内联默认值：`{{name | 默认值}}`
+- 必填校验（未填写禁止复制并高亮）
+- 输入类型：文本 / 多行 / 下拉 / 数字 / 日期
+- 记住上次填写的值
+
+### 命令面板（Ctrl/⌘ + K）
+
+跨全部资产快速搜索调用，支持拼音全拼与首字母匹配。增量索引（预计算检索键 + 按对象身份记忆化），大库依然流畅。`Enter` 复制，`⌘/Ctrl+Enter` 打开。
+
+### 版本历史与批量操作
+
+- 修改内容自动留存历史版本，可并排查看 **diff** 改动并一键恢复
+- 列表多选（`Ctrl`/`Shift` + 点击）后批量收藏 / 移动分类 / 加标签 / 导出 / 删除
+- 编辑器词级撤销重做（`Ctrl+Z` / `Ctrl+Shift+Z`）
+
+### 云同步（可选）
+
+- 支持 **GitHub Gist / WebDAV / S3 兼容存储**
+- 多设备项目级合并，删除通过墓碑（tombstone）传播
+- **端到端加密**（AES-256-GCM），口令经本机 `safeStorage` 加密保存，云端只存密文
+- 自动同步带防抖与失败指数退避，状态实时可见
+
+### 数据安全
+
+- **自动备份**：定时快照（每 5 分钟）+ 退出前快照，最多保留 20 份
+- **损坏自愈**：数据文件损坏时自动隔离为 `promptbox.corrupt-*.json` 并从最近备份恢复，绝不静默清空
+- **原子写入 + 写盘失败弹窗提示**
+- 本地 JSON 存储，数据目录可在设置中更改；支持导入 / 导出（合并 / 替换）
+
+### 界面
+
+- Claude/Anthropic 暖色设计语言（羊皮纸底 + 陶土橙 + 衬线标题）
+- 浅色 / 深色 / 跟随系统，一套语义化 token 切换
+- 自定义无边框标题栏，更整洁的窗口外观
+- 全局热键唤起 + 托盘常驻
+
+## 快捷键
+
+| 快捷键 | 功能 |
+| --- | --- |
+| `Ctrl/⌘ + K` | 命令面板（搜索全部资产） |
+| `Ctrl/⌘ + N` | 在当前工作区新建 |
+| `Ctrl/⌘ + D` | 复制当前条目 |
+| `Ctrl/⌘ + S` | 立即保存 |
+| `Ctrl/⌘ + F` | 聚焦列表搜索 |
+| `Ctrl/⌘ + 1~4` | 切换 Prompts / Skill / Agent / MCP |
+| `Ctrl/⌘ + ,` | 打开设置 |
+| `Ctrl/⌘ + Z` | 编辑器撤销 / 重做 |
+| `↑ ↓ / Enter` | 列表选择 / 复制 |
+| `Esc` | 关闭弹窗 / 返回 |
 
 ## 开发
 
 ```bash
 npm install
-npm run dev          # 启动开发模式
-npm run typecheck    # 类型检查
+npm run dev          # 启动开发模式（热重载）
+npm run typecheck    # 类型检查（主进程 + 渲染进程）
 npm run build        # 构建
-npm run package      # 打包为安装包（electron-builder）
+npm run package      # 打包为安装包（不发布）
 ```
+
+## 发布
+
+更新源在 `electron-builder.yml` 的 `publish`（GitHub Releases）。发版步骤：
+
+1. 递增 `package.json` 的 `version`（在线更新靠版本号比较判断新版）
+2. 确保 `gh` 已登录或设置 `GH_TOKEN`（需 `repo` 权限）
+3. 运行：
+
+```bash
+# 用 gh 的 token 发布到 GitHub Releases
+GH_TOKEN="$(gh auth token)" npm run publish
+```
+
+这会打出安装包 + `latest.yml`（更新清单）+ `*.blockmap`（差量更新），并创建对应版本的 GitHub Release（默认为草稿，确认后发布即可）。
+
+> 想要带品牌图标的安装包，放一个 `build/icon.ico`（256×256），electron-builder 会自动采用。
 
 ## 架构
 
 ```
 src/
-  shared/        # 主进程与渲染进程共享的类型、IPC 通道、变量解析
-  main/          # Electron 主进程
-    store/       # 存储层（JSON 仓储，封装在接口后，便于后续切换 SQLite）
-    ipc.ts       # IPC 处理器
-    seed.ts      # 首次启动示例数据
-  preload/       # 安全的 contextBridge API 暴露
-  renderer/      # React 界面
-    store.ts     # zustand 全局状态
-    components/   # Sidebar / PromptList / EditorPanel / SettingsView 等
+  shared/          # 主进程与渲染进程共享：类型、IPC 通道、变量解析、资产格式
+  main/            # Electron 主进程
+    store/
+      repository.ts # 持久化：Repository 接口 + JSON 实现
+      config.ts     # 应用级配置（数据目录、主题、热键）
+    sync/          # 云同步：可插拔 SyncProvider（Gist/WebDAV/S3）+ 合并引擎 + 加密
+    backup.ts      # 时间戳快照备份
+    update.ts      # electron-updater 在线更新
+    ipc.ts         # IPC 处理器
+    system.ts      # 全局热键 + 托盘
+  preload/         # 安全的 contextBridge API 暴露
+  renderer/        # React 界面
+    store.ts       # zustand 全局状态
+    searchIndex.ts # 增量搜索索引（字面 + 拼音）
+    selectors.ts   # 过滤 / 排序 / 命令面板排序
+    components/    # Sidebar / PromptList / EditorPanel / CommandPalette / SettingsView 等
 ```
 
 ### 存储层可扩展性
 
-所有持久化都经过 `PromptRepository`（`src/main/store/repository.ts`）。
-切换到 SQLite 时，只需实现相同的公共方法，无需改动上层。
+所有持久化都依赖 `Repository` 接口（`src/main/store/repository.ts`），IPC、备份、同步均面向接口而非具体类。默认实现是 JSON 文件仓储；要换 SQLite，只需 `implements Repository` 并在 `index.ts` 替换构造，上层零改动。`DESIGN.md` 与 `PRODUCT.md` 记录了视觉系统与产品策略。
 
-## 后续扩展方向
+## 技术栈
 
-多模型测试、Prompt 评分对比、Team Workspace、云同步与加密备份、
-Agent / Skill (SKILL.md) / MCP Server 配置管理、一键分发到 Claude Code / Cursor /
-Codex / Windsurf / Cline、企业级权限与审计、Prompt Marketplace。
+Electron · electron-vite · React 18 · TypeScript · Tailwind CSS v4 · zustand · electron-updater · pinyin-pro · lucide-react
+
+## 后续方向
+
+多模型测试与 Prompt 评分对比 · 团队 Workspace 与协作 · 一键分发到 Claude Code / Cursor / Codex / Windsurf · Prompt Marketplace。
+
+## License
+
+[MIT](./LICENSE)
