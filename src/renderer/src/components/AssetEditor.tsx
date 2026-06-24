@@ -414,7 +414,7 @@ function AssetHistory({
   if (asset.versions.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
-        暂无历史版本。修改内容或配置后会自动保存上一版本。
+        暂无历史版本。修改后自动留存上一版。
       </div>
     )
   }
@@ -547,7 +547,7 @@ function McpFields({
               className={fieldCls}
             />
           </Field>
-          <Field label="headers（每行 KEY=VALUE，可选，用于鉴权）">
+          <Field label="headers（每行 KEY=VALUE，可选）">
             <textarea
               rows={2}
               value={asset.meta.headers ?? ''}

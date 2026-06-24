@@ -83,10 +83,7 @@ export function SettingsView(): React.JSX.Element {
 
         {/* Quick launch */}
         <Section title="快速调用">
-          <Row
-            label="全局热键"
-            description="在任何应用中按下即可唤起命令面板（应用最小化到托盘后仍生效）"
-          >
+          <Row label="全局热键" description="在任意应用中唤起命令面板，托盘后台运行时也生效">
             <select
               value={settings?.globalHotkey ?? ''}
               onChange={(e) => handleHotkey(e.target.value)}
@@ -99,15 +96,11 @@ export function SettingsView(): React.JSX.Element {
               ))}
             </select>
           </Row>
-          <p className="mt-1 text-xs text-faint">
-            关闭主窗口会最小化到系统托盘，应用继续在后台运行；可从托盘图标右键菜单退出。
-            应用内任意位置按 <Kbd>Ctrl/⌘ + K</Kbd> 也可打开面板。
-          </p>
         </Section>
 
         {/* Data */}
         <Section title="数据存储">
-          <Row label="数据目录" description="所有 Prompt 默认以 JSON 保存在本机此目录">
+          <Row label="数据目录" description="数据保存在本机此目录">
             <code className="max-w-xs truncate rounded-lg bg-surface-2 px-2.5 py-1.5 font-mono text-xs text-muted">
               {settings?.dataDir ?? '—'}
             </code>
@@ -117,16 +110,13 @@ export function SettingsView(): React.JSX.Element {
               更改目录
             </ActionButton>
             <ActionButton icon={<FolderOpen size={15} />} onClick={openDataDir}>
-              在文件管理器打开
+              打开目录
             </ActionButton>
           </div>
         </Section>
 
         {/* Import / Export */}
         <Section title="导入 / 导出">
-          <p className="mb-3 text-xs text-faint">
-            导出为单个 JSON 文件用于备份或迁移；导入时可选择合并或替换。
-          </p>
           <div className="flex flex-wrap gap-2">
             <ActionButton icon={<Download size={15} />} onClick={handleExport}>
               导出全部
@@ -164,19 +154,13 @@ export function SettingsView(): React.JSX.Element {
         {/* About & Update */}
         <Section title="关于与更新">
           <UpdateRow />
-          <div className="mt-4 flex items-start gap-2 text-xs text-faint">
-            <Info size={14} className="mt-0.5 shrink-0" />
-            <div className="leading-[1.6]">
-              <p>
-                PromptBox · 本地优先的 AI Prompt 资产管理工具。当前共{' '}
-                <span className="text-muted">{prompts.length}</span> 个 Prompt、
-                <span className="text-muted">{categories.length}</span> 个分类。
-              </p>
-              <p className="mt-1">
-                所有数据保存在本机，不上传任何服务器。后续可扩展云同步、团队协作、多模型测试、Agent
-                / Skill / MCP 配置管理等能力。
-              </p>
-            </div>
+          <div className="mt-4 flex items-center gap-2 text-xs text-faint">
+            <Info size={14} className="shrink-0" />
+            <p>
+              PromptBox · 本地 AI Prompt 资产库 ·{' '}
+              <span className="text-muted">{prompts.length}</span> 个 Prompt、
+              <span className="text-muted">{categories.length}</span> 个分类
+            </p>
           </div>
         </Section>
       </div>
@@ -217,17 +201,17 @@ function UpdateRow(): React.JSX.Element {
       case 'error':
         return `检查失败：${updateStatus?.message ?? ''}`
       case 'dev':
-        return '开发模式（在线更新打包后生效）'
+        return '开发模式，打包后可更新'
       default:
-        return '可手动检查，或在发布新版本后自动提示'
+        return ''
     }
   })()
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3">
       <div className="min-w-0">
-        <div className="text-sm text-ink">当前版本 v{appVersion || '—'}</div>
-        <div className="mt-0.5 text-xs text-faint">{statusText}</div>
+        <div className="text-sm text-ink">版本 v{appVersion || '—'}</div>
+        {statusText && <div className="mt-0.5 text-xs text-faint">{statusText}</div>}
       </div>
       {st === 'downloaded' ? (
         <button
@@ -288,10 +272,7 @@ function BackupSection(): React.JSX.Element {
 
   return (
     <div>
-      <p className="mb-3 text-xs text-faint">
-        每次启动会自动保存一份快照（与上一份相同则跳过），最多保留 20 份，存放在数据目录的{' '}
-        <code className="font-mono">backups/</code> 文件夹。
-      </p>
+      <p className="mb-3 text-xs text-faint">自动保存快照，最多保留 20 份。</p>
       <div className="mb-3 flex flex-wrap gap-2">
         <ActionButton icon={<Camera size={15} />} onClick={handleCreate}>
           立即备份
@@ -341,14 +322,6 @@ function ShortcutRow({ keys, label }: { keys: string; label: string }): React.JS
         {keys}
       </kbd>
     </div>
-  )
-}
-
-function Kbd({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return (
-    <kbd className="rounded-md border border-line-strong px-1 text-[10px] text-muted">
-      {children}
-    </kbd>
   )
 }
 

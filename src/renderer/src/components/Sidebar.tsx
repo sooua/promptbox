@@ -272,7 +272,7 @@ export function Sidebar(): React.JSX.Element {
           onClick={() => setView('settings')}
           className={`flex flex-1 items-center gap-2 px-5 py-3.5 text-sm transition ${
             view === 'settings'
-              ? 'bg-surface-2 text-brand'
+              ? 'bg-surface-2 font-medium text-ink'
               : 'text-muted hover:bg-surface-2 hover:text-ink'
           }`}
         >

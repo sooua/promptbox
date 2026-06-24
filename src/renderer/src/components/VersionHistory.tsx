@@ -13,7 +13,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
   if (prompt.versions.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
-        暂无历史版本。每次修改内容后会自动保存上一版本。
+        暂无历史版本。修改后自动留存上一版。
       </div>
     )
   }

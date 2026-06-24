@@ -219,7 +219,7 @@ export function CloudSyncModal(): React.JSX.Element {
                       <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
                         <div>
                           <div className="text-sm text-ink">自动同步</div>
-                          <div className="text-xs text-faint">本地改动后自动上传（约 4 秒防抖）</div>
+                          <div className="text-xs text-faint">本地改动后自动上传</div>
                         </div>
                         <Switch
                           checked={syncState?.autoSync ?? false}

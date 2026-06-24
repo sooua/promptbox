@@ -51,7 +51,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
   if (prompt.variables.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
-        此 Prompt 暂无变量。使用 <code className="var-chip">{'{{变量名}}'}</code> 语法即可创建可填充模板。
+        暂无变量。在内容里写 <code className="var-chip">{'{{变量名}}'}</code> 即可。
       </div>
     )
   }
