@@ -56,7 +56,7 @@ export function AssetList({ kind }: { kind: AssetKind }): React.JSX.Element {
         </div>
         <button
           onClick={handleNew}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-[#faf9f5] transition hover:bg-brand-strong"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand transition hover:bg-brand-strong"
           title={t('新建 {kind}', { kind: KIND_LABEL[kind] })}
         >
           <Plus size={18} />

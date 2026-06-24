@@ -1,5 +1,6 @@
 import type { SyncVersion } from '@shared/types'
 import type { ConnectionResult, SyncProvider } from './provider'
+import { httpFetch as fetch } from '../net'
 
 const API = 'https://api.github.com'
 const FILE = 'promptbox-data.json'

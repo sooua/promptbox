@@ -8,6 +8,7 @@ import type {
   ExportBundle,
   ImportMode,
   ImportResult,
+  McpDiscoverResult,
   Prompt,
   PromptInput,
   S3ConfigInput,
@@ -61,6 +62,8 @@ export interface PromptBoxApi {
     get(): Promise<AppSettings>
     setTheme(theme: ThemeMode): Promise<AppSettings>
     setLanguage(language: Language): Promise<AppSettings>
+    setMarket(enabled: boolean): Promise<AppSettings>
+    setProxy(proxy: string): Promise<AppSettings>
     setHotkey(accelerator: string): Promise<{ ok: boolean; settings: AppSettings }>
     chooseDataDir(): Promise<AppSettings | null>
     openDataDir(): Promise<void>
@@ -90,6 +93,10 @@ export interface PromptBoxApi {
   }
   /** Quit the app entirely (the window close button only hides to tray). */
   quit(): Promise<void>
+  market: {
+    mcpSearch(query: string, cursor?: string): Promise<McpDiscoverResult>
+    mcpImport(server: unknown): Promise<{ id: string; duplicate: boolean }>
+  }
   update: {
     check(): Promise<UpdateStatus>
     install(): Promise<void>

@@ -8,6 +8,7 @@ import type {
   Category,
   ImportMode,
   Language,
+  McpDiscoverResult,
   Prompt,
   PromptInput,
   S3ConfigInput,
@@ -21,7 +22,7 @@ import type {
 
 const api = window.api
 
-export type View = 'library' | 'settings'
+export type View = 'library' | 'settings' | 'discover'
 export type Workspace = 'prompts' | AssetKind
 
 /** Special filter sentinels for the category rail. */
@@ -165,7 +166,13 @@ interface State {
   // settings
   setTheme(theme: ThemeMode): Promise<void>
   setLanguage(language: Language): Promise<void>
+  setMarket(enabled: boolean): Promise<void>
+  setProxy(proxy: string): Promise<void>
   setHotkey(accelerator: string): Promise<boolean>
+
+  // discover / marketplace
+  searchMcp(query: string, cursor?: string): Promise<McpDiscoverResult>
+  importMcp(server: unknown): Promise<{ id: string; duplicate: boolean }>
   chooseDataDir(): Promise<void>
   openDataDir(): Promise<void>
   exportData(): Promise<{ ok: boolean; path?: string }>
@@ -344,7 +351,7 @@ export const useStore = create<State>((set, get) => ({
 
   setView: (view) => set({ view }),
   select: (selectedId) => set({ selectedId, view: 'library' }),
-  setCategoryFilter: (categoryFilter) => set({ categoryFilter, tagFilters: [] }),
+  setCategoryFilter: (categoryFilter) => set({ categoryFilter, tagFilters: [], view: 'library' }),
   toggleTagFilter: (tag) =>
     set((s) => ({
       tagFilters: s.tagFilters.includes(tag)
@@ -588,6 +595,26 @@ export const useStore = create<State>((set, get) => ({
   async setLanguage(language) {
     const settings = await api.settings.setLanguage(language)
     set({ settings })
+  },
+
+  async setMarket(enabled) {
+    const settings = await api.settings.setMarket(enabled)
+    set({ settings })
+  },
+
+  async setProxy(proxy) {
+    const settings = await api.settings.setProxy(proxy)
+    set({ settings })
+  },
+
+  searchMcp(query, cursor) {
+    return api.market.mcpSearch(query, cursor)
+  },
+
+  async importMcp(server) {
+    const r = await api.market.mcpImport(server)
+    await get().refreshAssets()
+    return r
   },
 
   async setHotkey(accelerator) {

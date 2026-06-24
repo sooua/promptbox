@@ -1,6 +1,7 @@
 import { createHash, createHmac } from 'crypto'
 import type { S3ConfigInput, SyncVersion } from '@shared/types'
 import type { ConnectionResult, SyncProvider } from './provider'
+import { httpFetch as fetch } from '../net'
 
 const FILE = 'promptbox-data.json'
 const HISTORY_PREFIX = 'history/'

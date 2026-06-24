@@ -1,5 +1,6 @@
 import type { SyncVersion, WebDavConfigInput } from '@shared/types'
 import type { ConnectionResult, SyncProvider } from './provider'
+import { httpFetch as fetch } from '../net'
 
 const FILE = 'promptbox-data.json'
 const HISTORY_DIR = 'history'

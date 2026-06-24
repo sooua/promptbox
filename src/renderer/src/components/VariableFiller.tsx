@@ -69,7 +69,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
           <div className="mb-1 flex items-center justify-between">
             <label className="text-xs text-muted">
               <code className="var-chip">{v.label || v.name}</code>
-              {v.required && <span className="ml-1 text-rose-500" title={t('必填')}>*</span>}
+              {v.required && <span className="ml-1 text-error" title={t('必填')}>*</span>}
               {v.description && <span className="ml-2 text-faint">{v.description}</span>}
             </label>
             <button
@@ -99,7 +99,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
           <span className="text-xs font-medium text-muted">{t('预览结果')}</span>
           <button
             onClick={copyResolved}
-            className="flex items-center gap-1 rounded-lg bg-brand px-2.5 py-1 text-xs text-[#faf9f5] transition hover:bg-brand-strong"
+            className="flex items-center gap-1 rounded-lg bg-brand px-2.5 py-1 text-xs text-on-brand transition hover:bg-brand-strong"
           >
             <Copy size={12} />
             {t('复制结果')}

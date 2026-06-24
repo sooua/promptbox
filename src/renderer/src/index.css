@@ -42,6 +42,7 @@
   /* Brand & semantic */
   --color-brand: #c96442; /* Terracotta — primary CTA / accent */
   --color-brand-strong: #b65535; /* darker terracotta for hover */
+  --color-on-brand: #faf9f5; /* Ivory text/icons on a terracotta surface (stays cream in both themes) */
   --color-coral: #d97757; /* Coral — accents on dark, links */
   --color-error: #b53333; /* Error Crimson */
   --color-focus: #3898ec; /* Focus Blue — the only cool color */

@@ -59,6 +59,8 @@ import type { Repository } from './store/repository'
 import { loadSettings, saveSettings } from './store/config'
 import { updateHotkey } from './system'
 import { setMainLanguage } from './i18n'
+import { applyProxy } from './net'
+import { searchMcp, importMcp } from './registry/mcp'
 import type { BackupManager } from './backup'
 
 export function registerIpc(repo: Repository): void {
@@ -273,6 +275,24 @@ export function registerIpc(repo: Repository): void {
     setMainLanguage(language)
     return settings
   })
+
+  ipcMain.handle(IPC.settingsSetMarket, (_e, marketEnabled: boolean) => {
+    const current = loadSettings()
+    return saveSettings({ ...current, marketEnabled, dataDir: repo.getDataDir() })
+  })
+
+  ipcMain.handle(IPC.settingsSetProxy, (_e, proxy: string) => {
+    const current = loadSettings()
+    const settings = saveSettings({ ...current, proxy, dataDir: repo.getDataDir() })
+    applyProxy(proxy)
+    return settings
+  })
+
+  // ---- Discover / marketplace ----
+  ipcMain.handle(IPC.registryMcpSearch, (_e, query: string, cursor?: string) =>
+    searchMcp(repo, query ?? '', cursor)
+  )
+  ipcMain.handle(IPC.registryMcpImport, (_e, server: unknown) => importMcp(repo, server))
 
   ipcMain.handle(IPC.settingsSetHotkey, (_e, accelerator: string) => {
     const ok = updateHotkey(accelerator)

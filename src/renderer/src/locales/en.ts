@@ -327,5 +327,28 @@ export const en: Record<string, string> = {
   '导入失败或已取消': 'Import failed or canceled',
   '开发模式下不检查更新，打包后生效': "Updates aren't checked in dev mode; they apply after packaging",
   'PromptBox · 本地 AI Prompt 资产库': 'PromptBox · local AI prompt library',
-  '{prompts} 个 Prompt、{categories} 个分类': '{prompts} prompts, {categories} categories'
+  '{prompts} 个 Prompt、{categories} 个分类': '{prompts} prompts, {categories} categories',
+
+  // ---- Discover / marketplace ----
+  '发现': 'Discover',
+  '搜索 MCP 服务器…': 'Search MCP servers…',
+  '搜索': 'Search',
+  '来自官方 MCP 注册表': 'From the official MCP registry',
+  '加载失败：{msg}': 'Failed to load: {msg}',
+  '重试': 'Retry',
+  '没有找到匹配的服务器': 'No matching servers found',
+  '已导入': 'Imported',
+  '导入': 'Import',
+  '加载更多': 'Load more',
+  '已在库中': 'Already in your library',
+  '已导入「{name}」': 'Imported "{name}"',
+  '联网获取市场内容已关闭': 'Network access for Discover is off',
+  '开启后可浏览并导入 MCP 服务器': 'Turn it on to browse and import MCP servers',
+  '开启联网': 'Enable network',
+  '允许联网获取市场内容': 'Allow Discover to fetch over the network',
+  '仅在打开发现页时请求，不会后台联网': 'Only fetches when you open Discover; never in the background',
+  '网络': 'Network',
+  '代理': 'Proxy',
+  '留空跟随系统；direct 为直连；或填 http:// 、socks5:// 地址':
+    'Empty follows the system; "direct" for no proxy; or enter an http:// or socks5:// address'
 }

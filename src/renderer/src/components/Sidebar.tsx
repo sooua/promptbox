@@ -5,6 +5,7 @@ import {
   Box,
   Clock,
   Cloud,
+  Compass,
   Flame,
   GripVertical,
   Plug,
@@ -90,7 +91,7 @@ export function Sidebar(): React.JSX.Element {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-canvas">
       <div className="flex items-center gap-2.5 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-[#faf9f5]">
+        <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-on-brand">
           <Box size={18} />
         </div>
         <div>
@@ -116,6 +117,18 @@ export function Sidebar(): React.JSX.Element {
           </button>
         ))}
       </div>
+
+      <button
+        onClick={() => setView('discover')}
+        className={`mx-2.5 mb-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition ${
+          view === 'discover'
+            ? 'bg-brand/12 font-medium text-brand'
+            : 'text-muted hover:bg-surface-2 hover:text-ink'
+        }`}
+      >
+        <Compass size={15} />
+        {t('发现')}
+      </button>
 
       {workspace !== 'prompts' ? (
         <AssetNav kind={workspace} />
@@ -196,7 +209,7 @@ export function Sidebar(): React.JSX.Element {
               icon={
                 <span
                   className="inline-block h-2.5 w-2.5 rounded-full"
-                  style={{ background: c.color ?? '#c96442' }}
+                  style={{ background: c.color ?? 'var(--color-brand)' }}
                 />
               }
               label={c.name}
@@ -254,7 +267,7 @@ export function Sidebar(): React.JSX.Element {
                   }}
                   className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] transition ${
                     tagFilters.includes(tag)
-                      ? 'bg-brand text-[#faf9f5]'
+                      ? 'bg-brand text-on-brand'
                       : 'bg-surface-2 text-muted hover:text-ink'
                   }`}
                 >
@@ -362,7 +375,7 @@ function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
                 <span className="flex w-4 justify-center">
                   <span
                     className="inline-block h-2.5 w-2.5 rounded-full"
-                    style={{ background: c.color ?? '#c96442' }}
+                    style={{ background: c.color ?? 'var(--color-brand)' }}
                   />
                 </span>
                 <span className="flex-1 truncate text-left">{c.name}</span>

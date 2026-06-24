@@ -142,7 +142,7 @@ export function PromptList(): React.JSX.Element {
         </button>
         <button
           onClick={handleNew}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-[#faf9f5] shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-brand-strong"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-brand-strong"
           title={t('新建 Prompt')}
         >
           <Plus size={18} />
@@ -320,7 +320,7 @@ export function PromptList(): React.JSX.Element {
                     <span className="flex items-center gap-1">
                       <span
                         className="inline-block h-2 w-2 rounded-full"
-                        style={{ background: cat.color ?? '#c96442' }}
+                        style={{ background: cat.color ?? 'var(--color-brand)' }}
                       />
                       {cat.name}
                     </span>
@@ -345,7 +345,7 @@ export function PromptList(): React.JSX.Element {
                     void quickCopy(p.id)
                   }}
                   title={t('复制内容')}
-                  className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-brand px-2 py-1 text-[10px] text-[#faf9f5] transition hover:bg-brand-strong group-hover:flex"
+                  className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-brand px-2 py-1 text-[10px] text-on-brand transition hover:bg-brand-strong group-hover:flex"
                 >
                   <Copy size={11} />
                   {t('复制')}

@@ -140,8 +140,41 @@ export interface AppSettings {
   theme: ThemeMode
   /** UI language */
   language: Language
+  /** allow the Discover page to fetch from the network (never silent/background) */
+  marketEnabled: boolean
+  /**
+   * Network proxy for all outbound requests (marketplace, sync, updates).
+   * '' = follow system; 'direct' = no proxy; else proxy rules, e.g.
+   * 'http://127.0.0.1:7890' or 'socks5://127.0.0.1:7891'.
+   */
+  proxy: string
   /** Electron accelerator string for the global quick-launch hotkey */
   globalHotkey: string
+}
+
+// ---- Discover / marketplace ----
+
+/** A normalized MCP server listing from the official registry, for the Discover page. */
+export interface McpDiscoverItem {
+  /** reverse-DNS id, e.g. io.github.user/server */
+  name: string
+  title: string
+  description: string
+  version: string
+  /** transports offered, e.g. ['http'], ['stdio'] */
+  transports: string[]
+  /** already imported into the local library (by source id) */
+  imported: boolean
+  /** raw registry `server` object, carried back for import */
+  server: unknown
+}
+
+export interface McpDiscoverResult {
+  items: McpDiscoverItem[]
+  /** cursor for the next page, if any */
+  nextCursor?: string
+  /** populated on failure (network/offline) */
+  error?: string
 }
 
 export const DEFAULT_HOTKEY = 'CommandOrControl+Shift+Space'

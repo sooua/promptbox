@@ -45,6 +45,8 @@ const api: PromptBoxApi = {
     get: () => ipcRenderer.invoke(IPC.settingsGet),
     setTheme: (theme) => ipcRenderer.invoke(IPC.settingsSetTheme, theme),
     setLanguage: (language) => ipcRenderer.invoke(IPC.settingsSetLanguage, language),
+    setMarket: (enabled) => ipcRenderer.invoke(IPC.settingsSetMarket, enabled),
+    setProxy: (proxy) => ipcRenderer.invoke(IPC.settingsSetProxy, proxy),
     setHotkey: (accelerator) => ipcRenderer.invoke(IPC.settingsSetHotkey, accelerator),
     chooseDataDir: () => ipcRenderer.invoke(IPC.settingsChooseDataDir),
     openDataDir: () => ipcRenderer.invoke(IPC.settingsOpenDataDir)
@@ -74,6 +76,10 @@ const api: PromptBoxApi = {
     restoreVersion: (id) => ipcRenderer.invoke(IPC.syncRestoreVersion, id)
   },
   quit: () => ipcRenderer.invoke(IPC.appQuit),
+  market: {
+    mcpSearch: (query, cursor) => ipcRenderer.invoke(IPC.registryMcpSearch, query, cursor),
+    mcpImport: (server) => ipcRenderer.invoke(IPC.registryMcpImport, server)
+  },
   update: {
     check: () => ipcRenderer.invoke(IPC.updateCheck),
     install: () => ipcRenderer.invoke(IPC.updateInstall),

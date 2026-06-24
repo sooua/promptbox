@@ -99,7 +99,7 @@ export function QuickFill(): React.JSX.Element | null {
               <div key={v.name}>
                 <label className="mb-1 block text-xs text-muted">
                   <code className="var-chip">{v.label || v.name}</code>
-                  {v.required && <span className="ml-1 text-rose-500" title={t('必填')}>*</span>}
+                  {v.required && <span className="ml-1 text-error" title={t('必填')}>*</span>}
                   {v.description && <span className="ml-2 text-faint">{v.description}</span>}
                 </label>
                 <VariableInput
@@ -134,7 +134,7 @@ export function QuickFill(): React.JSX.Element | null {
           <span className="ml-auto text-[11px] text-faint">⌘/Ctrl + Enter</span>
           <button
             onClick={copyFilled}
-            className="flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-1.5 text-sm text-[#faf9f5] transition hover:bg-brand-strong"
+            className="flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-1.5 text-sm text-on-brand transition hover:bg-brand-strong"
           >
             <Copy size={14} />
             {t('复制填充结果')}

@@ -20,7 +20,7 @@ export function VariableInput({
   invalid?: boolean
 }): React.JSX.Element {
   const t = useT()
-  const cls = invalid ? `${inputCls} border-rose-400 focus:border-rose-400` : inputCls
+  const cls = invalid ? `${inputCls} border-error focus:border-error` : inputCls
   if (variable.type === 'select' && variable.options?.length) {
     return (
       <select autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)} className={cls}>

@@ -9,6 +9,7 @@ import { BackupManager } from './backup'
 import { seedIfEmpty } from './seed'
 import { setupSystem, destroySystem } from './system'
 import { setMainLanguage, mt } from './i18n'
+import { applyProxy } from './net'
 import { SyncEngine } from './sync/engine'
 import { registerSyncIpc } from './sync/ipc'
 import { setupAutoUpdate } from './update'
@@ -107,6 +108,7 @@ app.whenReady().then(() => {
     nativeTheme.themeSource = settings.theme
   }
   setMainLanguage(settings.language)
+  applyProxy(settings.proxy)
 
   const repo = new PromptRepository(settings.dataDir)
   seedIfEmpty(repo)

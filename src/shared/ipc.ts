@@ -36,7 +36,12 @@ export const IPC = {
   settingsGet: 'settings:get',
   settingsSetTheme: 'settings:setTheme',
   settingsSetLanguage: 'settings:setLanguage',
+  settingsSetMarket: 'settings:setMarket',
+  settingsSetProxy: 'settings:setProxy',
   settingsSetHotkey: 'settings:setHotkey',
+
+  registryMcpSearch: 'registry:mcpSearch',
+  registryMcpImport: 'registry:mcpImport',
   settingsChooseDataDir: 'settings:chooseDataDir',
   settingsOpenDataDir: 'settings:openDataDir',
 

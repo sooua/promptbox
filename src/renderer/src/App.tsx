@@ -9,6 +9,7 @@ import { SettingsView } from './components/SettingsView'
 import { CommandPalette } from './components/CommandPalette'
 import { QuickFill } from './components/QuickFill'
 import { CloudSyncModal } from './components/CloudSyncModal'
+import { DiscoverView } from './components/DiscoverView'
 import { TitleBar } from './components/TitleBar'
 import { ToastHost, toast } from './components/Toast'
 import { t, useT } from './i18n'
@@ -183,6 +184,8 @@ export default function App(): React.JSX.Element {
         <Sidebar />
         {view === 'settings' ? (
           <SettingsView />
+        ) : view === 'discover' ? (
+          <DiscoverView />
         ) : workspace === 'prompts' ? (
           <>
             <PromptList />

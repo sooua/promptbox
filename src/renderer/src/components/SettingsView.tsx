@@ -27,6 +27,8 @@ export function SettingsView(): React.JSX.Element {
   const categories = useStore((s) => s.categories)
   const setTheme = useStore((s) => s.setTheme)
   const setLanguage = useStore((s) => s.setLanguage)
+  const setMarket = useStore((s) => s.setMarket)
+  const setProxy = useStore((s) => s.setProxy)
   const setHotkey = useStore((s) => s.setHotkey)
   const chooseDataDir = useStore((s) => s.chooseDataDir)
   const openDataDir = useStore((s) => s.openDataDir)
@@ -119,6 +121,25 @@ export function SettingsView(): React.JSX.Element {
                 </option>
               ))}
             </select>
+          </Row>
+        </Section>
+
+        {/* Network */}
+        <Section title={t('网络')}>
+          <Row
+            label={t('代理')}
+            description={t('留空跟随系统；direct 为直连；或填 http:// 、socks5:// 地址')}
+          >
+            <ProxyInput value={settings?.proxy ?? ''} onSave={(v) => void setProxy(v)} />
+          </Row>
+          <Row
+            label={t('允许联网获取市场内容')}
+            description={t('仅在打开发现页时请求，不会后台联网')}
+          >
+            <Toggle
+              checked={settings?.marketEnabled ?? true}
+              onChange={(v) => void setMarket(v)}
+            />
           </Row>
         </Section>
 
@@ -243,7 +264,7 @@ function UpdateRow(): React.JSX.Element {
       {st === 'downloaded' ? (
         <button
           onClick={() => void installUpdate()}
-          className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-sm text-[#faf9f5] transition hover:bg-brand-strong"
+          className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-sm text-on-brand transition hover:bg-brand-strong"
         >
           <Download size={15} />
           {t('重启安装')}
@@ -339,6 +360,58 @@ function BackupSection(): React.JSX.Element {
         </div>
       )}
     </div>
+  )
+}
+
+function ProxyInput({
+  value,
+  onSave
+}: {
+  value: string
+  onSave(v: string): void
+}): React.JSX.Element {
+  const t = useT()
+  const [draft, setDraft] = useState(value)
+  useEffect(() => setDraft(value), [value])
+  const commit = () => {
+    const v = draft.trim()
+    if (v !== value) onSave(v)
+  }
+  return (
+    <input
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+      placeholder={t('http://127.0.0.1:7890')}
+      spellCheck={false}
+      className="w-64 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
+    />
+  )
+}
+
+function Toggle({
+  checked,
+  onChange
+}: {
+  checked: boolean
+  onChange(v: boolean): void
+}): React.JSX.Element {
+  return (
+    <button
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative h-5 w-9 shrink-0 rounded-full transition ${
+        checked ? 'bg-brand' : 'bg-surface-2'
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${
+          checked ? 'left-[18px]' : 'left-0.5'
+        }`}
+      />
+    </button>
   )
 }
 

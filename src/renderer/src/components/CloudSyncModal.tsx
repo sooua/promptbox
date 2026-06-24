@@ -205,7 +205,7 @@ export function CloudSyncModal(): React.JSX.Element {
                       ) : prov.available ? (
                         <button
                           onClick={() => setConnectingId(isConnecting ? null : prov.id)}
-                          className="flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm text-[#faf9f5] transition hover:bg-brand-strong"
+                          className="flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm text-on-brand transition hover:bg-brand-strong"
                         >
                           <Cloud size={15} />
                           {t('连接')}
@@ -262,7 +262,7 @@ export function CloudSyncModal(): React.JSX.Element {
                             />
                             <button
                               onClick={applyEncryption}
-                              className="rounded-xl bg-brand px-3 py-2 text-sm text-[#faf9f5] transition hover:bg-brand-strong"
+                              className="rounded-xl bg-brand px-3 py-2 text-sm text-on-brand transition hover:bg-brand-strong"
                             >
                               {t('启用')}
                             </button>
@@ -412,7 +412,7 @@ function ConnectBtn({ onClick, full }: { onClick(): void; full?: boolean }): Rea
   return (
     <button
       onClick={onClick}
-      className={`rounded-xl bg-brand px-3 py-2 text-sm text-[#faf9f5] transition hover:bg-brand-strong ${
+      className={`rounded-xl bg-brand px-3 py-2 text-sm text-on-brand transition hover:bg-brand-strong ${
         full ? 'w-full' : ''
       }`}
     >

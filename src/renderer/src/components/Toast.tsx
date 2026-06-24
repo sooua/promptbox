@@ -76,7 +76,7 @@ export function ToastHost(): React.JSX.Element {
                 t.action!.onClick()
                 dismiss(t.id)
               }}
-              className="ml-1 flex items-center gap-1 rounded-md bg-brand px-2 py-0.5 text-xs text-[#faf9f5] transition hover:bg-brand-strong"
+              className="ml-1 flex items-center gap-1 rounded-md bg-brand px-2 py-0.5 text-xs text-on-brand transition hover:bg-brand-strong"
             >
               <Undo2 size={12} />
               {t.action.label}
