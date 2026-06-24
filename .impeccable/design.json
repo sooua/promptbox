@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-25T00:00:00Z",
+  "title": "Design System: PromptBox",
+  "extensions": {
+    "colorMeta": {
+      "brand": {
+        "role": "primary",
+        "displayName": "Terracotta",
+        "canonical": "oklch(0.62 0.115 38)",
+        "tonalRamp": ["#3a1a10", "#5a2a1c", "#7d3b28", "#a04d35", "#c96442", "#d97757", "#e69a82", "#f3cabb"]
+      },
+      "brand-strong": {
+        "role": "primary",
+        "displayName": "Terracotta Deep",
+        "canonical": "oklch(0.56 0.12 35)",
+        "tonalRamp": ["#311409", "#4e2114", "#6c3020", "#90412c", "#b65535", "#cf6c4d", "#e29a82", "#f1c9bb"]
+      },
+      "coral": {
+        "role": "primary",
+        "displayName": "Coral",
+        "canonical": "oklch(0.68 0.105 40)",
+        "tonalRamp": ["#3d1e12", "#5d2f20", "#80422f", "#a5573f", "#d97757", "#e2906f", "#ecb59b", "#f6dccd"]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "oklch(0.96 0.008 95)",
+        "tonalRamp": ["#2b2a25", "#45443d", "#605e54", "#85837a", "#a9a79c", "#cdcbc0", "#e8e6dc", "#f5f4ed"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Ivory",
+        "canonical": "oklch(0.975 0.006 95)",
+        "tonalRamp": ["#2d2c27", "#47463f", "#626056", "#87857b", "#aba99e", "#cfcdc2", "#eae8de", "#faf9f5"]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Warm Sand",
+        "canonical": "oklch(0.92 0.012 92)",
+        "tonalRamp": ["#2a2924", "#43423b", "#5d5b52", "#817f75", "#a5a397", "#c4c2b6", "#dad8cd", "#e8e6dc"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Near Black",
+        "canonical": "oklch(0.18 0.004 80)",
+        "tonalRamp": ["#141413", "#2a2a28", "#42413e", "#5e5d59", "#87867f", "#a9a89f", "#cfcec4", "#f5f4ed"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Olive Gray",
+        "canonical": "oklch(0.45 0.006 90)",
+        "tonalRamp": ["#222119", "#36352c", "#4b4940", "#5e5d59", "#787770", "#969489", "#b8b6ab", "#dad8cd"]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Stone Gray",
+        "canonical": "oklch(0.60 0.005 90)",
+        "tonalRamp": ["#2b2a26", "#43423c", "#5d5c54", "#76756d", "#87867f", "#a3a299", "#c0bfb5", "#deded4"]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Border Warm",
+        "canonical": "oklch(0.92 0.012 92)",
+        "tonalRamp": ["#2a2924", "#43423b", "#5d5b52", "#817f75", "#a5a397", "#c4c2b6", "#dad8cd", "#e8e6dc"]
+      },
+      "ring": {
+        "role": "neutral",
+        "displayName": "Ring Warm",
+        "canonical": "oklch(0.85 0.01 90)",
+        "tonalRamp": ["#292823", "#403f39", "#59574f", "#7a7870", "#9c9a8f", "#bcbab0", "#d1cfc5", "#e6e4da"]
+      },
+      "error": {
+        "role": "tertiary",
+        "displayName": "Error Crimson",
+        "canonical": "oklch(0.52 0.17 25)",
+        "tonalRamp": ["#330e0e", "#511717", "#722121", "#922b2b", "#b53333", "#cd5a5a", "#e08a8a", "#f1c4c4"]
+      },
+      "focus": {
+        "role": "tertiary",
+        "displayName": "Focus Blue",
+        "canonical": "oklch(0.66 0.16 250)",
+        "tonalRamp": ["#0d2438", "#123654", "#174a73", "#2270b4", "#3898ec", "#69b1f1", "#9bcbf6", "#cde5fb"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Editing title field and largest markdown headings. The single biggest voice; no shouting hero scale." },
+      "title": { "displayName": "Title", "purpose": "Modal titles, quick-fill prompt name, in-content section headings." },
+      "body": { "displayName": "Body", "purpose": "Default reading size for descriptions, settings, prose. Keep columns 65-75ch." },
+      "label": { "displayName": "Label", "purpose": "Metadata, counts, timestamps, tag pills. Sentence case, never all-caps." },
+      "code": { "displayName": "Code", "purpose": "Editor body, asset names, fill previews, MCP fields, {{variables}}. The literal-string voice." }
+    },
+    "shadows": [
+      { "name": "overlay-modal", "value": "0 12px 48px rgba(0,0,0,0.12)", "purpose": "Command palette, quick-fill, settings modals over a 30% scrim." },
+      { "name": "overlay-modal-strong", "value": "0 16px 56px rgba(0,0,0,0.14)", "purpose": "The larger cloud-sync modal panel." },
+      { "name": "popover", "value": "0 8px 28px rgba(0,0,0,0.12)", "purpose": "The {{ }} autocomplete and small floating menus." },
+      { "name": "toast", "value": "0 4px 24px rgba(0,0,0,0.08)", "purpose": "Transient bottom-center notifications." },
+      { "name": "soft-panel", "value": "0 4px 24px rgba(0,0,0,0.05)", "purpose": "The preview card; the one resting surface allowed a whisper of lift." },
+      { "name": "ring-hover", "value": "0 0 0 1px var(--color-ring)", "purpose": "Default interactive-affordance cue: an outline that warms on hover, not a shadow." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "Default ease-out for state transitions (hover, selection, open)." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Hover/active background and border shifts." },
+      { "name": "duration-base", "value": "200ms", "purpose": "Tab and panel state changes." },
+      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce -> crossfade or instant", "purpose": "Every animation must degrade to a crossfade/instant alternative." }
+    ],
+    "breakpoints": [
+      { "name": "app-min", "value": "940px", "purpose": "Minimum window width (Electron minWidth)." },
+      { "name": "rail", "value": "320px", "purpose": "Fixed width of the prompt/asset list rail (w-80)." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single loud call-to-action on a view (copy result, connect, new).",
+      "html": "<button class=\"ds-btn-primary\">复制结果</button>",
+      "css": ".ds-btn-primary { background: #c96442; color: #faf9f5; border: none; border-radius: 12px; padding: 8px 14px; font-family: 'Anthropic Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background 150ms cubic-bezier(0.32,0.72,0,1); } .ds-btn-primary:hover { background: #b65535; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px #f5f4ed, 0 0 0 4px #3898ec; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action: bordered, quiet, warms toward ink on hover.",
+      "html": "<button class=\"ds-btn-ghost\">复制原始模板</button>",
+      "css": ".ds-btn-ghost { background: transparent; color: #5e5d59; border: 1px solid #e8e6dc; border-radius: 12px; padding: 6px 12px; font-family: 'Anthropic Sans', system-ui, sans-serif; font-size: 0.875rem; cursor: pointer; transition: border-color 150ms cubic-bezier(0.32,0.72,0,1), color 150ms cubic-bezier(0.32,0.72,0,1); } .ds-btn-ghost:hover { border-color: #d1cfc5; color: #141413; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "List filter / form field. Focus shifts the border to the lone cool focus-blue, no glow.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"在当前列表内筛选…\" />",
+      "css": ".ds-input { width: 100%; background: #f5f4ed; color: #141413; border: 1px solid #e8e6dc; border-radius: 12px; padding: 8px 12px; font-family: 'Anthropic Sans', system-ui, sans-serif; font-size: 0.875rem; outline: none; transition: border-color 150ms cubic-bezier(0.32,0.72,0,1); } .ds-input::placeholder { color: #87867f; } .ds-input:focus { border-color: #3898ec; }"
+    },
+    {
+      "name": "Tag Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "A tag pill in warm sand; active filter variant inverts to a terracotta wash.",
+      "html": "<span class=\"ds-chip\">#gpt</span> <span class=\"ds-chip ds-chip-active\">#客户报告</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; background: #e8e6dc; color: #5e5d59; border-radius: 9999px; padding: 2px 8px; font-family: 'Anthropic Sans', system-ui, sans-serif; font-size: 0.6875rem; } .ds-chip-active { background: rgba(201,100,66,0.15); color: #c96442; }"
+    },
+    {
+      "name": "Variable Chip",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "A fillable {{variable}} slot, legible in prose and the editor overlay.",
+      "html": "<code class=\"ds-var-chip\">{{客户名}}</code>",
+      "css": ".ds-var-chip { background: rgba(201,100,66,0.16); color: #c96442; border-radius: 6px; padding: 0.05em 0.4em; font-family: 'Anthropic Mono', ui-monospace, monospace; font-weight: 500; font-size: 0.9em; }"
+    },
+    {
+      "name": "Prompt List Item",
+      "kind": "card",
+      "refersTo": "list-item",
+      "description": "A row in the prompt rail. Transparent at rest, ivory on hover, terracotta wash when selected. Depth is border + tone, never a shadow.",
+      "html": "<div class=\"ds-listitem ds-listitem-selected\"><div class=\"ds-listitem-title\">客户报告生成器</div><div class=\"ds-listitem-sub\">根据要点生成结构化周报</div></div>",
+      "css": ".ds-listitem { border: 1px solid transparent; border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: background 150ms cubic-bezier(0.32,0.72,0,1); } .ds-listitem:hover { background: #faf9f5; } .ds-listitem-selected { background: rgba(201,100,66,0.08); border-color: rgba(201,100,66,0.3); } .ds-listitem-title { font-family: 'Anthropic Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: #141413; } .ds-listitem-sub { margin-top: 2px; font-size: 0.75rem; color: #87867f; }"
+    },
+    {
+      "name": "Command Palette Item",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "A ranked result row in the Ctrl/Cmd+K palette; active row gets a terracotta wash and a return glyph.",
+      "html": "<div class=\"ds-cmd-item ds-cmd-active\"><span class=\"ds-cmd-icon\">P</span><div class=\"ds-cmd-text\"><span class=\"ds-cmd-title\">客户报告生成器</span><span class=\"ds-cmd-sub\">周报 · 3 个变量</span></div><svg class=\"ds-cmd-enter\" width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polyline points=\"9 10 4 15 9 20\"/><path d=\"M20 4v7a4 4 0 0 1-4 4H4\"/></svg></div>",
+      "css": ".ds-cmd-item { display: flex; align-items: center; gap: 12px; border-radius: 12px; padding: 10px 12px; cursor: pointer; } .ds-cmd-active { background: rgba(201,100,66,0.12); } .ds-cmd-icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 6px; background: #e8e6dc; color: #5e5d59; font-family: 'Anthropic Mono', monospace; font-size: 11px; } .ds-cmd-text { display: flex; flex-direction: column; min-width: 0; flex: 1; } .ds-cmd-title { font-family: 'Anthropic Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: #141413; } .ds-cmd-sub { font-size: 0.75rem; color: #87867f; } .ds-cmd-enter { color: #c96442; }"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Transient bottom-center notification; error variant uses role=alert and crimson icon.",
+      "html": "<div class=\"ds-toast\"><span class=\"ds-toast-dot\"></span>已复制填充后的 Prompt</div>",
+      "css": ".ds-toast { display: inline-flex; align-items: center; gap: 8px; background: #faf9f5; color: #141413; border: 1px solid #e8e6dc; border-radius: 12px; padding: 8px 16px; font-family: 'Anthropic Sans', system-ui, sans-serif; font-size: 0.875rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); } .ds-toast-dot { width: 8px; height: 8px; border-radius: 9999px; background: #c96442; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Warm Writing Desk",
+    "overview": "PromptBox is the lamp-lit desk where a writer keeps the words they reach for again and again. The surface is warm parchment, the ink is near-black, the one accent is a terracotta the color of a fountain pen's barrel. The prompt being written or filled is the only true protagonist, and every piece of chrome is furniture that holds still so the words can move. Type carries the hierarchy through a serif/sans/mono triad; depth is warm hairline borders and rings, with real shadows held back for things that genuinely float. The whole interface flips to a warm-dark charcoal through the same semantic tokens, so the personality survives the theme switch intact.",
+    "keyCharacteristics": [
+      "Warm parchment canvas with a single terracotta accent used sparingly",
+      "Serif headlines (weight 500) against a sans body and a mono technical voice",
+      "Hairline-border and ring-based depth; shadows reserved for true overlays",
+      "Semantic tokens that flip the entire UI to warm-dark with no dark: variants",
+      "Keyboard-first surfaces where chrome recedes and content leads"
+    ],
+    "rules": [
+      { "name": "The One-Accent Rule", "body": "Terracotta is the only brand color and stays under ~10% of any screen. Secondary emphasis comes from weight, ink, or a sand fill, not more orange.", "section": "colors" },
+      { "name": "The Warm-Mirror Rule", "body": "Light and dark are the same design through one set of semantic tokens. Never write a dark: utility or a zinc/slate value; theme changes live only in the .dark token block.", "section": "colors" },
+      { "name": "The Cool-Color Quarantine Rule", "body": "Blue exists only as --color-focus on a focused input. No blue links, buttons, or info states.", "section": "colors" },
+      { "name": "The Single-Serif-Weight Rule", "body": "The serif speaks at weight 500 across every size. Hierarchy comes from size and the serif/sans contrast, not stacked serif weights.", "section": "typography" },
+      { "name": "The Mono-Means-Code Rule", "body": "Monospace is reserved for literal machine text: asset identifiers, prompt source, config fields, {{variable}} tokens. Never for human prose to look techy.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "Surfaces are flat until something floats. A card in page flow gets a border and tone shift, not a drop shadow. Shadows mean above-the-page, nothing else.", "section": "elevation" },
+      { "name": "The Ring-Not-Glow Rule", "body": "Hover and focus are crisp 1px rings and border shifts, never soft glows or blurred halos.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep terracotta (#c96442) under ~10% of any screen; let weight, ink, and Sand fills carry secondary emphasis.",
+      "Do change colors only through semantic tokens and the .dark block; use bg-canvas, text-ink, border-line, never a dark: utility or zinc/slate value.",
+      "Do keep surfaces flat at rest; convey depth with line/line-strong borders and the Ring Warm hover outline. Reserve real shadows for modals, popovers, toasts.",
+      "Do use the serif at weight 500 for titles, the sans for prose, and mono only for literal machine text.",
+      "Do make every frequent action keyboard-reachable and label buttons verb + object.",
+      "Do verify the Olive Gray / Stone Gray text ramp hits >=4.5:1 on Parchment for body and metadata; bump toward Ink when close."
+    ],
+    "donts": [
+      "Don't make it a playful consumer toy: no cartoon rounding, mascots, candy palette, or bouncy/elastic motion.",
+      "Don't make it heavy enterprise software: no conservative blue-gray chrome, modal-bureaucracy, or serious-means-gray-and-boxed.",
+      "Don't make it a generic SaaS dashboard: no cool-gray card grid with gradient accents, no hero-metric template.",
+      "Don't introduce a second accent or any blue beyond --color-focus on a focused input.",
+      "Don't use ALL CAPS sentence text or tracked uppercase eyebrows above sections.",
+      "Don't use colored left/right stripe borders, gradient text, or decorative glassmorphism.",
+      "Don't put a drop shadow on a surface that sits in the page flow."
+    ]
+  }
+}

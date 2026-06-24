@@ -1,0 +1,25 @@
+appId: com.promptbox.app
+productName: PromptBox
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+  - resources/**/*
+  - package.json
+win:
+  target: nsis
+mac:
+  target: dmg
+  category: public.app-category.developer-tools
+linux:
+  target: AppImage
+  category: Development
+# Auto-update source. electron-updater reads this to find new releases; the build
+# publishes the installer + latest.yml here. Fill `owner` with your GitHub account,
+# then `npm run package` and publish the release. (Swap to `provider: generic`
+# with a `url:` if you self-host the update files instead of GitHub Releases.)
+publish:
+  provider: github
+  owner: sooua
+  repo: promptbox

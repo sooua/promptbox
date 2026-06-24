@@ -1,0 +1,217 @@
+@import 'tailwindcss';
+
+/* Dark mode is driven by a `.dark` class on <html>, toggled in JS. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Claude / Anthropic design language — warm parchment canvas, terracotta brand,
+ * exclusively warm-toned neutrals, serif headlines, ring-based depth.
+ *
+ * Colors are declared as SEMANTIC tokens so the same utility classes
+ * (bg-canvas, text-ink, border-line…) adapt automatically: the `.dark` block
+ * below overrides the same CSS variables, and every Tailwind utility resolves
+ * through var(), so the cascade flips the whole UI to warm-dark.
+ */
+@theme {
+  --font-sans:
+    'Anthropic Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter,
+    'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-serif:
+    'Anthropic Serif', Georgia, 'Songti SC', 'Noto Serif SC', 'Times New Roman',
+    serif;
+  --font-mono:
+    'Anthropic Mono', 'JetBrains Mono', 'Fira Code', ui-monospace,
+    SFMono-Regular, Menlo, monospace;
+
+  /* Surfaces */
+  --color-canvas: #f5f4ed; /* Parchment — page background */
+  --color-surface: #faf9f5; /* Ivory — cards / elevated containers */
+  --color-surface-2: #e8e6dc; /* Warm Sand — buttons / prominent surfaces */
+  --color-white: #ffffff;
+
+  /* Text */
+  --color-ink: #141413; /* Near Black — primary text */
+  --color-muted: #5e5d59; /* Olive Gray — secondary text */
+  --color-faint: #87867f; /* Stone Gray — tertiary / metadata */
+
+  /* Lines & rings */
+  --color-line: #f0eee6; /* Border Cream — standard light border */
+  --color-line-strong: #e8e6dc; /* Border Warm — prominent dividers */
+  --color-ring: #d1cfc5; /* Ring Warm — hover/focus ring */
+
+  /* Brand & semantic */
+  --color-brand: #c96442; /* Terracotta — primary CTA / accent */
+  --color-brand-strong: #b65535; /* darker terracotta for hover */
+  --color-coral: #d97757; /* Coral — accents on dark, links */
+  --color-error: #b53333; /* Error Crimson */
+  --color-focus: #3898ec; /* Focus Blue — the only cool color */
+}
+
+/* Warm-dark theme: Near Black canvas, warm charcoal surfaces, parchment text. */
+.dark {
+  --color-canvas: #141413;
+  --color-surface: #1e1d1b;
+  --color-surface-2: #30302e;
+  --color-white: #30302e;
+
+  --color-ink: #f5f4ed;
+  --color-muted: #b0aea5;
+  --color-faint: #87867f;
+
+  --color-line: #30302e;
+  --color-line-strong: #3d3d3a;
+  --color-ring: #3d3d3a;
+
+  --color-brand: #c96442;
+  --color-brand-strong: #d97757;
+  --color-coral: #d97757;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* Thin, warm scrollbars. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-faint) 45%, transparent);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-faint) 70%, transparent);
+  background-clip: padding-box;
+}
+
+/* Serif headline helper — weight 500, single voice across all sizes. */
+.font-serif {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+/*
+ * Custom title bar: the OS title bar is hidden (titleBarStyle: 'hidden'); these
+ * make the app's own top bars draggable while keeping their controls clickable.
+ */
+.app-drag {
+  -webkit-app-region: drag;
+}
+.app-drag :where(button, a, input, select, textarea, label, [role='button'], [role='option'], [contenteditable='true']) {
+  -webkit-app-region: no-drag;
+}
+/* Reserve room on the right-most top bar for the window-control overlay. */
+.app-drag-pad {
+  padding-right: 140px;
+}
+
+/* Rendered markdown styling (scoped to .md). */
+.md {
+  line-height: 1.7;
+  word-wrap: break-word;
+  color: var(--color-ink);
+}
+.md h1,
+.md h2,
+.md h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+.md h1 { font-size: 1.7em; line-height: 1.2; margin: 0.8em 0 0.4em; }
+.md h2 { font-size: 1.4em; line-height: 1.2; margin: 0.8em 0 0.4em; }
+.md h3 { font-size: 1.18em; line-height: 1.3; margin: 0.7em 0 0.3em; }
+.md p { margin: 0.6em 0; }
+.md ul, .md ol { margin: 0.5em 0; padding-left: 1.5em; }
+.md ul { list-style: disc; }
+.md ol { list-style: decimal; }
+.md li { margin: 0.2em 0; }
+.md a { color: var(--color-brand); text-decoration: underline; }
+.md blockquote {
+  border-left: 3px solid var(--color-brand);
+  padding-left: 1em;
+  margin: 0.6em 0;
+  color: var(--color-muted);
+}
+.md code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  letter-spacing: -0.32px;
+  background: color-mix(in srgb, var(--color-surface-2) 60%, transparent);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}
+.md pre {
+  background: color-mix(in srgb, var(--color-surface-2) 50%, transparent);
+  padding: 0.9em 1em;
+  border-radius: 12px;
+  overflow-x: auto;
+  margin: 0.7em 0;
+}
+.md pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+}
+.md table {
+  border-collapse: collapse;
+  margin: 0.7em 0;
+  width: 100%;
+}
+.md th, .md td {
+  border: 1px solid var(--color-line-strong);
+  padding: 0.4em 0.7em;
+  text-align: left;
+}
+.md hr {
+  border: none;
+  border-top: 1px solid var(--color-line-strong);
+  margin: 1em 0;
+}
+
+/* Syntax-highlight overlay tokens (behind the editor textarea). */
+.hl-overlay {
+  color: var(--color-ink);
+}
+.hl-var {
+  color: var(--color-brand);
+  font-weight: 600;
+}
+.hl-code {
+  color: var(--color-muted);
+}
+.hl-bold {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+.hl-heading {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* Highlight {{variables}} inside rendered preview and inline. */
+.var-chip {
+  background: color-mix(in srgb, var(--color-brand) 16%, transparent);
+  color: var(--color-brand);
+  border-radius: 6px;
+  padding: 0.05em 0.4em;
+  font-weight: 500;
+  font-size: 0.9em;
+}
