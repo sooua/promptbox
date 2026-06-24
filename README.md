@@ -12,12 +12,18 @@
 
 ## 下载安装
 
-前往 [**Releases**](https://github.com/sooua/promptbox/releases/latest) 下载：
+前往 [**Releases**](https://github.com/sooua/promptbox/releases/latest) 下载对应平台：
 
-- **Windows** — `PromptBox-Setup-x.y.z.exe`
+| 平台 | 文件 |
+| --- | --- |
+| **Windows** | `PromptBox-Setup-x.y.z.exe` |
+| **macOS (Apple Silicon)** | `PromptBox-x.y.z-arm64.dmg` |
+| **macOS (Intel)** | `PromptBox-x.y.z.dmg` |
+| **Linux** | `PromptBox-x.y.z.AppImage` |
 
-> 安装包未做代码签名，首次运行 Windows 可能弹出 SmartScreen 提示，点击「更多信息 → 仍要运行」即可。
-> 安装后内置在线更新：发布新版本后会自动检测、后台下载、一键重启安装。
+> **Windows**：未做代码签名，首次运行可能弹 SmartScreen 提示，点「更多信息 → 仍要运行」。
+> **macOS**：未签名 / 公证，首次打开需「右键 → 打开」绕过 Gatekeeper；mac 自动更新需签名后生效。
+> 安装后内置在线更新：Windows / Linux 会自动检测、后台下载、一键重启安装。
 
 ## 功能
 
@@ -96,20 +102,27 @@ npm run package      # 打包为安装包（不发布）
 
 ## 发布
 
-更新源在 `electron-builder.yml` 的 `publish`（GitHub Releases）。发版步骤：
+### 三端发布（推荐，GitHub Actions）
 
-1. 递增 `package.json` 的 `version`（在线更新靠版本号比较判断新版）
-2. 确保 `gh` 已登录或设置 `GH_TOKEN`（需 `repo` 权限）
-3. 运行：
+`.github/workflows/release.yml` 会在推送 `v*.*.*` tag 时，于 `windows / macos / ubuntu` 三个 runner 上各自构建原生包并发布到同一个 Release：
 
 ```bash
-# 用 gh 的 token 发布到 GitHub Releases
-GH_TOKEN="$(gh auth token)" npm run publish
+# 1. 递增版本（在线更新靠版本号比较判断新版）
+npm version patch        # 或手动改 package.json 的 version
+# 2. 打 tag 并推送，触发 CI
+git push && git push --tags
 ```
 
-这会打出安装包 + `latest.yml`（更新清单）+ `*.blockmap`（差量更新），并创建对应版本的 GitHub Release（默认为草稿，确认后发布即可）。
+CI 用仓库自带的 `GITHUB_TOKEN` 发布，无需额外配置。三端各自生成更新清单（`latest.yml` / `latest-mac.yml` / `latest-linux.yml`）。Release 默认为草稿，三个任务都完成后发布即可。
 
-> 想要带品牌图标的安装包，放一个 `build/icon.ico`（256×256），electron-builder 会自动采用。
+### 仅本地单平台（快速验证）
+
+```bash
+GH_TOKEN="$(gh auth token)" npm run publish   # 只产出当前主机平台
+```
+
+> macOS 的 dmg/zip 必须在 macOS 上构建，Linux 的 AppImage 最好在 Linux 上构建，无法在 Windows 交叉编译，因此完整三端依赖 CI。
+> 应用图标取自 `build/icon.ico`（Windows）与 `build/icon.png`（mac/Linux），electron-builder 自动采用。
 
 ## 架构
 
