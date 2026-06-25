@@ -1,4 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Braces } from 'lucide-react'
 import { extractVariableNames } from '@shared/variables'
 import { useT } from '../i18n'
 
@@ -11,7 +12,9 @@ interface Props {
   suggestions: string[]
 }
 
-const TOKEN_RE = /(\{\{\s*[\w.-]+\s*\}\})|(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(^#{1,6} .*$)/gm
+// Variable names may contain Unicode letters (incl. CJK), digits, _ . -
+const TOKEN_RE =
+  /(\{\{\s*[\p{L}\p{N}_.-]+\s*\}\})|(`[^`\n]+`)|(\*\*[^*\n]+\*\*)|(^#{1,6} .*$)/gmu
 
 function escapeHtml(s: string): string {
   return s
@@ -81,8 +84,10 @@ function caretCoordinates(el: HTMLTextAreaElement, position: number): { top: num
   return { top, left }
 }
 
+// Use the app sans stack (which includes CJK fonts) on BOTH layers so the
+// transparent textarea and the colored overlay measure glyphs identically.
 const SHARED =
-  'p-5 font-mono text-sm leading-[1.7] whitespace-pre-wrap break-words tracking-normal'
+  'p-5 font-sans text-sm leading-[1.7] whitespace-pre-wrap break-words tracking-normal'
 
 export function HighlightedEditor({
   value,
@@ -168,7 +173,7 @@ export function HighlightedEditor({
     if (!ta) return
     const caret = ta.selectionStart
     const before = value.slice(0, caret)
-    const m = before.match(/\{\{\s*([\w.-]*)$/)
+    const m = before.match(/\{\{\s*([\p{L}\p{N}_.-]*)$/u)
     if (!m) {
       setSuggest(null)
       return
@@ -195,6 +200,25 @@ export function HighlightedEditor({
   }
 
   useLayoutEffect(syncScroll, [value])
+
+  /** Insert {{ }} at the caret (wrapping any selection) and open autocomplete. */
+  function insertVariable() {
+    const ta = taRef.current
+    if (!ta) return
+    const start = ta.selectionStart ?? value.length
+    const end = ta.selectionEnd ?? start
+    const sel = value.slice(start, end)
+    const next = `${value.slice(0, start)}{{${sel}}}${value.slice(end)}`
+    record(value)
+    onChange(next)
+    const innerStart = start + 2
+    const innerEnd = innerStart + sel.length
+    requestAnimationFrame(() => {
+      ta.focus()
+      ta.setSelectionRange(innerStart, innerEnd)
+      updateSuggest()
+    })
+  }
 
   function applySuggestion(name: string) {
     const ta = taRef.current
@@ -320,6 +344,14 @@ export function HighlightedEditor({
         <span>{t('{n} 字符', { n: counts.chars })}</span>
         <span>{t('{n} 行', { n: counts.lines })}</span>
         <span>{t('{n} 个变量', { n: counts.vars })}</span>
+        <button
+          onClick={insertVariable}
+          title={t('插入变量 {{ }}')}
+          className="ml-auto flex items-center gap-1 rounded-md border border-line-strong px-2 py-0.5 text-muted transition hover:border-brand hover:text-brand"
+        >
+          <Braces size={12} />
+          {t('插入变量')}
+        </button>
       </div>
     </div>
   )

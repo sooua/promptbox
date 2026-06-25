@@ -244,7 +244,7 @@ export function PromptList(): React.JSX.Element {
       ) : (
         <VirtualList
           items={filtered}
-          rowHeight={92}
+          rowHeight={108}
           tabIndex={0}
           onKeyDown={onKeyDown}
           scrollToIndex={filtered.findIndex((p) => p.id === selectedId)}

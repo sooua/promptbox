@@ -186,24 +186,25 @@ body {
   margin: 1em 0;
 }
 
-/* Syntax-highlight overlay tokens (behind the editor textarea). */
+/* Syntax-highlight overlay tokens (behind the editor textarea).
+ * IMPORTANT: tokens must NOT change glyph advance width (no font-weight /
+ * letter-spacing), or the colored <pre> layer drifts out of alignment with the
+ * transparent <textarea>'s native caret & selection — especially over CJK.
+ * Distinguish tokens by color only. */
 .hl-overlay {
   color: var(--color-ink);
 }
 .hl-var {
   color: var(--color-brand);
-  font-weight: 600;
 }
 .hl-code {
   color: var(--color-muted);
 }
 .hl-bold {
   color: var(--color-ink);
-  font-weight: 700;
 }
 .hl-heading {
-  color: var(--color-ink);
-  font-weight: 600;
+  color: var(--color-brand);
 }
 
 /* Highlight {{variables}} inside rendered preview and inline. */

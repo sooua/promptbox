@@ -4,8 +4,11 @@ import type { PromptVariable } from './types'
  * Matches {{ variable_name }} with flexible whitespace, plus an optional inline
  * default after a pipe: {{ name | fallback text }}. The default runs up to the
  * closing braces (so it may contain spaces but not `}`).
+ *
+ * Names allow Unicode letters (incl. CJK), digits, and _ . - so Chinese
+ * variable names like {{产品名}} work.
  */
-const VARIABLE_RE = /\{\{\s*([a-zA-Z0-9_.-]+)\s*(?:\|([^}]*))?\}\}/g
+const VARIABLE_RE = /\{\{\s*([\p{L}\p{N}_.-]+)\s*(?:\|([^}]*))?\}\}/gu
 
 export interface ParsedVariable {
   name: string

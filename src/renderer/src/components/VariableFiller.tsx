@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Copy, Settings2, Wand2 } from 'lucide-react'
+import { Copy, Plus, Settings2, Wand2 } from 'lucide-react'
 import type { Prompt, PromptVariable, VariableType } from '@shared/types'
 import { fillTemplate, missingRequired } from '@shared/variables'
 import { useStore } from '../store'
@@ -50,10 +50,28 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
     void updatePrompt(prompt.id, { variables })
   }
 
+  /** Create a variable by appending {{name}} to the content (its source of truth). */
+  function addVariable(raw: string): boolean {
+    const name = raw.replace(/[{}|]/g, '').trim()
+    if (!name) return false
+    if (prompt.variables.some((v) => v.name === name)) {
+      toast.info(t('变量「{name}」已存在', { name }))
+      return false
+    }
+    const sep = !prompt.content || /\s$/.test(prompt.content) ? '' : ' '
+    void updatePrompt(prompt.id, { content: `${prompt.content}${sep}{{${name}}}` })
+    toast.success(t('已添加变量「{name}」', { name }))
+    return true
+  }
+
   if (prompt.variables.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
-        {t('暂无变量。在内容里写')} <code className="var-chip">{'{{变量名}}'}</code> {t('即可。')}
+      <div className="space-y-3">
+        <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
+          {t('暂无变量。在内容里写')} <code className="var-chip">{'{{变量名}}'}</code>{' '}
+          {t('，或在下方新建。')}
+        </div>
+        <AddVariable onAdd={addVariable} />
       </div>
     )
   }
@@ -94,6 +112,8 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
         </div>
       ))}
 
+      <AddVariable onAdd={addVariable} />
+
       <div>
         <div className="mb-1 flex items-center justify-between">
           <span className="text-xs font-medium text-muted">{t('预览结果')}</span>
@@ -109,6 +129,32 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
           {resolved}
         </pre>
       </div>
+    </div>
+  )
+}
+
+function AddVariable({ onAdd }: { onAdd(name: string): boolean }): React.JSX.Element {
+  const t = useT()
+  const [name, setName] = useState('')
+  function submit() {
+    if (onAdd(name)) setName('')
+  }
+  return (
+    <div className="flex gap-2">
+      <input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => e.key === 'Enter' && submit()}
+        placeholder={t('新建变量名（支持中文）')}
+        className="flex-1 rounded-lg border border-line-strong bg-canvas px-2.5 py-1.5 text-xs text-ink outline-none focus:border-focus"
+      />
+      <button
+        onClick={submit}
+        className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs text-muted transition hover:border-brand hover:text-brand"
+      >
+        <Plus size={13} />
+        {t('新建变量')}
+      </button>
     </div>
   )
 }
