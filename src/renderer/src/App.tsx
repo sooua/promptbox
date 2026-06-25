@@ -178,25 +178,27 @@ export default function App(): React.JSX.Element {
   }
 
   return (
-    <div className="flex h-full flex-col bg-canvas text-ink">
-      <TitleBar />
-      <div className="flex min-h-0 flex-1">
-        <Sidebar />
-        {view === 'settings' ? (
-          <SettingsView />
-        ) : view === 'discover' ? (
-          <DiscoverView />
-        ) : workspace === 'prompts' ? (
-          <>
-            <PromptList />
-            <EditorPanel />
-          </>
-        ) : (
-          <>
-            <AssetList kind={workspace} />
-            <AssetEditor />
-          </>
-        )}
+    <div className="flex h-full bg-canvas text-ink">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TitleBar />
+        <div className="flex min-h-0 flex-1">
+          {view === 'settings' ? (
+            <SettingsView />
+          ) : view === 'discover' ? (
+            <DiscoverView />
+          ) : workspace === 'prompts' ? (
+            <>
+              <PromptList />
+              <EditorPanel />
+            </>
+          ) : (
+            <>
+              <AssetList kind={workspace} />
+              <AssetEditor />
+            </>
+          )}
+        </div>
       </div>
       {paletteOpen && <CommandPalette />}
       {cloudOpen && <CloudSyncModal />}

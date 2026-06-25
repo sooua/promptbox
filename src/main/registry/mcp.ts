@@ -3,15 +3,18 @@ import type { Repository } from '../store/repository'
 import { httpFetch as fetch } from '../net'
 
 /**
- * Phase 1 Discover: read the official MCP registry and import servers into the
- * local library as editable MCP assets. Network is on-demand only (the renderer
- * gates calls on the marketEnabled setting); nothing fetches in the background.
- *
- * Registry API: https://registry.modelcontextprotocol.io (spec v0, frozen).
+ * MCP Discover. Sources:
+ *  - 'official'        → registry.modelcontextprotocol.io (official /v0/servers spec)
+ *  - a custom base URL → any registry implementing the same spec
+ *  - 'smithery'        → smithery.ai (its own API shape, mapped here)
+ * Network is on-demand only and goes through net.fetch (honors the proxy).
  */
-const REGISTRY = 'https://registry.modelcontextprotocol.io/v0/servers'
+const OFFICIAL = 'https://registry.modelcontextprotocol.io'
+const SMITHERY = 'https://registry.smithery.ai'
 const SOURCE_PREFIX = 'mcp-registry:'
 const PAGE = 30
+
+// ---------- official spec ----------
 
 interface RegPackage {
   registryType?: string
@@ -36,9 +39,7 @@ interface RegServer {
   packages?: RegPackage[]
 }
 
-function displayName(s: RegServer): string {
-  return s.title || s.name.split('/').pop() || s.name
-}
+const displayName = (s: RegServer): string => s.title || s.name.split('/').pop() || s.name
 
 function transportsOf(s: RegServer): string[] {
   const out = new Set<string>()
@@ -56,12 +57,14 @@ function importedSources(repo: Repository): Set<string> {
   )
 }
 
-export async function searchMcp(
+async function searchOfficial(
   repo: Repository,
+  baseUrl: string,
+  registry: string,
   query: string,
   cursor?: string
 ): Promise<McpDiscoverResult> {
-  const url = new URL(REGISTRY)
+  const url = new URL(`${baseUrl.replace(/\/$/, '')}/v0/servers`)
   if (query.trim()) url.searchParams.set('search', query.trim())
   url.searchParams.set('limit', String(PAGE))
   if (cursor) url.searchParams.set('cursor', cursor)
@@ -80,6 +83,7 @@ export async function searchMcp(
       version: server.version ?? '',
       transports: transportsOf(server),
       imported: imported.has(SOURCE_PREFIX + server.name),
+      registry,
       server
     }))
     return { items, nextCursor: data.metadata?.nextCursor }
@@ -88,7 +92,6 @@ export async function searchMcp(
   }
 }
 
-/** Map a registry package to a runnable stdio command + args. */
 function packageCommand(p: RegPackage): { command: string; args: string[] } {
   const id = p.identifier ?? ''
   const versioned = p.version ? `${id}@${p.version}` : id
@@ -105,7 +108,6 @@ function packageCommand(p: RegPackage): { command: string; args: string[] } {
   }
 }
 
-/** Convert a registry server into an importable MCP AssetInput (user-editable). */
 export function serverToAssetInput(serverRaw: unknown): AssetInput {
   const s = serverRaw as RegServer
   const meta: Record<string, string> = {
@@ -140,8 +142,101 @@ export function serverToAssetInput(serverRaw: unknown): AssetInput {
   }
 }
 
-export function importMcp(repo: Repository, serverRaw: unknown): { id: string; duplicate: boolean } {
-  const input = serverToAssetInput(serverRaw)
+// ---------- smithery ----------
+
+interface SmitheryServer {
+  qualifiedName: string
+  displayName?: string
+  description?: string
+  remote?: boolean
+}
+
+async function searchSmithery(
+  repo: Repository,
+  query: string,
+  cursor?: string
+): Promise<McpDiscoverResult> {
+  const page = cursor ? Number(cursor) : 1
+  const url = new URL(`${SMITHERY}/servers`)
+  if (query.trim()) url.searchParams.set('q', query.trim())
+  url.searchParams.set('page', String(page))
+  url.searchParams.set('pageSize', String(PAGE))
+  try {
+    const res = await fetch(url, { headers: { Accept: 'application/json' } })
+    if (!res.ok) return { items: [], error: `HTTP ${res.status}` }
+    const data = (await res.json()) as {
+      servers?: SmitheryServer[]
+      pagination?: { currentPage?: number; totalPages?: number }
+    }
+    const imported = importedSources(repo)
+    const items: McpDiscoverItem[] = (data.servers ?? []).map((s) => ({
+      name: s.qualifiedName,
+      title: s.displayName || s.qualifiedName,
+      description: s.description ?? '',
+      version: '',
+      transports: s.remote ? ['http'] : ['stdio'],
+      imported: imported.has(SOURCE_PREFIX + 'smithery/' + s.qualifiedName),
+      registry: 'smithery',
+      server: s
+    }))
+    const { currentPage = page, totalPages = page } = data.pagination ?? {}
+    return { items, nextCursor: currentPage < totalPages ? String(currentPage + 1) : undefined }
+  } catch (e) {
+    return { items: [], error: e instanceof Error ? e.message : String(e) }
+  }
+}
+
+async function smitheryToAssetInput(s: SmitheryServer): Promise<AssetInput> {
+  const meta: Record<string, string> = {
+    source: SOURCE_PREFIX + 'smithery/' + s.qualifiedName,
+    transport: 'http'
+  }
+  try {
+    const res = await fetch(`${SMITHERY}/servers/${encodeURIComponent(s.qualifiedName)}`, {
+      headers: { Accept: 'application/json' }
+    })
+    if (res.ok) {
+      const d = (await res.json()) as {
+        deploymentUrl?: string
+        connections?: Array<{ type?: string; deploymentUrl?: string }>
+      }
+      const conn = d.connections?.[0]
+      meta.url = conn?.deploymentUrl || d.deploymentUrl || ''
+      if (conn?.type === 'sse') meta.transport = 'sse'
+    }
+  } catch {
+    /* leave url blank for the user to fill */
+  }
+  return {
+    kind: 'mcp',
+    name: s.displayName || s.qualifiedName,
+    description: s.description ?? '',
+    tags: ['mcp-registry', 'smithery'],
+    meta
+  }
+}
+
+// ---------- public api ----------
+
+export function searchMcp(
+  repo: Repository,
+  query: string,
+  cursor?: string,
+  registry: string = 'official'
+): Promise<McpDiscoverResult> {
+  if (registry === 'smithery') return searchSmithery(repo, query, cursor)
+  const base = registry === 'official' ? OFFICIAL : registry
+  return searchOfficial(repo, base, registry, query, cursor)
+}
+
+export async function importMcp(
+  repo: Repository,
+  item: McpDiscoverItem
+): Promise<{ id: string; duplicate: boolean }> {
+  const input =
+    item.registry === 'smithery'
+      ? await smitheryToAssetInput(item.server as SmitheryServer)
+      : serverToAssetInput(item.server)
   const source = input.meta?.source
   const existing = source
     ? repo.listAssets('mcp').find((a) => a.meta?.source === source)

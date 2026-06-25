@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GitCompare, History, RotateCcw } from 'lucide-react'
+import { GitCompare, History, RotateCcw, Trash2 } from 'lucide-react'
 import type { Prompt } from '@shared/types'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
@@ -9,6 +9,7 @@ import { useT } from '../i18n'
 
 export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Element {
   const restoreVersion = useStore((s) => s.restoreVersion)
+  const deleteVersion = useStore((s) => s.deleteVersion)
   const [diffId, setDiffId] = useState<string | null>(null)
   const t = useT()
 
@@ -52,6 +53,17 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
               >
                 <RotateCcw size={11} />
                 {t('恢复')}
+              </button>
+              <button
+                onClick={async () => {
+                  if (diffId === v.id) setDiffId(null)
+                  await deleteVersion(prompt.id, v.id)
+                  toast.success(t('已删除该历史版本'))
+                }}
+                title={t('删除该版本')}
+                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted transition hover:border-error hover:text-error"
+              >
+                <Trash2 size={11} />
               </button>
             </div>
           </div>

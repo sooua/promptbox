@@ -142,6 +142,12 @@ export interface AppSettings {
   language: Language
   /** allow the Discover page to fetch from the network (never silent/background) */
   marketEnabled: boolean
+  /** user-added GitHub repos for the Skill/Agent Discover tabs */
+  githubSources: GithubSourceConfig[]
+  /** user-added MCP registries (official /v0/servers spec) */
+  mcpRegistries: McpRegistryConfig[]
+  /** user-added Prompt collection sources (raw CSV/JSON file URLs) */
+  promptSources: PromptSourceConfig[]
   /**
    * Network proxy for all outbound requests (marketplace, sync, updates).
    * '' = follow system; 'direct' = no proxy; else proxy rules, e.g.
@@ -165,8 +171,17 @@ export interface McpDiscoverItem {
   transports: string[]
   /** already imported into the local library (by source id) */
   imported: boolean
-  /** raw registry `server` object, carried back for import */
+  /** which registry it came from: 'official' | 'smithery' | a custom base URL */
+  registry: string
+  /** raw registry object, carried back for import */
   server: unknown
+}
+
+/** A user-added MCP registry implementing the official /v0/servers spec. */
+export interface McpRegistryConfig {
+  name: string
+  /** base URL, e.g. https://my-registry.example.com */
+  url: string
 }
 
 export interface McpDiscoverResult {
@@ -175,6 +190,75 @@ export interface McpDiscoverResult {
   nextCursor?: string
   /** populated on failure (network/offline) */
   error?: string
+}
+
+/** A Skill or Agent listing pulled from a trusted GitHub repo. */
+export interface GithubDiscoverItem {
+  /** stable id / source key: github:<repo>@<path> */
+  id: string
+  title: string
+  /** derived grouping (plugin / category folder) */
+  category: string
+  repo: string
+  branch: string
+  path: string
+  kind: 'skill' | 'agent'
+  /** already imported into the local library (by source id) */
+  imported: boolean
+}
+
+export interface GithubDiscoverResult {
+  items: GithubDiscoverItem[]
+  error?: string
+}
+
+/** A prompt pulled from a CSV/JSON collection or a markdown repo file. */
+export interface PromptDiscoverItem {
+  /** stable id / source key: promptsrc:<sourceId>@<index|path> */
+  id: string
+  title: string
+  /** the prompt body; empty for repo items until import (fetched lazily) */
+  content: string
+  /** display label of the source it came from */
+  source: string
+  /** secondary line shown when content is not yet available (e.g. category) */
+  subtitle?: string
+  /** already in the local library (matched by title) */
+  imported: boolean
+  /** present for repo-backed items: fetch raw on import */
+  repo?: string
+  branch?: string
+  path?: string
+}
+
+export interface PromptDiscoverResult {
+  items: PromptDiscoverItem[]
+  error?: string
+}
+
+/** A selectable prompt collection (built-in recommendation or user-added). */
+export interface PromptSource {
+  id: string
+  label: string
+  /** false for user-added sources */
+  builtin: boolean
+}
+
+/** A user-added prompt collection: a raw CSV/JSON file URL. */
+export interface PromptSourceConfig {
+  name: string
+  /** raw file URL — CSV with act,prompt columns or JSON array of {act,prompt} */
+  url: string
+  format: 'csv' | 'json'
+}
+
+/** A user-added GitHub repo to browse Skills/Agents from. */
+export interface GithubSourceConfig {
+  /** owner/name */
+  repo: string
+  kind: 'skill' | 'agent'
+  /** optional path glob; defaults to **\/SKILL.md (skill) or **\/agents\/**\/*.md (agent) */
+  glob?: string
 }
 
 export const DEFAULT_HOTKEY = 'CommandOrControl+Shift+Space'

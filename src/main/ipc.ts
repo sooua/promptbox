@@ -8,6 +8,9 @@ import type {
   AssetInput,
   AssetKind,
   ExportBundle,
+  GithubSourceConfig,
+  McpRegistryConfig,
+  PromptSourceConfig,
   ImportMode,
   Language,
   PromptInput,
@@ -61,6 +64,8 @@ import { updateHotkey } from './system'
 import { setMainLanguage } from './i18n'
 import { applyProxy } from './net'
 import { searchMcp, importMcp } from './registry/mcp'
+import { listGithub, importGithub } from './registry/github'
+import { listPrompts, importPrompt, promptSources } from './registry/prompts'
 import type { BackupManager } from './backup'
 
 export function registerIpc(repo: Repository): void {
@@ -78,6 +83,9 @@ export function registerIpc(repo: Repository): void {
   ipcMain.handle(IPC.promptsTogglePin, (_e, id: string) => repo.togglePin(id))
   ipcMain.handle(IPC.promptsRestoreVersion, (_e, promptId: string, versionId: string) =>
     repo.restoreVersion(promptId, versionId)
+  )
+  ipcMain.handle(IPC.promptsDeleteVersion, (_e, promptId: string, versionId: string) =>
+    repo.deleteVersion(promptId, versionId)
   )
   ipcMain.handle(IPC.promptsRecordUse, (_e, id: string) => repo.recordUse(id))
   ipcMain.handle(IPC.promptsRememberVars, (_e, id: string, values: Record<string, string>) =>
@@ -288,11 +296,37 @@ export function registerIpc(repo: Repository): void {
     return settings
   })
 
+  ipcMain.handle(IPC.settingsSetGithubSources, (_e, githubSources: GithubSourceConfig[]) => {
+    const current = loadSettings()
+    return saveSettings({ ...current, githubSources, dataDir: repo.getDataDir() })
+  })
+
+  ipcMain.handle(IPC.settingsSetMcpRegistries, (_e, mcpRegistries: McpRegistryConfig[]) => {
+    const current = loadSettings()
+    return saveSettings({ ...current, mcpRegistries, dataDir: repo.getDataDir() })
+  })
+
+  ipcMain.handle(IPC.settingsSetPromptSources, (_e, promptSrcs: PromptSourceConfig[]) => {
+    const current = loadSettings()
+    return saveSettings({ ...current, promptSources: promptSrcs, dataDir: repo.getDataDir() })
+  })
+
   // ---- Discover / marketplace ----
-  ipcMain.handle(IPC.registryMcpSearch, (_e, query: string, cursor?: string) =>
-    searchMcp(repo, query ?? '', cursor)
+  ipcMain.handle(IPC.registryMcpSearch, (_e, query: string, cursor?: string, registry?: string) =>
+    searchMcp(repo, query ?? '', cursor, registry)
   )
-  ipcMain.handle(IPC.registryMcpImport, (_e, server: unknown) => importMcp(repo, server))
+  ipcMain.handle(IPC.registryMcpImport, (_e, item: Parameters<typeof importMcp>[1]) =>
+    importMcp(repo, item)
+  )
+  ipcMain.handle(IPC.registryGithubList, (_e, kind: 'skill' | 'agent') => listGithub(repo, kind))
+  ipcMain.handle(IPC.registryGithubImport, (_e, item: Parameters<typeof importGithub>[1]) =>
+    importGithub(repo, item)
+  )
+  ipcMain.handle(IPC.registryPromptSources, () => promptSources())
+  ipcMain.handle(IPC.registryPromptList, (_e, sourceId: string) => listPrompts(repo, sourceId))
+  ipcMain.handle(IPC.registryPromptImport, (_e, item: Parameters<typeof importPrompt>[1]) =>
+    importPrompt(repo, item)
+  )
 
   ipcMain.handle(IPC.settingsSetHotkey, (_e, accelerator: string) => {
     const ok = updateHotkey(accelerator)

@@ -57,6 +57,7 @@ export interface Repository {
   recordUse(id: string): Prompt | undefined
   rememberVariableValues(promptId: string, values: Record<string, string>): Prompt | undefined
   restoreVersion(promptId: string, versionId: string): Prompt | undefined
+  deleteVersion(promptId: string, versionId: string): Prompt | undefined
 
   listCategories(): Category[]
   createCategory(name: string, color?: string): Category
@@ -437,6 +438,18 @@ export class PromptRepository implements Repository {
       title: version.title,
       content: version.content
     })
+  }
+
+  /** Remove a single saved version. Does not touch the current content. */
+  deleteVersion(promptId: string, versionId: string): Prompt | undefined {
+    const prompt = this.getPrompt(promptId)
+    if (!prompt) return undefined
+    const next = prompt.versions.filter((v) => v.id !== versionId)
+    if (next.length === prompt.versions.length) return prompt
+    prompt.versions = next
+    prompt.updatedAt = now()
+    this.flush()
+    return prompt
   }
 
   // ---- Categories ----

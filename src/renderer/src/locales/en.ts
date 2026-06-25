@@ -145,6 +145,8 @@ export const en: Record<string, string> = {
   '恢复到 {date} 的版本？当前数据会被替换。':
     'Restore the version from {date}? Current data will be replaced.',
   '已恢复到该版本': 'Restored to this version',
+  '删除该版本': 'Delete this version',
+  '已删除该历史版本': 'Version deleted',
   '与当前内容相同。': 'Same as current content.',
   '相对当前内容': 'Relative to current content',
 
@@ -350,5 +352,31 @@ export const en: Record<string, string> = {
   '网络': 'Network',
   '代理': 'Proxy',
   '留空跟随系统；direct 为直连；或填 http:// 、socks5:// 地址':
-    'Empty follows the system; "direct" for no proxy; or enter an http:// or socks5:// address'
+    'Empty follows the system; "direct" for no proxy; or enter an http:// or socks5:// address',
+  '搜索 Skill…': 'Search Skills…',
+  '搜索 Agent…': 'Search Agents…',
+  '搜索提示词…': 'Search prompts…',
+  '共 {n} 项': '{n} items',
+  '自定义 Prompt 源': 'Custom prompt sources',
+  '内置中英各一个推荐合集；可添加指向 CSV / JSON 文件的原始链接（act,prompt 列或 {act,prompt} 数组）。':
+    'One built-in EN + ZH collection each; add a raw link to a CSV / JSON file (act,prompt columns or an array of {act,prompt}).',
+  '自定义 Skill / Agent 仓库': 'Custom Skill / Agent repos',
+  '共 {n} 项 · 来自社区仓库': '{n} items · from community repos',
+  '来自社区仓库': 'From community repos',
+  '没有找到匹配的结果': 'No matching results',
+  '仅显示前 {n} 项，搜索以缩小范围': 'Showing the first {n}; search to narrow down',
+  '导入失败': 'Import failed',
+  '发现来源': 'Discover sources',
+  '内置仓库为推荐来源；可添加你自己的 GitHub 仓库到 Skill / Agent 标签。':
+    'Built-in repos are recommended; add your own GitHub repos to the Skill / Agent tabs.',
+  '请输入 owner/repo 格式': 'Enter it as owner/repo',
+  '该来源已存在': 'That source already exists',
+  '已添加来源': 'Source added',
+  '添加': 'Add',
+  '来源': 'Source',
+  '官方注册表': 'Official registry',
+  '自定义 MCP 注册表': 'Custom MCP registries',
+  '官方注册表与 Smithery 已内置；可添加实现官方 /v0/servers 规范的注册表。':
+    'Official + Smithery are built in; add any registry implementing the official /v0/servers spec.',
+  '请输入有效的 URL': 'Enter a valid URL'
 }

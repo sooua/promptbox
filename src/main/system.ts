@@ -64,7 +64,9 @@ export function updateHotkey(accelerator: string): boolean {
 export function setupSystem(options: SystemDeps & { accelerator: string }): void {
   deps = options
 
-  const image = nativeImage.createFromPath(trayIconPath)
+  const loaded = nativeImage.createFromPath(trayIconPath)
+  // tray.png ships large; downscale to a crisp system-tray size.
+  const image = loaded.isEmpty() ? loaded : loaded.resize({ width: 32, height: 32 })
   tray = new Tray(image.isEmpty() ? nativeImage.createEmpty() : image)
   tray.setToolTip(mt('PromptBox — 快速调用提示词'))
   buildTrayMenu()

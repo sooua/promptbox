@@ -24,6 +24,9 @@ export function loadSettings(): AppSettings {
     theme: 'system',
     language: 'zh',
     marketEnabled: true,
+    githubSources: [],
+    mcpRegistries: [],
+    promptSources: [],
     proxy: '',
     globalHotkey: DEFAULT_HOTKEY
   }
@@ -35,6 +38,9 @@ export function loadSettings(): AppSettings {
       theme: (parsed.theme as ThemeMode) || fallback.theme,
       language: (parsed.language as Language) || fallback.language,
       marketEnabled: parsed.marketEnabled ?? fallback.marketEnabled,
+      githubSources: Array.isArray(parsed.githubSources) ? parsed.githubSources : fallback.githubSources,
+      mcpRegistries: Array.isArray(parsed.mcpRegistries) ? parsed.mcpRegistries : fallback.mcpRegistries,
+      promptSources: Array.isArray(parsed.promptSources) ? parsed.promptSources : fallback.promptSources,
       proxy: parsed.proxy ?? fallback.proxy,
       globalHotkey: parsed.globalHotkey || fallback.globalHotkey
     }

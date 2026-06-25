@@ -45,7 +45,6 @@ export function EditorPanel(): React.JSX.Element {
 }
 
 function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.Element {
-  const categories = useStore((s) => s.categories)
   const allPrompts = useStore((s) => s.prompts)
   const updatePrompt = useStore((s) => s.updatePrompt)
   const deletePrompt = useStore((s) => s.deletePrompt)
@@ -180,19 +179,6 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
 
       {/* Meta row */}
       <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-2.5">
-        <select
-          value={prompt.categoryId ?? ''}
-          onChange={(e) => flushSave({ categoryId: e.target.value || null })}
-          className="rounded-lg border border-line-strong bg-surface px-2.5 py-1 text-xs text-ink outline-none focus:border-focus"
-        >
-          <option value="">{t('未分类')}</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-
         <div className="flex flex-wrap items-center gap-1">
           {prompt.tags.map((t) => (
             <span

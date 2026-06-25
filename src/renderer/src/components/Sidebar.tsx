@@ -90,17 +90,17 @@ export function Sidebar(): React.JSX.Element {
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-canvas">
-      <div className="flex items-center gap-2.5 px-5 py-5">
+      <div className="app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-line px-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-on-brand">
           <Box size={18} />
         </div>
         <div>
-          <div className="font-serif text-[17px] leading-tight text-ink">PromptBox</div>
-          <div className="text-[11px] text-faint">{t('本地 Prompt 资产库')}</div>
+          <div className="font-serif text-[16px] leading-tight text-ink">PromptBox</div>
+          <div className="text-[11px] leading-tight text-faint">{t('本地 Prompt 资产库')}</div>
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-1 px-2.5 pb-2">
+      <div className="grid grid-cols-4 gap-1 px-2.5 pb-2 pt-3">
         {WORKSPACES.map((w) => (
           <button
             key={w.id}
@@ -439,7 +439,11 @@ function NavItem({
     >
       <span className="flex w-4 justify-center text-faint">{icon}</span>
       <span className="flex-1 truncate text-left">{label}</span>
-      {count !== undefined && <span className="text-[11px] text-faint">{count}</span>}
+      {count !== undefined && (
+        <span className="text-[11px] text-faint transition-opacity group-hover:opacity-0">
+          {count}
+        </span>
+      )}
     </button>
   )
 }

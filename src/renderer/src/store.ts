@@ -8,7 +8,16 @@ import type {
   Category,
   ImportMode,
   Language,
+  GithubDiscoverItem,
+  GithubDiscoverResult,
+  GithubSourceConfig,
+  McpDiscoverItem,
   McpDiscoverResult,
+  McpRegistryConfig,
+  PromptDiscoverItem,
+  PromptDiscoverResult,
+  PromptSource,
+  PromptSourceConfig,
   Prompt,
   PromptInput,
   S3ConfigInput,
@@ -124,6 +133,7 @@ interface State {
   toggleFavorite(id: string): Promise<void>
   togglePin(id: string): Promise<void>
   restoreVersion(promptId: string, versionId: string): Promise<void>
+  deleteVersion(promptId: string, versionId: string): Promise<void>
   recordUse(id: string): Promise<void>
   /** Persist last-entered variable values for a prompt. */
   rememberVarValues(id: string, values: Record<string, string>): Promise<void>
@@ -168,11 +178,19 @@ interface State {
   setLanguage(language: Language): Promise<void>
   setMarket(enabled: boolean): Promise<void>
   setProxy(proxy: string): Promise<void>
+  setGithubSources(sources: GithubSourceConfig[]): Promise<void>
+  setMcpRegistries(regs: McpRegistryConfig[]): Promise<void>
+  setPromptSources(sources: PromptSourceConfig[]): Promise<void>
   setHotkey(accelerator: string): Promise<boolean>
 
   // discover / marketplace
-  searchMcp(query: string, cursor?: string): Promise<McpDiscoverResult>
-  importMcp(server: unknown): Promise<{ id: string; duplicate: boolean }>
+  searchMcp(query: string, cursor?: string, registry?: string): Promise<McpDiscoverResult>
+  importMcp(item: McpDiscoverItem): Promise<{ id: string; duplicate: boolean }>
+  listGithub(kind: 'skill' | 'agent'): Promise<GithubDiscoverResult>
+  importGithub(item: GithubDiscoverItem): Promise<{ id: string; duplicate: boolean }>
+  listPromptSources(): Promise<PromptSource[]>
+  listPrompts(sourceId: string): Promise<PromptDiscoverResult>
+  importPrompt(item: PromptDiscoverItem): Promise<{ id: string; duplicate: boolean }>
   chooseDataDir(): Promise<void>
   openDataDir(): Promise<void>
   exportData(): Promise<{ ok: boolean; path?: string }>
@@ -448,6 +466,11 @@ export const useStore = create<State>((set, get) => ({
     await get().refreshPrompts()
   },
 
+  async deleteVersion(promptId, versionId) {
+    await api.prompts.deleteVersion(promptId, versionId)
+    await get().refreshPrompts()
+  },
+
   async recordUse(id) {
     await api.prompts.recordUse(id)
     await get().refreshPrompts()
@@ -607,13 +630,52 @@ export const useStore = create<State>((set, get) => ({
     set({ settings })
   },
 
-  searchMcp(query, cursor) {
-    return api.market.mcpSearch(query, cursor)
+  async setGithubSources(sources) {
+    const settings = await api.settings.setGithubSources(sources)
+    set({ settings })
   },
 
-  async importMcp(server) {
-    const r = await api.market.mcpImport(server)
+  async setMcpRegistries(regs) {
+    const settings = await api.settings.setMcpRegistries(regs)
+    set({ settings })
+  },
+
+  async setPromptSources(sources) {
+    const settings = await api.settings.setPromptSources(sources)
+    set({ settings })
+  },
+
+  searchMcp(query, cursor, registry) {
+    return api.market.mcpSearch(query, cursor, registry)
+  },
+
+  async importMcp(item) {
+    const r = await api.market.mcpImport(item)
     await get().refreshAssets()
+    return r
+  },
+
+  listGithub(kind) {
+    return api.market.githubList(kind)
+  },
+
+  async importGithub(item) {
+    const r = await api.market.githubImport(item)
+    await get().refreshAssets()
+    return r
+  },
+
+  listPromptSources() {
+    return api.market.promptSources()
+  },
+
+  listPrompts(sourceId) {
+    return api.market.promptList(sourceId)
+  },
+
+  async importPrompt(item) {
+    const r = await api.market.promptImport(item)
+    await get().refreshPrompts()
     return r
   },
 

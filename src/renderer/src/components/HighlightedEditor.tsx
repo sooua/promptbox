@@ -320,9 +320,6 @@ export function HighlightedEditor({
         <span>{t('{n} 字符', { n: counts.chars })}</span>
         <span>{t('{n} 行', { n: counts.lines })}</span>
         <span>{t('{n} 个变量', { n: counts.vars })}</span>
-        <span className="ml-auto">
-          {t('输入')} <code className="var-chip">{'{{'}</code> {t('触发变量补全')}
-        </span>
       </div>
     </div>
   )

@@ -6,14 +6,23 @@ import {
   FolderOpen,
   Monitor,
   Moon,
+  Plus,
   RefreshCw,
   RotateCcw,
   Sun,
   Upload,
   Database,
-  Info
+  Info,
+  X
 } from 'lucide-react'
-import type { BackupInfo, Language, ThemeMode } from '@shared/types'
+import type {
+  BackupInfo,
+  GithubSourceConfig,
+  Language,
+  McpRegistryConfig,
+  PromptSourceConfig,
+  ThemeMode
+} from '@shared/types'
 import { HOTKEY_PRESETS } from '@shared/types'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
@@ -29,6 +38,9 @@ export function SettingsView(): React.JSX.Element {
   const setLanguage = useStore((s) => s.setLanguage)
   const setMarket = useStore((s) => s.setMarket)
   const setProxy = useStore((s) => s.setProxy)
+  const setGithubSources = useStore((s) => s.setGithubSources)
+  const setMcpRegistries = useStore((s) => s.setMcpRegistries)
+  const setPromptSources = useStore((s) => s.setPromptSources)
   const setHotkey = useStore((s) => s.setHotkey)
   const chooseDataDir = useStore((s) => s.chooseDataDir)
   const openDataDir = useStore((s) => s.openDataDir)
@@ -141,6 +153,38 @@ export function SettingsView(): React.JSX.Element {
               onChange={(v) => void setMarket(v)}
             />
           </Row>
+        </Section>
+
+        {/* Discover sources */}
+        <Section title={t('发现来源')}>
+          <div className="mb-2 text-xs font-medium text-muted">{t('自定义 Prompt 源')}</div>
+          <p className="mb-3 text-xs text-faint">
+            {t('内置中英各一个推荐合集；可添加指向 CSV / JSON 文件的原始链接（act,prompt 列或 {act,prompt} 数组）。')}
+          </p>
+          <PromptSources
+            sources={settings?.promptSources ?? []}
+            onChange={(v) => void setPromptSources(v)}
+          />
+          <div className="mb-2 mt-5 text-xs font-medium text-muted">
+            {t('自定义 Skill / Agent 仓库')}
+          </div>
+          <p className="mb-3 text-xs text-faint">
+            {t('内置仓库为推荐来源；可添加你自己的 GitHub 仓库到 Skill / Agent 标签。')}
+          </p>
+          <GithubSources
+            sources={settings?.githubSources ?? []}
+            onChange={(v) => void setGithubSources(v)}
+          />
+          <div className="mb-2 mt-5 text-xs font-medium text-muted">
+            {t('自定义 MCP 注册表')}
+          </div>
+          <p className="mb-3 text-xs text-faint">
+            {t('官方注册表与 Smithery 已内置；可添加实现官方 /v0/servers 规范的注册表。')}
+          </p>
+          <McpRegistries
+            registries={settings?.mcpRegistries ?? []}
+            onChange={(v) => void setMcpRegistries(v)}
+          />
         </Section>
 
         {/* Data */}
@@ -359,6 +403,241 @@ function BackupSection(): React.JSX.Element {
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function PromptSources({
+  sources,
+  onChange
+}: {
+  sources: PromptSourceConfig[]
+  onChange(v: PromptSourceConfig[]): void
+}): React.JSX.Element {
+  const t = useT()
+  const [name, setName] = useState('')
+  const [url, setUrl] = useState('')
+  const [format, setFormat] = useState<'csv' | 'json'>('csv')
+
+  function add() {
+    const u = url.trim()
+    if (!/^https?:\/\/.+/.test(u)) {
+      toast.error(t('请输入有效的 URL'))
+      return
+    }
+    if (sources.some((s) => s.url === u)) {
+      toast.info(t('该来源已存在'))
+      return
+    }
+    onChange([...sources, { name: name.trim() || u, url: u, format }])
+    setName('')
+    setUrl('')
+    toast.success(t('已添加来源'))
+  }
+
+  return (
+    <div className="space-y-2">
+      {sources.length > 0 && (
+        <div className="space-y-1.5">
+          {sources.map((s, i) => (
+            <div
+              key={s.url}
+              className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5"
+            >
+              <span className="rounded bg-surface-2 px-1.5 text-[10px] uppercase tracking-wide text-faint">
+                {s.format}
+              </span>
+              <span className="shrink-0 text-xs text-ink">{s.name}</span>
+              <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-faint">{s.url}</span>
+              <button
+                onClick={() => onChange(sources.filter((_, idx) => idx !== i))}
+                className="text-faint transition hover:text-error"
+                title={t('删除')}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t('名称')}
+          className="w-28 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-xs text-ink outline-none focus:border-focus"
+        />
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && add()}
+          placeholder="https://…/prompts.csv"
+          spellCheck={false}
+          className="flex-1 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
+        />
+        <select
+          value={format}
+          onChange={(e) => setFormat(e.target.value as 'csv' | 'json')}
+          className="rounded-xl border border-line-strong bg-surface px-2 py-1.5 text-xs text-ink outline-none focus:border-focus"
+        >
+          <option value="csv">CSV</option>
+          <option value="json">JSON</option>
+        </select>
+        <ActionButton icon={<Plus size={14} />} onClick={add}>
+          {t('添加')}
+        </ActionButton>
+      </div>
+    </div>
+  )
+}
+
+function GithubSources({
+  sources,
+  onChange
+}: {
+  sources: GithubSourceConfig[]
+  onChange(v: GithubSourceConfig[]): void
+}): React.JSX.Element {
+  const t = useT()
+  const [repo, setRepo] = useState('')
+  const [kind, setKind] = useState<'skill' | 'agent'>('skill')
+
+  function add() {
+    const r = repo
+      .trim()
+      .replace(/^https?:\/\/github\.com\//i, '')
+      .replace(/\.git$/i, '')
+      .replace(/\/$/, '')
+    if (!/^[^/]+\/[^/]+$/.test(r)) {
+      toast.error(t('请输入 owner/repo 格式'))
+      return
+    }
+    if (sources.some((s) => s.repo === r && s.kind === kind)) {
+      toast.info(t('该来源已存在'))
+      return
+    }
+    onChange([...sources, { repo: r, kind }])
+    setRepo('')
+    toast.success(t('已添加来源'))
+  }
+
+  return (
+    <div className="space-y-2">
+      {sources.length > 0 && (
+        <div className="space-y-1.5">
+          {sources.map((s, i) => (
+            <div
+              key={s.repo + s.kind}
+              className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5"
+            >
+              <span className="rounded bg-surface-2 px-1.5 text-[10px] uppercase tracking-wide text-faint">
+                {s.kind}
+              </span>
+              <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{s.repo}</span>
+              <button
+                onClick={() => onChange(sources.filter((_, idx) => idx !== i))}
+                className="text-faint transition hover:text-error"
+                title={t('删除')}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={repo}
+          onChange={(e) => setRepo(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && add()}
+          placeholder={t('owner/repo')}
+          spellCheck={false}
+          className="flex-1 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
+        />
+        <select
+          value={kind}
+          onChange={(e) => setKind(e.target.value as 'skill' | 'agent')}
+          className="rounded-xl border border-line-strong bg-surface px-2 py-1.5 text-xs text-ink outline-none focus:border-focus"
+        >
+          <option value="skill">Skill</option>
+          <option value="agent">Agent</option>
+        </select>
+        <ActionButton icon={<Plus size={14} />} onClick={add}>
+          {t('添加')}
+        </ActionButton>
+      </div>
+    </div>
+  )
+}
+
+function McpRegistries({
+  registries,
+  onChange
+}: {
+  registries: McpRegistryConfig[]
+  onChange(v: McpRegistryConfig[]): void
+}): React.JSX.Element {
+  const t = useT()
+  const [name, setName] = useState('')
+  const [url, setUrl] = useState('')
+
+  function add() {
+    const u = url.trim().replace(/\/$/, '')
+    if (!/^https?:\/\/.+/.test(u)) {
+      toast.error(t('请输入有效的 URL'))
+      return
+    }
+    if (registries.some((r) => r.url === u)) {
+      toast.info(t('该来源已存在'))
+      return
+    }
+    onChange([...registries, { name: name.trim() || u, url: u }])
+    setName('')
+    setUrl('')
+    toast.success(t('已添加来源'))
+  }
+
+  return (
+    <div className="space-y-2">
+      {registries.length > 0 && (
+        <div className="space-y-1.5">
+          {registries.map((r, i) => (
+            <div
+              key={r.url}
+              className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5"
+            >
+              <span className="shrink-0 text-xs text-ink">{r.name}</span>
+              <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-faint">{r.url}</span>
+              <button
+                onClick={() => onChange(registries.filter((_, idx) => idx !== i))}
+                className="text-faint transition hover:text-error"
+                title={t('删除')}
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder={t('名称')}
+          className="w-28 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-xs text-ink outline-none focus:border-focus"
+        />
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && add()}
+          placeholder="https://…"
+          spellCheck={false}
+          className="flex-1 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
+        />
+        <ActionButton icon={<Plus size={14} />} onClick={add}>
+          {t('添加')}
+        </ActionButton>
+      </div>
     </div>
   )
 }

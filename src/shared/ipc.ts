@@ -10,6 +10,7 @@ export const IPC = {
   promptsToggleFavorite: 'prompts:toggleFavorite',
   promptsTogglePin: 'prompts:togglePin',
   promptsRestoreVersion: 'prompts:restoreVersion',
+  promptsDeleteVersion: 'prompts:deleteVersion',
   promptsRecordUse: 'prompts:recordUse',
   promptsRememberVars: 'prompts:rememberVars',
 
@@ -38,10 +39,18 @@ export const IPC = {
   settingsSetLanguage: 'settings:setLanguage',
   settingsSetMarket: 'settings:setMarket',
   settingsSetProxy: 'settings:setProxy',
+  settingsSetGithubSources: 'settings:setGithubSources',
+  settingsSetMcpRegistries: 'settings:setMcpRegistries',
+  settingsSetPromptSources: 'settings:setPromptSources',
   settingsSetHotkey: 'settings:setHotkey',
 
   registryMcpSearch: 'registry:mcpSearch',
   registryMcpImport: 'registry:mcpImport',
+  registryGithubList: 'registry:githubList',
+  registryGithubImport: 'registry:githubImport',
+  registryPromptSources: 'registry:promptSources',
+  registryPromptList: 'registry:promptList',
+  registryPromptImport: 'registry:promptImport',
   settingsChooseDataDir: 'settings:chooseDataDir',
   settingsOpenDataDir: 'settings:openDataDir',
 

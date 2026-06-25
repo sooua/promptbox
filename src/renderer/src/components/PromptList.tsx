@@ -22,6 +22,7 @@ export function PromptList(): React.JSX.Element {
   const createPrompt = useStore((s) => s.createPrompt)
   const toggleFavorite = useStore((s) => s.toggleFavorite)
   const togglePin = useStore((s) => s.togglePin)
+  const deletePrompt = useStore((s) => s.deletePrompt)
   const openPalette = useStore((s) => s.openPalette)
   const bulkDeletePrompts = useStore((s) => s.bulkDeletePrompts)
   const bulkRestorePrompts = useStore((s) => s.bulkRestorePrompts)
@@ -129,16 +130,22 @@ export function PromptList(): React.JSX.Element {
   return (
     <section className="flex w-80 shrink-0 flex-col border-r border-line bg-canvas">
       <div className="flex items-center gap-2 p-3">
+        <div className="relative flex-1">
+          <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" />
+          <input
+            data-search-input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('在当前列表内筛选…（Ctrl/⌘ + F）')}
+            className="w-full rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-3 text-sm text-ink outline-none transition focus:border-focus"
+          />
+        </div>
         <button
           onClick={openPalette}
           title={t('快速调用 (Ctrl/⌘ + K)')}
-          className="group relative flex flex-1 items-center gap-2 rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-2 text-left text-sm text-faint shadow-[0_0_0_1px_transparent] transition hover:shadow-[0_0_0_1px_var(--color-ring)]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line-strong bg-surface text-muted transition hover:text-brand hover:shadow-[0_0_0_1px_var(--color-ring)]"
         >
-          <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2" />
-          <span className="flex-1">{t('快速调用…')}</span>
-          <kbd className="flex items-center gap-0.5 rounded-md border border-line-strong px-1 text-[10px] text-faint">
-            <Command size={9} />K
-          </kbd>
+          <Command size={16} />
         </button>
         <button
           onClick={handleNew}
@@ -149,22 +156,8 @@ export function PromptList(): React.JSX.Element {
         </button>
       </div>
 
-      <div className="px-3 pb-2">
-        <div className="relative">
-          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" />
-          <input
-            data-search-input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={t('在当前列表内筛选…（Ctrl/⌘ + F）')}
-            className="w-full rounded-xl border border-line bg-transparent py-1.5 pl-8 pr-3 text-xs text-ink outline-none focus:border-focus"
-          />
-        </div>
-      </div>
-
       {tagFilters.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 px-3 pb-2 text-xs text-muted">
-          <span className="text-faint">{t('标签（同时满足）')}</span>
           {tagFilters.map((t) => (
             <button
               key={t}
@@ -237,9 +230,8 @@ export function PromptList(): React.JSX.Element {
           </button>
         </div>
       ) : (
-        <div className="flex items-center justify-between px-4 pb-1 text-[11px] text-faint">
+        <div className="flex items-center px-4 pb-1 text-[11px] text-faint">
           <span>{t('{n} 项', { n: filtered.length })}</span>
-          <span className="hidden sm:inline">{t('↑↓ 选择 · Enter 复制')}</span>
         </div>
       )}
 
@@ -312,6 +304,21 @@ export function PromptList(): React.JSX.Element {
                       }`}
                     >
                       <Star size={15} fill={p.favorite ? 'currentColor' : 'none'} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const snapshot = p
+                        void deletePrompt(p.id).then(() =>
+                          toast.undo(t('已删除「{title}」', { title: snapshot.title }), () =>
+                            useStore.getState().restorePrompt(snapshot)
+                          )
+                        )
+                      }}
+                      title={t('删除')}
+                      className="rounded p-0.5 text-faint opacity-0 hover:text-error group-hover:opacity-100"
+                    >
+                      <Trash2 size={14} />
                     </button>
                   </div>
                 </div>

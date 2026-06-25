@@ -15,6 +15,8 @@ const api: PromptBoxApi = {
     togglePin: (id) => ipcRenderer.invoke(IPC.promptsTogglePin, id),
     restoreVersion: (promptId, versionId) =>
       ipcRenderer.invoke(IPC.promptsRestoreVersion, promptId, versionId),
+    deleteVersion: (promptId, versionId) =>
+      ipcRenderer.invoke(IPC.promptsDeleteVersion, promptId, versionId),
     recordUse: (id) => ipcRenderer.invoke(IPC.promptsRecordUse, id),
     rememberVars: (id, values) => ipcRenderer.invoke(IPC.promptsRememberVars, id, values)
   },
@@ -47,6 +49,9 @@ const api: PromptBoxApi = {
     setLanguage: (language) => ipcRenderer.invoke(IPC.settingsSetLanguage, language),
     setMarket: (enabled) => ipcRenderer.invoke(IPC.settingsSetMarket, enabled),
     setProxy: (proxy) => ipcRenderer.invoke(IPC.settingsSetProxy, proxy),
+    setGithubSources: (sources) => ipcRenderer.invoke(IPC.settingsSetGithubSources, sources),
+    setMcpRegistries: (regs) => ipcRenderer.invoke(IPC.settingsSetMcpRegistries, regs),
+    setPromptSources: (sources) => ipcRenderer.invoke(IPC.settingsSetPromptSources, sources),
     setHotkey: (accelerator) => ipcRenderer.invoke(IPC.settingsSetHotkey, accelerator),
     chooseDataDir: () => ipcRenderer.invoke(IPC.settingsChooseDataDir),
     openDataDir: () => ipcRenderer.invoke(IPC.settingsOpenDataDir)
@@ -77,8 +82,14 @@ const api: PromptBoxApi = {
   },
   quit: () => ipcRenderer.invoke(IPC.appQuit),
   market: {
-    mcpSearch: (query, cursor) => ipcRenderer.invoke(IPC.registryMcpSearch, query, cursor),
-    mcpImport: (server) => ipcRenderer.invoke(IPC.registryMcpImport, server)
+    mcpSearch: (query, cursor, registry) =>
+      ipcRenderer.invoke(IPC.registryMcpSearch, query, cursor, registry),
+    mcpImport: (item) => ipcRenderer.invoke(IPC.registryMcpImport, item),
+    githubList: (kind) => ipcRenderer.invoke(IPC.registryGithubList, kind),
+    githubImport: (item) => ipcRenderer.invoke(IPC.registryGithubImport, item),
+    promptSources: () => ipcRenderer.invoke(IPC.registryPromptSources),
+    promptList: (sourceId) => ipcRenderer.invoke(IPC.registryPromptList, sourceId),
+    promptImport: (item) => ipcRenderer.invoke(IPC.registryPromptImport, item)
   },
   update: {
     check: () => ipcRenderer.invoke(IPC.updateCheck),
