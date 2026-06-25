@@ -102,7 +102,25 @@ function ensureWindow(): BrowserWindow {
   return mainWindow ?? createWindow()
 }
 
+// Single-instance lock: a second launch should focus the running window rather
+// than start another process (which stacks duplicate taskbar/tray entries).
+const gotSingleInstanceLock = app.requestSingleInstanceLock()
+if (!gotSingleInstanceLock) {
+  app.quit()
+}
+
+// Fired in the PRIMARY instance when the user launches the app again.
+app.on('second-instance', () => {
+  const win = ensureWindow()
+  if (win.isMinimized()) win.restore()
+  win.show()
+  win.focus()
+})
+
 app.whenReady().then(() => {
+  // Lost the single-instance race — the primary instance owns everything.
+  if (!gotSingleInstanceLock) return
+
   const settings = loadSettings()
   if (settings.theme !== 'system') {
     nativeTheme.themeSource = settings.theme
