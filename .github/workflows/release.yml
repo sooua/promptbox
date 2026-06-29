@@ -1,12 +1,14 @@
 name: Release
 
-# Push a tag like v0.1.2 to build and publish all three platforms.
-# Each OS runner builds its own native target and uploads to the same
-# GitHub Release (created as a draft; publish it once all jobs finish).
+# Push a tag like v0.1.2 (or run manually) to build and publish all three
+# platforms. Each OS runner builds its own native target and uploads to the
+# GitHub Release matching the package.json version. A manual run lets us
+# (re)build platforms for an existing release without re-tagging.
 on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -34,8 +36,14 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Test
+        run: npm test
+
       - name: Build and publish
         env:
           # electron-builder reads GH_TOKEN to create/upload the GitHub release.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # No signing certificates are configured; stop electron-builder from
+          # trying to auto-discover a macOS identity (which would fail the build).
+          CSC_IDENTITY_AUTO_DISCOVERY: false
         run: npm run publish
