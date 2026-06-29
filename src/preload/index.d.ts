@@ -57,7 +57,7 @@ export interface PromptBoxApi {
     toggleFavorite(id: string): Promise<Asset | undefined>
     restoreVersion(assetId: string, versionId: string): Promise<Asset | undefined>
     exportFile(id: string): Promise<{ ok: boolean; path?: string }>
-    importFile(kind: AssetKind): Promise<{ ok: boolean; count: number }>
+    importFile(kind: AssetKind): Promise<{ ok: boolean; count: number; failed: string[] }>
     install(id: string, preset?: string): Promise<{ ok: boolean; path?: string }>
     mergeMcp(id: string, preset?: string): Promise<{ ok: boolean; path?: string; server?: string }>
   }

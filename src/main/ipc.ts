@@ -1,6 +1,6 @@
 import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { writeFileSync, readFileSync, mkdirSync, existsSync, renameSync } from 'fs'
-import { basename, dirname, join } from 'path'
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'path'
 import { homedir } from 'os'
 import { IPC } from '@shared/ipc'
 import type {
@@ -50,9 +50,12 @@ function writeSkillFolder(folder: string, asset: Asset): string {
   writeFileSync(main, assetToText(asset), 'utf-8')
   for (const f of asset.files ?? []) {
     if (!f.path) continue
-    // keep writes inside the folder (ignore path traversal)
-    const safe = f.path.replace(/^[/\\]+/, '').replace(/\.\.[/\\]/g, '')
-    const dest = join(folder, safe)
+    // Resolve the target and verify it stays inside `folder`. String-stripping
+    // ".." is bypassable (e.g. "....//" collapses back to "../"), so we compare
+    // the resolved paths instead and skip anything that escapes the folder.
+    const dest = resolve(folder, f.path)
+    const rel = relative(folder, dest)
+    if (rel === '' || rel.startsWith('..') || isAbsolute(rel)) continue
     mkdirSync(dirname(dest), { recursive: true })
     writeFileSync(dest, f.content ?? '', 'utf-8')
   }
@@ -142,21 +145,30 @@ export function registerIpc(repo: Repository): void {
       properties: ['openFile', 'multiSelections'],
       filters: [extensionFor(kind), { name: 'All', extensions: ['*'] }]
     })
-    if (result.canceled || result.filePaths.length === 0) return { ok: false, count: 0 }
+    if (result.canceled || result.filePaths.length === 0)
+      return { ok: false, count: 0, failed: [] }
     let count = 0
+    const failed: string[] = []
     for (const file of result.filePaths) {
       try {
         const text = readFileSync(file, 'utf-8')
         const fallback = basename(file).replace(/\.[^.]+$/, '')
-        for (const input of parseAssetFile(kind, text, fallback)) {
+        const inputs = parseAssetFile(kind, text, fallback)
+        if (inputs.length === 0) {
+          failed.push(basename(file))
+          continue
+        }
+        for (const input of inputs) {
           repo.createAsset(input)
           count++
         }
       } catch {
-        /* skip unparseable files */
+        // Unreadable or unparseable — record the name so the UI can report it
+        // instead of silently dropping the file.
+        failed.push(basename(file))
       }
     }
-    return { ok: count > 0, count }
+    return { ok: count > 0, count, failed }
   })
 
   // Install a skill (folder) / agent (file) into a target directory.

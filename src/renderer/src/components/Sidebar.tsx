@@ -8,6 +8,7 @@ import {
   Compass,
   Flame,
   GripVertical,
+  Pencil,
   Plug,
   Plus,
   Settings,
@@ -44,6 +45,7 @@ export function Sidebar(): React.JSX.Element {
   const toggleTagFilter = useStore((s) => s.toggleTagFilter)
   const setView = useStore((s) => s.setView)
   const createCategory = useStore((s) => s.createCategory)
+  const updateCategory = useStore((s) => s.updateCategory)
   const deleteCategory = useStore((s) => s.deleteCategory)
   const reorderCategories = useStore((s) => s.reorderCategories)
   const openCloud = useStore((s) => s.openCloud)
@@ -56,6 +58,28 @@ export function Sidebar(): React.JSX.Element {
   const [newName, setNewName] = useState('')
   const [dragId, setDragId] = useState<string | null>(null)
   const [overId, setOverId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+
+  function startRename(id: string, current: string) {
+    setEditingId(id)
+    setEditName(current)
+  }
+
+  async function submitRename() {
+    if (!editingId) return
+    const name = editName.trim()
+    const original = categories.find((c) => c.id === editingId)?.name
+    const id = editingId
+    setEditingId(null)
+    if (!name || name === original) return
+    if (categories.some((c) => c.id !== id && c.name === name)) {
+      toast.error(t('已存在同名分类'))
+      return
+    }
+    await updateCategory(id, { name })
+    toast.success(t('分类已重命名'))
+  }
 
   function handleDrop(targetId: string) {
     if (dragId && dragId !== targetId) {
@@ -79,6 +103,10 @@ export function Sidebar(): React.JSX.Element {
     const name = newName.trim()
     if (!name) {
       setAdding(false)
+      return
+    }
+    if (categories.some((c) => c.name === name)) {
+      toast.error(t('已存在同名分类'))
       return
     }
     const color = SWATCHES[categories.length % SWATCHES.length]
@@ -205,34 +233,71 @@ export function Sidebar(): React.JSX.Element {
             } ${overId === c.id ? 'ring-1 ring-brand/50' : ''}`}
             title={t('拖拽可调整排序')}
           >
-            <NavItem
-              icon={
+            {editingId === c.id ? (
+              <div className="flex items-center gap-2 px-2.5 py-1.5">
                 <span
-                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
                   style={{ background: c.color ?? 'var(--color-brand)' }}
                 />
-              }
-              label={c.name}
-              active={view === 'library' && categoryFilter === c.id}
-              count={countFor(c.id)}
-              onClick={() => setCategoryFilter(c.id as CategoryFilter)}
-            />
-            <div className="absolute right-1 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 group-hover:flex">
-              <span className="cursor-grab text-faint active:cursor-grabbing" title={t('拖拽排序')}>
-                <GripVertical size={13} />
-              </span>
-              <button
-                className="rounded p-1 text-faint hover:text-error"
-                title={t('删除分类')}
-                onClick={async (e) => {
-                  e.stopPropagation()
-                  await deleteCategory(c.id)
-                  toast.info(t('分类已删除，相关 Prompt 移至未分类'))
-                }}
-              >
-                <Trash2 size={13} />
-              </button>
-            </div>
+                <input
+                  autoFocus
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onBlur={submitRename}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') submitRename()
+                    if (e.key === 'Escape') setEditingId(null)
+                  }}
+                  className="w-full rounded-md border border-line-strong bg-surface px-2 py-1 text-sm text-ink outline-none focus:border-focus"
+                />
+              </div>
+            ) : (
+              <>
+                <div onDoubleClick={() => startRename(c.id, c.name)}>
+                  <NavItem
+                    icon={
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-full"
+                        style={{ background: c.color ?? 'var(--color-brand)' }}
+                      />
+                    }
+                    label={c.name}
+                    active={view === 'library' && categoryFilter === c.id}
+                    count={countFor(c.id)}
+                    onClick={() => setCategoryFilter(c.id as CategoryFilter)}
+                  />
+                </div>
+                <div className="absolute right-1 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 group-hover:flex">
+                  <span
+                    className="cursor-grab text-faint active:cursor-grabbing"
+                    title={t('拖拽排序')}
+                  >
+                    <GripVertical size={13} />
+                  </span>
+                  <button
+                    className="rounded p-1 text-faint hover:text-ink"
+                    title={t('重命名分类')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startRename(c.id, c.name)
+                    }}
+                  >
+                    <Pencil size={13} />
+                  </button>
+                  <button
+                    className="rounded p-1 text-faint hover:text-error"
+                    title={t('删除分类')}
+                    onClick={async (e) => {
+                      e.stopPropagation()
+                      await deleteCategory(c.id)
+                      toast.info(t('分类已删除，相关 Prompt 移至未分类'))
+                    }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         ))}
 
@@ -325,8 +390,21 @@ function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
 
   async function handleImport() {
     const res = await importAssets(kind)
-    if (res.ok) toast.success(t('已导入 {count} 个资产', { count: res.count }))
-    else toast.error(t('导入失败或已取消'))
+    if (res.ok) {
+      toast.success(t('已导入 {count} 个资产', { count: res.count }))
+      if (res.failed.length > 0)
+        toast.error(t('{count} 个文件无法解析：{names}', {
+          count: res.failed.length,
+          names: res.failed.join('、')
+        }))
+    } else if (res.failed.length > 0) {
+      toast.error(t('{count} 个文件无法解析：{names}', {
+        count: res.failed.length,
+        names: res.failed.join('、')
+      }))
+    } else {
+      toast.error(t('导入失败或已取消'))
+    }
   }
 
   return (

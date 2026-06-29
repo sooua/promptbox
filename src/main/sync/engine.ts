@@ -40,7 +40,7 @@ function errMsg(e: unknown): string {
 type WithMeta = { id: string; updatedAt: number }
 
 /** Merge two collections by id, keeping the newer item; deleted ids drop out. */
-function mergeCollection<T extends WithMeta>(a: T[], b: T[], tombs: Map<string, number>): T[] {
+export function mergeCollection<T extends WithMeta>(a: T[], b: T[], tombs: Map<string, number>): T[] {
   const map = new Map<string, T>()
   for (const item of [...a, ...b]) {
     const existing = map.get(item.id)
@@ -68,7 +68,7 @@ function bundleDelta(local: Bundle, merged: Bundle): { added: number; removed: n
   return { added, removed }
 }
 
-function mergeTombstones(a: Tombstone[], b: Tombstone[]): Tombstone[] {
+export function mergeTombstones(a: Tombstone[], b: Tombstone[]): Tombstone[] {
   const map = new Map<string, Tombstone>()
   for (const t of [...a, ...b]) {
     const e = map.get(t.id)
@@ -79,7 +79,7 @@ function mergeTombstones(a: Tombstone[], b: Tombstone[]): Tombstone[] {
 }
 
 /** Item-level three-way-ish merge: newer wins per item, deletions propagate. */
-function mergeBundles(local: Bundle, remote: Bundle): Bundle {
+export function mergeBundles(local: Bundle, remote: Bundle): Bundle {
   const tombstones = mergeTombstones(local.tombstones, remote.tombstones)
   const tombMap = new Map(tombstones.map((t) => [t.id, t.deletedAt]))
   return {

@@ -69,7 +69,17 @@ function createWindow(): BrowserWindow {
   })
 
   win.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    // Only hand http(s)/mailto links to the OS. Markdown from prompts and the
+    // marketplace is untrusted, so we never let it open file:// or custom
+    // protocol handlers (which could launch local apps).
+    try {
+      const { protocol } = new URL(details.url)
+      if (protocol === 'https:' || protocol === 'http:' || protocol === 'mailto:') {
+        void shell.openExternal(details.url)
+      }
+    } catch {
+      /* malformed URL — ignore */
+    }
     return { action: 'deny' }
   })
 

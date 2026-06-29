@@ -106,7 +106,7 @@ interface State {
   duplicateAsset(id: string): Promise<void>
   toggleAssetFavorite(id: string): Promise<void>
   exportAsset(id: string): Promise<{ ok: boolean; path?: string }>
-  importAssets(kind: AssetKind): Promise<{ ok: boolean; count: number }>
+  importAssets(kind: AssetKind): Promise<{ ok: boolean; count: number; failed: string[] }>
   installAsset(id: string, preset?: string): Promise<{ ok: boolean; path?: string }>
   mergeMcp(id: string, preset?: string): Promise<{ ok: boolean; path?: string; server?: string }>
 
