@@ -29,3 +29,8 @@ publish:
   provider: github
   owner: sooua
   repo: promptbox
+  # Upload to the already-published release instead of creating a draft first.
+  # Without this, parallel CI runners race: the first to finish promotes the
+  # release from draft→published, then subsequent runners see existingType=release
+  # publishingType=draft and silently skip their uploads.
+  releaseType: release
