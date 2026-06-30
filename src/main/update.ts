@@ -23,6 +23,9 @@ export function setupAutoUpdate(opts: {
 }): void {
   autoUpdater.autoDownload = true
   autoUpdater.autoInstallOnAppQuit = true
+  // App is distributed unsigned; skip macOS code-signature verification on update.
+  // verifyUpdateCodeSignature is a MacUpdater-only property absent from the base type.
+  ;(autoUpdater as unknown as Record<string, unknown>).verifyUpdateCodeSignature = false
 
   const send = (status: UpdateStatus): void => {
     const win = opts.getWindow()
