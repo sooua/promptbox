@@ -47,7 +47,12 @@ jobs:
         env:
           # electron-builder reads GH_TOKEN to create/upload the GitHub release.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # No signing certificates are configured; stop electron-builder from
-          # trying to auto-discover a macOS identity (which would fail the build).
+          # Ad-hoc sign the macOS build (identity "-"). This produces a
+          # structurally valid signature without a Developer ID certificate.
+          # Gatekeeper shows "unidentified developer" instead of "damaged app",
+          # so users can bypass with right-click → Open or Privacy & Security
+          # rather than needing `xattr -cr` on the command line.
+          # On Windows/Linux this env var is ignored by electron-builder.
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_IDENTITY: "-"
         run: npm run publish
