@@ -1,6 +1,6 @@
 {
   "name": "promptbox",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "PromptBox — 本地优先的 AI Prompt 资产管理工具",
   "main": "./out/main/index.js",
   "author": "PromptBox",
