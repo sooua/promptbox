@@ -118,7 +118,7 @@ export function Sidebar(): React.JSX.Element {
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-canvas">
-      <div className="app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-line px-5">
+      <div className={`app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-line ${window.api.platform === 'darwin' ? 'pl-[76px] pr-5' : 'px-5'}`}>
         <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-on-brand">
           <Box size={18} />
         </div>

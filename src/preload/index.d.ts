@@ -126,6 +126,8 @@ export interface PromptBoxApi {
   onOpenPalette(cb: () => void): () => void
   /** Subscribe to auto-sync completion events. Returns an unsubscribe fn. */
   onSyncChanged(cb: (result: SyncResult) => void): () => void
+  /** The Node.js process.platform value ('darwin' | 'win32' | 'linux'). */
+  platform: string
 }
 
 declare global {

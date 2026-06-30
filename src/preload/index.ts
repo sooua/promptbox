@@ -110,7 +110,8 @@ const api: PromptBoxApi = {
     const listener = (_e: unknown, result: Parameters<typeof cb>[0]): void => cb(result)
     ipcRenderer.on(IPC.syncChanged, listener)
     return () => ipcRenderer.removeListener(IPC.syncChanged, listener)
-  }
+  },
+  platform: process.platform
 }
 
 if (process.contextIsolated) {
