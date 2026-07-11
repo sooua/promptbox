@@ -10,6 +10,14 @@ files:
 win:
   target: nsis
 mac:
+  # Ad-hoc signing (identity "-", set via CSC_IDENTITY in CI) without a Developer ID.
+  # hardenedRuntime defaults to true, but hardened runtime + ad-hoc rejects Electron's
+  # pre-signed framework via library validation, breaking the signature seal — Gatekeeper
+  # then reports "damaged" (Open Anyway won't work). Disabling it keeps the seal intact so
+  # a downloaded app lands on "unidentified developer" with a working Open Anyway / Privacy
+  # & Security path — no terminal. gatekeeperAssess:false skips the local notarization check.
+  hardenedRuntime: false
+  gatekeeperAssess: false
   # zip is required for electron-updater on macOS (dmg alone can't auto-update).
   target:
     - target: dmg

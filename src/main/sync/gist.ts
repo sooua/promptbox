@@ -43,6 +43,35 @@ interface GistFile {
 export class GistProvider implements SyncProvider {
   constructor(private opts: GistOptions) {}
 
+  /**
+   * A second device has the token but not the gist id (only the creating device
+   * persisted it). Before creating a new gist — which would fork sync into two
+   * never-converging gists — list this account's gists and adopt the existing
+   * PromptBox one, matched by its data filename.
+   * ponytail: scans first 100 gists (one page); paginate if a user has more.
+   */
+  private async resolveGistId(): Promise<string | null> {
+    if (this.opts.gistId) return this.opts.gistId
+    const res = await fetch(`${API}/gists?per_page=100`, { headers: headers(this.opts.token) })
+    if (!res.ok) return null
+    const list = (await res.json()) as Array<{
+      id: string
+      created_at?: string
+      files?: Record<string, unknown>
+    }>
+    // If a duplicate was already forked, adopt the earliest-created one (the
+    // original) so every device converges on the same gist deterministically.
+    const found = list
+      .filter((g) => g.files && FILE in g.files)
+      .sort((a, b) => Date.parse(a.created_at ?? '') - Date.parse(b.created_at ?? ''))[0]
+    if (found) {
+      this.opts.gistId = found.id
+      this.opts.onGistId(found.id)
+      return found.id
+    }
+    return null
+  }
+
   private async readFile(file: GistFile | undefined): Promise<string | null> {
     if (!file) return null
     const content =
@@ -53,8 +82,9 @@ export class GistProvider implements SyncProvider {
   }
 
   async pull(): Promise<string | null> {
-    if (!this.opts.gistId) return null
-    const res = await fetch(`${API}/gists/${this.opts.gistId}`, {
+    const gistId = await this.resolveGistId()
+    if (!gistId) return null
+    const res = await fetch(`${API}/gists/${gistId}`, {
       headers: headers(this.opts.token)
     })
     if (res.status === 404) return null
@@ -69,8 +99,9 @@ export class GistProvider implements SyncProvider {
       public: false,
       files: { [FILE]: { content: payload } }
     })
-    if (this.opts.gistId) {
-      const res = await fetch(`${API}/gists/${this.opts.gistId}`, {
+    const gistId = await this.resolveGistId()
+    if (gistId) {
+      const res = await fetch(`${API}/gists/${gistId}`, {
         method: 'PATCH',
         headers: headers(this.opts.token),
         body
