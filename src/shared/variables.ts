@@ -10,14 +10,14 @@ import type { PromptVariable } from './types'
  */
 const VARIABLE_RE = /\{\{\s*([\p{L}\p{N}_.-]+)\s*(?:\|([^}]*))?\}\}/gu
 
-export interface ParsedVariable {
+interface ParsedVariable {
   name: string
   /** inline default declared via {{ name | default }} */
   defaultValue?: string
 }
 
 /** Parse variables (name + optional inline default), preserving first-seen order. */
-export function parseVariables(content: string): ParsedVariable[] {
+function parseVariables(content: string): ParsedVariable[] {
   const byName = new Map<string, ParsedVariable>()
   const order: string[] = []
   let match: RegExpExecArray | null

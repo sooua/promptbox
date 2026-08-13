@@ -239,7 +239,7 @@ export interface UpdateStatus {
 
 // ---- Cloud sync ----
 
-export type SyncProviderId = 'gist' | 'gdrive' | 'onedrive' | 'webdav' | 's3'
+export type SyncProviderId = 'gist' | 'webdav' | 's3'
 
 export type SyncStatus = 'idle' | 'uptodate' | 'pushed' | 'pulled' | 'conflict' | 'error'
 
@@ -247,16 +247,14 @@ export type SyncStatus = 'idle' | 'uptodate' | 'pushed' | 'pulled' | 'conflict' 
 export interface SyncProviderInfo {
   id: SyncProviderId
   name: string
-  /** false until the provider is actually implemented */
-  available: boolean
 }
 
+/** Only providers with a real implementation belong here — a card that can
+ *  never be connected is chrome, not a roadmap. */
 export const SYNC_PROVIDERS: SyncProviderInfo[] = [
-  { id: 'gist', name: 'GitHub Gist', available: true },
-  { id: 'gdrive', name: 'Google Drive', available: false },
-  { id: 'onedrive', name: 'Microsoft OneDrive', available: false },
-  { id: 'webdav', name: 'WebDAV', available: true },
-  { id: 's3', name: 'S3 兼容存储', available: true }
+  { id: 'gist', name: 'GitHub Gist' },
+  { id: 'webdav', name: 'WebDAV' },
+  { id: 's3', name: 'S3 兼容存储' }
 ]
 
 /** Connect payloads (sent from renderer; secrets are encrypted at rest in main). */

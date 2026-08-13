@@ -26,21 +26,9 @@ const api = window.api
 export type View = 'library' | 'settings' | 'discover' | 'trash'
 
 /** Special filter sentinels for the category rail. */
-export type CategoryFilter =
-  | string
-  | 'all'
-  | 'favorites'
-  | 'uncategorized'
-  | 'recent'
-  | 'frequent'
+export type CategoryFilter = string | 'all' | 'favorites' | 'uncategorized' | 'recent'
 
-export const SPECIAL_FILTERS = [
-  'all',
-  'favorites',
-  'uncategorized',
-  'recent',
-  'frequent'
-] as const
+export const SPECIAL_FILTERS = ['all', 'favorites', 'uncategorized', 'recent'] as const
 
 export function isCategoryId(f: CategoryFilter): boolean {
   return !(SPECIAL_FILTERS as readonly string[]).includes(f)

@@ -4,7 +4,6 @@ import {
   CloudOff,
   Database,
   Github,
-  HardDrive,
   History,
   RefreshCw,
   RotateCcw,
@@ -17,12 +16,11 @@ import { useStore } from '../store'
 import { useT, t } from '../i18n'
 import { formatDate, relativeTime } from '../selectors'
 import { Modal } from './Modal'
+import { Switch } from './Switch'
 import { toast } from './Toast'
 
 const ICONS: Record<SyncProviderId, React.ReactNode> = {
   gist: <Github size={22} />,
-  gdrive: <HardDrive size={22} />,
-  onedrive: <Cloud size={22} />,
   webdav: <Server size={22} />,
   s3: <Database size={22} />
 }
@@ -200,9 +198,7 @@ export function CloudSyncModal(): React.JSX.Element {
                               }`
                             : credentialBroken && syncState?.provider === prov.id
                               ? t('凭证无法在本机解密，请重新连接')
-                              : prov.available
-                                ? t('未连接')
-                                : t('即将支持')}
+                              : t('未连接')}
                         </div>
                       </div>
 
@@ -226,7 +222,7 @@ export function CloudSyncModal(): React.JSX.Element {
                             <CloudOff size={16} />
                           </button>
                         </div>
-                      ) : prov.available ? (
+                      ) : (
                         <button
                           onClick={() => setConnectingId(isConnecting ? null : prov.id)}
                           className="flex items-center gap-1.5 rounded-xl bg-brand-solid px-3.5 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover"
@@ -234,10 +230,6 @@ export function CloudSyncModal(): React.JSX.Element {
                           <Cloud size={15} />
                           {t('连接')}
                         </button>
-                      ) : (
-                        <span className="rounded-xl border border-line-strong px-3 py-2 text-xs text-faint">
-                          {t('后续支持')}
-                        </span>
                       )}
                     </div>
 
@@ -248,6 +240,7 @@ export function CloudSyncModal(): React.JSX.Element {
                           <div className="text-xs text-faint">{t('本地改动后自动上传')}</div>
                         </div>
                         <Switch
+                          label={t('自动同步')}
                           checked={syncState?.autoSync ?? false}
                           onChange={async (v) => {
                             await setAutoSync(v)
@@ -267,6 +260,7 @@ export function CloudSyncModal(): React.JSX.Element {
                             </div>
                           </div>
                           <Switch
+                            label={t('端到端加密')}
                             checked={syncState?.encrypted ?? false}
                             onChange={(v) => {
                               if (v) setEncOpen(true)
@@ -620,27 +614,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function Switch({
-  checked,
-  onChange
-}: {
-  checked: boolean
-  onChange(v: boolean): void
-}): React.JSX.Element {
-  return (
-    <button
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-        checked ? 'bg-brand' : 'bg-surface-2'
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 h-5 w-5 rounded-full bg-on-brand shadow-sm transition-all ${
-          checked ? 'left-[22px]' : 'left-0.5'
-        }`}
-      />
-    </button>
-  )
-}

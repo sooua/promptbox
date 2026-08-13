@@ -4,7 +4,6 @@ import {
   Clock,
   Cloud,
   Compass,
-  Flame,
   GripVertical,
   Pencil,
   Plus,
@@ -87,7 +86,6 @@ export function Sidebar(): React.JSX.Element {
   const favCount = prompts.filter((p) => p.favorite).length
   const uncatCount = prompts.filter((p) => !p.categoryId).length
   const recentCount = prompts.filter((p) => p.lastUsedAt).length
-  const frequentCount = prompts.filter((p) => (p.useCount ?? 0) > 0).length
 
   const countFor = (id: string) => prompts.filter((p) => p.categoryId === id).length
 
@@ -156,20 +154,13 @@ export function Sidebar(): React.JSX.Element {
           onClick={() => setCategoryFilter('recent')}
         />
         <NavItem
-          icon={<Flame size={15} />}
-          label={t('最常用')}
-          active={view === 'library' && categoryFilter === 'frequent'}
-          count={frequentCount}
-          onClick={() => setCategoryFilter('frequent')}
-        />
-        <NavItem
           icon={<Inbox size={15} />}
           label={t('未分类')}
           active={view === 'library' && categoryFilter === 'uncategorized'}
           count={uncatCount}
           onClick={() => setCategoryFilter('uncategorized')}
         />
-        {/* The five items above filter the list in place; this one replaces the
+        {/* The four items above filter the list in place; this one replaces the
             whole right-hand pane. Identical styling in one run read as "another
             filter", so the rule is separated out. */}
         <div className="my-1 border-t border-line" />

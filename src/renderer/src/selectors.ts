@@ -1,9 +1,10 @@
 import type { Category, Prompt } from '@shared/types'
 import type { CategoryFilter } from './store'
+import { t } from './i18n'
 import { pinyinMatch } from './pinyin'
 import { promptMatches, promptSearchKey } from './searchIndex'
 
-const SPECIAL = ['all', 'favorites', 'uncategorized', 'recent', 'frequent']
+const SPECIAL = ['all', 'favorites', 'uncategorized', 'recent']
 
 export function filterPrompts(
   prompts: Prompt[],
@@ -16,7 +17,6 @@ export function filterPrompts(
     if (f === 'favorites' && !p.favorite) return false
     if (f === 'uncategorized' && p.categoryId) return false
     if (f === 'recent' && !p.lastUsedAt) return false
-    if (f === 'frequent' && (p.useCount ?? 0) === 0) return false
     if (!SPECIAL.includes(f) && p.categoryId !== f) return false
     // every active tag must be present (AND combination)
     if (opts.tagFilters.length && !opts.tagFilters.every((t) => p.tags.includes(t))) {
@@ -31,15 +31,17 @@ export function filterPrompts(
 }
 
 /**
- * Pinned prompts always float to the top. Within each group, "最近使用"/"最常用"
- * get their own ordering; everything else sorts by last edit.
+ * Pinned prompts always float to the top. Within each group, "最近使用" orders by
+ * when it was last copied; everything else sorts by last edit.
+ *
+ * There used to be a second "最常用" rail sorting the same set by useCount.
+ * `recordUse` is the only writer of both fields and always writes them
+ * together, so its membership was identical to "最近使用" by construction —
+ * two rails, always the same count, differing only in sort order.
  */
 function sortPrompts(prompts: Prompt[], f: CategoryFilter): Prompt[] {
   const within = (a: Prompt, b: Prompt): number => {
     if (f === 'recent') return (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0)
-    if (f === 'frequent') {
-      return (b.useCount ?? 0) - (a.useCount ?? 0) || (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0)
-    }
     return b.updatedAt - a.updatedAt
   }
   return [...prompts].sort((a, b) => {
@@ -124,11 +126,11 @@ export function formatDate(ts: number): string {
 export function relativeTime(ts: number): string {
   const diff = Date.now() - ts
   const min = Math.floor(diff / 60000)
-  if (min < 1) return '刚刚'
-  if (min < 60) return `${min} 分钟前`
+  if (min < 1) return t('刚刚')
+  if (min < 60) return t('{n} 分钟前', { n: min })
   const hr = Math.floor(min / 60)
-  if (hr < 24) return `${hr} 小时前`
+  if (hr < 24) return t('{n} 小时前', { n: hr })
   const day = Math.floor(hr / 24)
-  if (day < 30) return `${day} 天前`
+  if (day < 30) return t('{n} 天前', { n: day })
   return formatDate(ts).slice(0, 10)
 }

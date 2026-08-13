@@ -22,6 +22,7 @@ import { HOTKEY_PRESETS } from '@shared/types'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
 import { useT } from '../i18n'
+import { Switch } from './Switch'
 import { toast } from './Toast'
 
 const CLOSE_ACTIONS: { value: CloseAction; label: string }[] = [
@@ -184,7 +185,7 @@ export function SettingsView(): React.JSX.Element {
             label={t('允许联网获取发现内容')}
             description={t('仅在打开发现页时请求，不会后台联网')}
           >
-            <Toggle
+            <Switch
               checked={settings?.marketEnabled ?? true}
               onChange={(v) => void setMarket(v)}
               label={t('允许联网获取发现内容')}
@@ -594,37 +595,6 @@ function ProxyInput({
       // Fixed 16rem overflowed the row in a narrow window; cap instead.
       className="w-full max-w-64 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
     />
-  )
-}
-
-function Toggle({
-  checked,
-  onChange,
-  label
-}: {
-  checked: boolean
-  onChange(v: boolean): void
-  /** The switch has no text of its own; without this it is announced unnamed. */
-  label: string
-}): React.JSX.Element {
-  return (
-    <button
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative h-5 w-9 shrink-0 rounded-full transition ${
-        checked ? 'bg-brand' : 'bg-surface-2'
-      }`}
-    >
-      {/* `bg-on-brand` rather than a hard-coded white: it is the token that
-          means "sits on the terracotta fill" and it holds in both themes. */}
-      <span
-        className={`absolute top-0.5 h-4 w-4 rounded-full bg-on-brand shadow-sm transition-all ${
-          checked ? 'left-[18px]' : 'left-0.5'
-        }`}
-      />
-    </button>
   )
 }
 

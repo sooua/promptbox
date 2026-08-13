@@ -34,7 +34,3 @@ export function useT(): (zh: string, params?: Params) => string {
   const lang = (useStore((s) => s.settings?.language) ?? 'zh') as Language
   return (zh, params) => translate(lang, zh, params)
 }
-
-export function useLang(): Language {
-  return (useStore((s) => s.settings?.language) ?? 'zh') as Language
-}

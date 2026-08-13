@@ -17,7 +17,7 @@ let deps: SystemDeps | null = null
 let currentAccelerator = ''
 
 /** Show + focus the window, optionally popping the command palette. */
-export function summon(openPalette: boolean): void {
+function summon(openPalette: boolean): void {
   if (!deps) return
   const win = deps.ensureWindow()
   if (win.isMinimized()) win.restore()

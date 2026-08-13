@@ -3,6 +3,12 @@
  * Missing keys fall back to the Chinese (see i18n.ts), so this can grow over time.
  */
 export const en: Record<string, string> = {
+  // ---- Relative time (selectors.relativeTime) ----
+  '刚刚': 'just now',
+  '{n} 分钟前': '{n} min ago',
+  '{n} 小时前': '{n} h ago',
+  '{n} 天前': '{n} d ago',
+
   // ---- Title bar / menu ----
 
   // ---- Sidebar ----
@@ -11,7 +17,6 @@ export const en: Record<string, string> = {
   '全部': 'All',
   '收藏': 'Favorites',
   '最近使用': 'Recent',
-  '最常用': 'Most used',
   '未分类': 'Uncategorized',
   '分类': 'Categories',
   '新建分类': 'New category',
@@ -30,7 +35,6 @@ export const en: Record<string, string> = {
   '资产': 'Assets',
 
   // ---- Prompt list ----
-  '快速调用 (Ctrl/⌘ + K)': 'Quick launch (Ctrl/⌘ + K)',
   '快速调用…': 'Quick launch…',
   '快速调用': 'Quick launch',
   '新建 Prompt': 'New prompt',
@@ -170,12 +174,10 @@ export const en: Record<string, string> = {
   '同步状态': 'Sync status',
   '已连接': 'Connected',
   '未连接': 'Not connected',
-  '即将支持': 'Coming soon',
   '同步': 'Sync',
   '已断开连接': 'Disconnected',
   '断开连接': 'Disconnect',
   '连接': 'Connect',
-  '后续支持': 'Coming soon',
   '自动同步': 'Auto-sync',
   '本地改动后自动上传': 'Auto-upload on local changes',
   '已开启自动同步': 'Auto-sync enabled',

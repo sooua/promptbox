@@ -54,7 +54,7 @@ export function isExportBundle(v: unknown): v is ExportBundle {
  * bulk action and the markdown importer — so anything reaching the store by a
  * fourth route kept whatever shape it arrived in.
  */
-export function normalizeTags(tags: string[]): string[] {
+function normalizeTags(tags: string[]): string[] {
   const out: string[] = []
   for (const raw of tags) {
     if (typeof raw !== 'string') continue

@@ -6,8 +6,6 @@ import {
   FileText,
   History as HistoryIcon,
   Pencil,
-  Pin,
-  Star,
   Trash2,
   Wand2,
   X
@@ -50,9 +48,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   const updatePrompt = useStore((s) => s.updatePrompt)
   const deletePrompt = useStore((s) => s.deletePrompt)
   const duplicatePrompt = useStore((s) => s.duplicatePrompt)
-  const toggleFavorite = useStore((s) => s.toggleFavorite)
-  const togglePin = useStore((s) => s.togglePin)
-  const recordUse = useStore((s) => s.recordUse)
+  const copyResolvedAndUse = useStore((s) => s.copyResolvedAndUse)
   const t = useT()
 
   // Known variable names across all prompts, offered in {{ }} autocomplete.
@@ -127,9 +123,12 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   }, [])
 
   async function copyContent() {
-    await navigator.clipboard.writeText(content)
-    void recordUse(prompt.id)
-    toast.success(t('已复制 Prompt 内容'))
+    // Copies what is on screen (which may be ahead of the last autosave), but
+    // through the store so a rejected clipboard write is reported instead of
+    // toasting success and counting a use that never happened.
+    const ok = await copyResolvedAndUse(prompt.id, content)
+    if (ok) toast.success(t('已复制 Prompt 内容'))
+    else toast.error(t('复制失败'))
   }
 
   function addTag(raw: string) {
@@ -167,16 +166,10 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           className="min-w-0 flex-1 bg-transparent font-serif text-[22px] leading-tight text-ink outline-none placeholder:text-faint"
           placeholder={t('Prompt 标题')}
         />
-        <ToolbarButton
-          title={prompt.pinned ? t('取消置顶') : t('置顶')}
-          active={prompt.pinned}
-          onClick={() => togglePin(prompt.id)}
-        >
-          <Pin size={17} className="-rotate-45" fill={prompt.pinned ? 'currentColor' : 'none'} />
-        </ToolbarButton>
-        <ToolbarButton title={t('收藏')} active={prompt.favorite} onClick={() => toggleFavorite(prompt.id)}>
-          <Star size={17} fill={prompt.favorite ? 'currentColor' : 'none'} />
-        </ToolbarButton>
+        {/* Pin and favourite live on the list row, not here. The list pane is
+            always on screen beside this one showing the same selected prompt,
+            so a second pair of toggles was the same two controls twice at the
+            same time. */}
         <ToolbarButton title={t('复制内容')} onClick={copyContent}>
           <Copy size={17} />
         </ToolbarButton>
@@ -310,13 +303,11 @@ function ToolbarButton({
   children,
   title,
   onClick,
-  active,
   danger
 }: {
   children: React.ReactNode
   title: string
   onClick(): void
-  active?: boolean
   danger?: boolean
 }): React.JSX.Element {
   return (
@@ -324,11 +315,9 @@ function ToolbarButton({
       title={title}
       onClick={onClick}
       className={`rounded-lg p-2 transition ${
-        active
-          ? 'text-brand-text'
-          : danger
-            ? 'text-faint hover:bg-error/10 hover:text-error'
-            : 'text-faint hover:bg-surface-2 hover:text-ink'
+        danger
+          ? 'text-faint hover:bg-error/10 hover:text-error'
+          : 'text-faint hover:bg-surface-2 hover:text-ink'
       }`}
     >
       {children}

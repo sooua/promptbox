@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { Command, Copy, Download, Pin, Plus, Search, Star, Tag, Trash2, Upload, X } from 'lucide-react'
+import { Copy, Download, Pin, Plus, Search, Star, Tag, Trash2, Upload, X } from 'lucide-react'
 import { useStore, isCategoryId } from '../store'
 import { categoryById, filterPrompts, relativeTime } from '../selectors'
 import { requestCopy } from '../copy'
@@ -23,7 +23,6 @@ export function PromptList(): React.JSX.Element {
   const toggleFavorite = useStore((s) => s.toggleFavorite)
   const togglePin = useStore((s) => s.togglePin)
   const deletePrompt = useStore((s) => s.deletePrompt)
-  const openPalette = useStore((s) => s.openPalette)
   const bulkDeletePrompts = useStore((s) => s.bulkDeletePrompts)
   const bulkRestoreDeleted = useStore((s) => s.bulkRestoreDeleted)
   const bulkSetCategory = useStore((s) => s.bulkSetCategory)
@@ -180,13 +179,9 @@ export function PromptList(): React.JSX.Element {
             className="w-full rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-3 text-sm text-ink outline-none transition focus:border-focus"
           />
         </div>
-        <button
-          onClick={openPalette}
-          title={t('快速调用 (Ctrl/⌘ + K)')}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line-strong bg-surface text-muted transition hover:text-brand-text hover:shadow-[0_0_0_1px_var(--color-ring)]"
-        >
-          <Command size={16} />
-        </button>
+        {/* No palette button here: it sat 8px from a search box and opened
+            another search box. ⌘K reaches it from anywhere, the empty editor
+            advertises it, and the shortcut list documents it. */}
         <button
           onClick={handleNew}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-brand-strong"

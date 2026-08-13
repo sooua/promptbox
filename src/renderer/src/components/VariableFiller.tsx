@@ -19,7 +19,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
   const [values, setValues] = useState<Record<string, string>>({})
   const [editing, setEditing] = useState<string | null>(null)
   const [showErrors, setShowErrors] = useState(false)
-  const recordUse = useStore((s) => s.recordUse)
+  const copyResolvedAndUse = useStore((s) => s.copyResolvedAndUse)
   const rememberVarValues = useStore((s) => s.rememberVarValues)
   const updatePrompt = useStore((s) => s.updatePrompt)
   const t = useT()
@@ -40,8 +40,12 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
       toast.error(t('请先填写必填变量：{names}', { names: missing.join('、') }))
       return
     }
-    await navigator.clipboard.writeText(resolved)
-    await Promise.all([recordUse(prompt.id), rememberVarValues(prompt.id, values)])
+    const ok = await copyResolvedAndUse(prompt.id, resolved)
+    if (!ok) {
+      toast.error(t('复制失败'))
+      return
+    }
+    await rememberVarValues(prompt.id, values)
     toast.success(t('已复制填充后的 Prompt'))
   }
 

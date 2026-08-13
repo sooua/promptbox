@@ -27,7 +27,7 @@ export async function testGistToken(token: string): Promise<ConnectionResult> {
   }
 }
 
-export interface GistOptions {
+interface GistOptions {
   token: string
   gistId?: string
   /** called when a brand-new gist is created so its id can be persisted */
