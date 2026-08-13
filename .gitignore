@@ -6,3 +6,4 @@ out
 .vite
 release
 *.tsbuildinfo
+.serena
