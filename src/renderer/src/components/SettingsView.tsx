@@ -254,32 +254,30 @@ export function SettingsView(): React.JSX.Element {
         {/* About & Update */}
         <Section title={t('关于与更新')}>
           <UpdateRow />
-          {/* The window close button only hides to tray, so the app needs a real
-              exit inside the UI — the tray menu is easy to miss on Windows. */}
+          {/* A dropdown rather than a button group: the three labels are long
+              enough that side-by-side buttons crowded the row. Matches the
+              global-hotkey control above. */}
           <Row
             label={t('关闭窗口时')}
-            description={t('最小化到托盘可保持全局热键可用；直接退出则完全关闭应用')}
+            description={t('最小化到托盘可让全局热键继续生效')}
           >
-            <div className="flex gap-2">
+            <select
+              value={settings?.closeAction ?? 'ask'}
+              onChange={(e) => void setCloseAction(e.target.value as CloseAction)}
+              className="rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-focus"
+            >
               {CLOSE_ACTIONS.map((c) => (
-                <button
-                  key={c.value}
-                  onClick={() => void setCloseAction(c.value)}
-                  className={`rounded-xl border px-3 py-1.5 text-sm transition ${
-                    (settings?.closeAction ?? 'ask') === c.value
-                      ? 'border-brand/40 bg-brand/10 text-brand'
-                      : 'border-line-strong text-muted hover:border-ring hover:text-ink'
-                  }`}
-                >
+                <option key={c.value} value={c.value}>
                   {t(c.label)}
-                </button>
+                </option>
               ))}
-            </div>
+            </select>
           </Row>
-          <Row
-            label={t('立即退出')}
-            description={t('无论上面选了什么，此处都会彻底关闭应用')}
-          >
+          {/* Not a fourth close-behaviour option — an escape hatch. With the
+              setting on "tray", Alt+F4 also just hides, leaving the tray menu as
+              the only way out, and Windows tucks the tray icon into the overflow
+              flyout where people don't find it. */}
+          <Row label={t('退出 PromptBox')} description={t('完全关闭应用，同时移除托盘图标')}>
             <ActionButton icon={<Power size={15} />} danger onClick={() => void quitApp()}>
               {t('退出')}
             </ActionButton>
@@ -374,6 +372,9 @@ function formatSize(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
+/** How many snapshots to show before collapsing the rest behind a toggle. */
+const COLLAPSED = 5
+
 function BackupSection(): React.JSX.Element {
   const t = useT()
   const listBackups = useStore((s) => s.listBackups)
@@ -382,6 +383,7 @@ function BackupSection(): React.JSX.Element {
   const openBackupDir = useStore((s) => s.openBackupDir)
 
   const [backups, setBackups] = useState<BackupInfo[]>([])
+  const [expanded, setExpanded] = useState(false)
 
   async function refresh() {
     setBackups(await listBackups())
@@ -421,7 +423,7 @@ function BackupSection(): React.JSX.Element {
         </div>
       ) : (
         <div className="space-y-1.5">
-          {backups.map((b) => (
+          {(expanded ? backups : backups.slice(0, COLLAPSED)).map((b) => (
             <div
               key={b.file}
               className="flex items-center justify-between rounded-xl border border-line-strong bg-surface px-3 py-2"
@@ -442,6 +444,18 @@ function BackupSection(): React.JSX.Element {
               </button>
             </div>
           ))}
+          {/* Twenty snapshots pushed everything below this section off-screen,
+              and only the newest few are realistically ever restored. */}
+          {backups.length > COLLAPSED && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="w-full rounded-xl border border-dashed border-line-strong py-1.5 text-xs text-muted transition hover:border-ring hover:text-ink"
+            >
+              {expanded
+                ? t('收起')
+                : t('显示全部 {n} 份快照', { n: backups.length })}
+            </button>
+          )}
         </div>
       )}
     </div>
