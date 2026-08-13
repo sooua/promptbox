@@ -1,6 +1,6 @@
 ---
 name: PromptBox
-description: A warm, local-first desktop home for AI prompts, Skills, Agents, and MCP configs.
+description: A warm, local-first desktop home for AI prompts.
 colors:
   brand: "#c96442"
   brand-strong: "#b65535"
@@ -158,14 +158,14 @@ A warm-neutral foundation carrying one committed terracotta accent; the only coo
 **Body Font:** Anthropic Sans (-apple-system, Segoe UI, PingFang SC fallback)
 **Label/Mono Font:** Anthropic Mono (JetBrains Mono, Fira Code fallback)
 
-**Character:** A serif/sans/mono triad on a clear contrast axis. The serif gives titles an editorial, written-by-a-person warmth at a single confident weight (500). The sans is quiet and legible for everything the user reads in bulk. The mono is the technical voice: it marks the things that are *code* (asset names, the editor body, MCP fields, `{{variables}}`), so structure is legible by typeface alone. Chinese-first: every stack carries a CJK fallback so PingFang/Songti render cleanly.
+**Character:** A serif/sans/mono triad on a clear contrast axis. The serif gives titles an editorial, written-by-a-person warmth at a single confident weight (500). The sans is quiet and legible for everything the user reads in bulk. The mono is the technical voice: it marks the things that are *code* (the editor body, `{{variables}}`), so structure is legible by typeface alone. Chinese-first: every stack carries a CJK fallback so PingFang/Songti render cleanly.
 
 ### Hierarchy
 - **Display** (Serif 500, 1.375rem, lh 1.15): The editing title field and the largest rendered-markdown headings. The single largest voice; there is no shouting hero scale.
 - **Title** (Serif 500, ~1.0625rem, lh 1.3): Modal titles, the quick-fill prompt name, section headings inside rendered content.
 - **Body** (Sans 400, 0.875rem, lh 1.5): The default reading size for descriptions, settings, and prose. Keep prose columns within 65–75ch.
 - **Label** (Sans 500, 0.6875rem, lh 1.4): Metadata, counts, timestamps, tag pills. Sentence case, never all-caps.
-- **Code** (Mono 400, 0.875rem, lh 1.7, -0.01em): The editor body, asset names, fill previews, MCP command/args. The "this is a literal string" voice.
+- **Code** (Mono 400, 0.875rem, lh 1.7, -0.01em): The editor body, fill previews. The "this is a literal string" voice.
 
 ### Named Rules
 **The Single-Serif-Weight Rule.** The serif speaks at weight 500 across every size. Hierarchy comes from size and the serif/sans contrast, not from stacking serif weights. (`.font-serif` hard-sets 500 on purpose.)
@@ -216,8 +216,8 @@ The whole kit is refined and restrained: soft 8–16px corners, hairline borders
 - **Focus:** Border shifts to Focus Blue (`#3898ec`); the editor frame uses `focus-within:border-focus`. No glow.
 - **Error:** Border shifts to a rose/Error tone and a `*` marks required variables; the field reads invalid without a full red fill.
 
-### Navigation (sidebar + workspace rail)
-- **Style:** A quiet vertical rail of categories and tags on the Canvas. Items are text-led with a small color dot for categories; the active item gets a soft terracotta wash, hover gets an Ivory fill. Workspace switches (Prompts / Skill / Agent / MCP) are keyboard-reachable (`Ctrl/⌘ + 1–4`).
+### Navigation (sidebar)
+- **Style:** A quiet vertical rail of categories and tags on the Canvas. Items are text-led with a small color dot for categories; the active item gets a soft terracotta wash, hover gets an Ivory fill.
 - **States:** default (Olive Gray) → hover (Ink, Ivory fill) → active (terracotta wash). Drag-to-reorder dims the dragged row.
 
 ### Command Palette (signature component)

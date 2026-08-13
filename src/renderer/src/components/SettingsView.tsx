@@ -12,22 +12,23 @@ import {
   Sun,
   Upload,
   Database,
+  FileText,
   Info,
+  Power,
   X
 } from 'lucide-react'
-import type {
-  BackupInfo,
-  GithubSourceConfig,
-  Language,
-  McpRegistryConfig,
-  PromptSourceConfig,
-  ThemeMode
-} from '@shared/types'
+import type { BackupInfo, CloseAction, Language, PromptSourceConfig, ThemeMode } from '@shared/types'
 import { HOTKEY_PRESETS } from '@shared/types'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
 import { useT } from '../i18n'
 import { toast } from './Toast'
+
+const CLOSE_ACTIONS: { value: CloseAction; label: string }[] = [
+  { value: 'ask', label: '每次询问' },
+  { value: 'tray', label: '最小化到托盘' },
+  { value: 'quit', label: '直接退出' }
+]
 
 export function SettingsView(): React.JSX.Element {
   const t = useT()
@@ -38,14 +39,23 @@ export function SettingsView(): React.JSX.Element {
   const setLanguage = useStore((s) => s.setLanguage)
   const setMarket = useStore((s) => s.setMarket)
   const setProxy = useStore((s) => s.setProxy)
-  const setGithubSources = useStore((s) => s.setGithubSources)
-  const setMcpRegistries = useStore((s) => s.setMcpRegistries)
   const setPromptSources = useStore((s) => s.setPromptSources)
   const setHotkey = useStore((s) => s.setHotkey)
   const chooseDataDir = useStore((s) => s.chooseDataDir)
   const openDataDir = useStore((s) => s.openDataDir)
   const exportData = useStore((s) => s.exportData)
   const importData = useStore((s) => s.importData)
+  const quitApp = useStore((s) => s.quitApp)
+  const setCloseAction = useStore((s) => s.setCloseAction)
+  const importPromptFiles = useStore((s) => s.importPromptFiles)
+
+  async function handleImportFiles() {
+    const res = await importPromptFiles(null)
+    if (res.count > 0) toast.success(t('已导入 {n} 条 Prompt', { n: res.count }))
+    if (res.failed.length > 0)
+      toast.error(t('{n} 个文件无法读取：{names}', { n: res.failed.length, names: res.failed.join('、') }))
+    else if (res.count === 0) toast.info(t('未导入任何文件'))
+  }
 
   async function handleExport() {
     const res = await exportData()
@@ -59,10 +69,24 @@ export function SettingsView(): React.JSX.Element {
   }
 
   async function handleImport(mode: 'merge' | 'replace') {
-    if (mode === 'replace' && !confirm(t('替换导入会覆盖当前全部数据，确定继续？'))) return
+    if (
+      mode === 'replace' &&
+      !confirm(
+        t('替换导入会删除当前全部 {n} 条 Prompt 并用文件内容取代。\n\n继续前会自动创建一次备份，可在下方「本地备份」中恢复。确定继续？', {
+          n: prompts.length
+        })
+      )
+    )
+      return
     const res = await importData(mode)
-    if (res.ok) toast.success(t('导入完成'))
-    else toast.error(t('导入失败或已取消'))
+    if (!res.ok) {
+      // `error` is set when the file was rejected (wrong format, corrupt);
+      // absent when the user simply cancelled the picker.
+      if (res.error) toast.error(res.error)
+      return
+    }
+    if (mode === 'replace' && res.backedUp) toast.success(t('导入完成，旧数据已备份'))
+    else toast.success(t('导入完成'))
   }
 
   const themes: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
@@ -165,26 +189,6 @@ export function SettingsView(): React.JSX.Element {
             sources={settings?.promptSources ?? []}
             onChange={(v) => void setPromptSources(v)}
           />
-          <div className="mb-2 mt-5 text-xs font-medium text-muted">
-            {t('自定义 Skill / Agent 仓库')}
-          </div>
-          <p className="mb-3 text-xs text-faint">
-            {t('内置仓库为推荐来源；可添加你自己的 GitHub 仓库到 Skill / Agent 标签。')}
-          </p>
-          <GithubSources
-            sources={settings?.githubSources ?? []}
-            onChange={(v) => void setGithubSources(v)}
-          />
-          <div className="mb-2 mt-5 text-xs font-medium text-muted">
-            {t('自定义 MCP 注册表')}
-          </div>
-          <p className="mb-3 text-xs text-faint">
-            {t('官方注册表与 Smithery 已内置；可添加实现官方 /v0/servers 规范的注册表。')}
-          </p>
-          <McpRegistries
-            registries={settings?.mcpRegistries ?? []}
-            onChange={(v) => void setMcpRegistries(v)}
-          />
         </Section>
 
         {/* Data */}
@@ -217,21 +221,28 @@ export function SettingsView(): React.JSX.Element {
               {t('导入（替换）')}
             </ActionButton>
           </div>
+          <div className="mt-3 border-t border-line pt-3">
+            <p className="mb-2 text-xs text-faint">
+              {t('已有的 .md / .txt 提示词可直接导入，支持 YAML front-matter 的 title / description / tags。')}
+            </p>
+            <ActionButton icon={<FileText size={15} />} onClick={handleImportFiles}>
+              {t('从 Markdown 文件导入…')}
+            </ActionButton>
+          </div>
         </Section>
 
         {/* Shortcuts */}
         <Section title={t('快捷键')}>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            <ShortcutRow keys="⌘/Ctrl + K" label={t('命令面板(搜索全部资产)')} />
-            <ShortcutRow keys="⌘/Ctrl + N" label={t('在当前工作区新建')} />
-            <ShortcutRow keys="⌘/Ctrl + D" label={t('复制当前条目')} />
+            <ShortcutRow keys="⌘/Ctrl + K" label={t('命令面板(搜索全部 Prompt)')} />
+            <ShortcutRow keys="⌘/Ctrl + N" label={t('新建 Prompt')} />
+            <ShortcutRow keys="⌘/Ctrl + D" label={t('为当前条目创建副本')} />
             <ShortcutRow keys="⌘/Ctrl + S" label={t('立即保存')} />
             <ShortcutRow keys="⌘/Ctrl + F" label={t('聚焦列表搜索')} />
-            <ShortcutRow keys="⌘/Ctrl + 1~4" label={t('切换 Prompts / Skill / Agent / MCP')} />
             <ShortcutRow keys="⌘/Ctrl + ," label={t('打开设置')} />
             <ShortcutRow keys="⌘/Ctrl + Z" label={t('编辑器撤销 / 重做')} />
             <ShortcutRow keys="↑ ↓ / Enter" label={t('列表选择 / 复制')} />
-            <ShortcutRow keys="Esc" label={t('关闭弹窗 / 返回')} />
+            <ShortcutRow keys="Esc" label={t('关闭弹窗 / 返回资产库')} />
           </div>
         </Section>
 
@@ -243,6 +254,36 @@ export function SettingsView(): React.JSX.Element {
         {/* About & Update */}
         <Section title={t('关于与更新')}>
           <UpdateRow />
+          {/* The window close button only hides to tray, so the app needs a real
+              exit inside the UI — the tray menu is easy to miss on Windows. */}
+          <Row
+            label={t('关闭窗口时')}
+            description={t('最小化到托盘可保持全局热键可用；直接退出则完全关闭应用')}
+          >
+            <div className="flex gap-2">
+              {CLOSE_ACTIONS.map((c) => (
+                <button
+                  key={c.value}
+                  onClick={() => void setCloseAction(c.value)}
+                  className={`rounded-xl border px-3 py-1.5 text-sm transition ${
+                    (settings?.closeAction ?? 'ask') === c.value
+                      ? 'border-brand/40 bg-brand/10 text-brand'
+                      : 'border-line-strong text-muted hover:border-ring hover:text-ink'
+                  }`}
+                >
+                  {t(c.label)}
+                </button>
+              ))}
+            </div>
+          </Row>
+          <Row
+            label={t('立即退出')}
+            description={t('无论上面选了什么，此处都会彻底关闭应用')}
+          >
+            <ActionButton icon={<Power size={15} />} danger onClick={() => void quitApp()}>
+              {t('退出')}
+            </ActionButton>
+          </Row>
           <div className="mt-4 flex items-center gap-2 text-xs text-faint">
             <Info size={14} className="shrink-0" />
             <p>
@@ -491,156 +532,6 @@ function PromptSources({
   )
 }
 
-function GithubSources({
-  sources,
-  onChange
-}: {
-  sources: GithubSourceConfig[]
-  onChange(v: GithubSourceConfig[]): void
-}): React.JSX.Element {
-  const t = useT()
-  const [repo, setRepo] = useState('')
-  const [kind, setKind] = useState<'skill' | 'agent'>('skill')
-
-  function add() {
-    const r = repo
-      .trim()
-      .replace(/^https?:\/\/github\.com\//i, '')
-      .replace(/\.git$/i, '')
-      .replace(/\/$/, '')
-    if (!/^[^/]+\/[^/]+$/.test(r)) {
-      toast.error(t('请输入 owner/repo 格式'))
-      return
-    }
-    if (sources.some((s) => s.repo === r && s.kind === kind)) {
-      toast.info(t('该来源已存在'))
-      return
-    }
-    onChange([...sources, { repo: r, kind }])
-    setRepo('')
-    toast.success(t('已添加来源'))
-  }
-
-  return (
-    <div className="space-y-2">
-      {sources.length > 0 && (
-        <div className="space-y-1.5">
-          {sources.map((s, i) => (
-            <div
-              key={s.repo + s.kind}
-              className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5"
-            >
-              <span className="rounded bg-surface-2 px-1.5 text-[10px] uppercase tracking-wide text-faint">
-                {s.kind}
-              </span>
-              <span className="min-w-0 flex-1 truncate font-mono text-xs text-ink">{s.repo}</span>
-              <button
-                onClick={() => onChange(sources.filter((_, idx) => idx !== i))}
-                className="text-faint transition hover:text-error"
-                title={t('删除')}
-              >
-                <X size={13} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="flex gap-2">
-        <input
-          value={repo}
-          onChange={(e) => setRepo(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && add()}
-          placeholder={t('owner/repo')}
-          spellCheck={false}
-          className="flex-1 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
-        />
-        <select
-          value={kind}
-          onChange={(e) => setKind(e.target.value as 'skill' | 'agent')}
-          className="rounded-xl border border-line-strong bg-surface px-2 py-1.5 text-xs text-ink outline-none focus:border-focus"
-        >
-          <option value="skill">Skill</option>
-          <option value="agent">Agent</option>
-        </select>
-        <ActionButton icon={<Plus size={14} />} onClick={add}>
-          {t('添加')}
-        </ActionButton>
-      </div>
-    </div>
-  )
-}
-
-function McpRegistries({
-  registries,
-  onChange
-}: {
-  registries: McpRegistryConfig[]
-  onChange(v: McpRegistryConfig[]): void
-}): React.JSX.Element {
-  const t = useT()
-  const [name, setName] = useState('')
-  const [url, setUrl] = useState('')
-
-  function add() {
-    const u = url.trim().replace(/\/$/, '')
-    if (!/^https?:\/\/.+/.test(u)) {
-      toast.error(t('请输入有效的 URL'))
-      return
-    }
-    if (registries.some((r) => r.url === u)) {
-      toast.info(t('该来源已存在'))
-      return
-    }
-    onChange([...registries, { name: name.trim() || u, url: u }])
-    setName('')
-    setUrl('')
-    toast.success(t('已添加来源'))
-  }
-
-  return (
-    <div className="space-y-2">
-      {registries.length > 0 && (
-        <div className="space-y-1.5">
-          {registries.map((r, i) => (
-            <div
-              key={r.url}
-              className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 py-1.5"
-            >
-              <span className="shrink-0 text-xs text-ink">{r.name}</span>
-              <span className="min-w-0 flex-1 truncate font-mono text-[11px] text-faint">{r.url}</span>
-              <button
-                onClick={() => onChange(registries.filter((_, idx) => idx !== i))}
-                className="text-faint transition hover:text-error"
-                title={t('删除')}
-              >
-                <X size={13} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="flex gap-2">
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t('名称')}
-          className="w-28 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-xs text-ink outline-none focus:border-focus"
-        />
-        <input
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && add()}
-          placeholder="https://…"
-          spellCheck={false}
-          className="flex-1 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
-        />
-        <ActionButton icon={<Plus size={14} />} onClick={add}>
-          {t('添加')}
-        </ActionButton>
-      </div>
-    </div>
-  )
-}
 
 function ProxyInput({
   value,

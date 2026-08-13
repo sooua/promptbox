@@ -1,25 +1,7 @@
-import type { Asset, AssetKind, Category, Prompt } from '@shared/types'
+import type { Category, Prompt } from '@shared/types'
 import type { CategoryFilter } from './store'
 import { pinyinMatch } from './pinyin'
-import { assetMatches, assetSearchKey, promptMatches, promptSearchKey } from './searchIndex'
-
-export function filterAssets(
-  assets: Asset[],
-  kind: AssetKind,
-  opts: { search: string; favOnly: boolean; categoryId?: string | null }
-): Asset[] {
-  const q = opts.search.trim().toLowerCase()
-  return assets
-    .filter((a) => {
-      if (a.kind !== kind) return false
-      if (opts.favOnly && !a.favorite) return false
-      if (opts.categoryId && a.categoryId !== opts.categoryId) return false
-      // indexed match: precomputed literal + pinyin blob, scanned once per item
-      if (q && !assetMatches(a, q)) return false
-      return true
-    })
-    .sort((a, b) => Number(b.favorite) - Number(a.favorite) || b.updatedAt - a.updatedAt)
-}
+import { promptMatches, promptSearchKey } from './searchIndex'
 
 const SPECIAL = ['all', 'favorites', 'uncategorized', 'recent', 'frequent']
 
@@ -66,18 +48,14 @@ function sortPrompts(prompts: Prompt[], f: CategoryFilter): Prompt[] {
   })
 }
 
-export type CommandEntry =
-  | { type: 'prompt'; id: string; prompt: Prompt }
-  | { type: 'asset'; id: string; asset: Asset }
-
 /**
- * Unified command-palette ranking over prompts AND assets. Text match (literal
- * + pinyin) drives relevance; usage/recency/favorite break ties so the things
- * you reach for most surface first (and with an empty query too).
+ * Command-palette ranking over prompts. Text match (literal + pinyin) drives
+ * relevance; usage/recency/favorite break ties so the things you reach for most
+ * surface first (and with an empty query too).
  */
-export function rankCommand(prompts: Prompt[], assets: Asset[], query: string): CommandEntry[] {
+export function rankCommand(prompts: Prompt[], query: string): Prompt[] {
   const q = query.trim().toLowerCase()
-  const scored: { entry: CommandEntry; score: number }[] = []
+  const scored: { prompt: Prompt; score: number }[] = []
 
   for (const p of prompts) {
     const text = entryScore(
@@ -88,27 +66,13 @@ export function rankCommand(prompts: Prompt[], assets: Asset[], query: string): 
     )
     if (text > -Infinity) {
       scored.push({
-        entry: { type: 'prompt', id: p.id, prompt: p },
+        prompt: p,
         score: text + usageBoost(p.useCount, p.lastUsedAt) + (p.favorite ? 5 : 0)
       })
     }
   }
-  for (const a of assets) {
-    const text = entryScore(
-      q,
-      a.name,
-      `${a.description ?? ''} ${a.tags.join(' ')}`,
-      assetSearchKey(a)
-    )
-    if (text > -Infinity) {
-      scored.push({
-        entry: { type: 'asset', id: a.id, asset: a },
-        score: text + (a.favorite ? 5 : 0) + recencyBoost(a.updatedAt)
-      })
-    }
-  }
   scored.sort((x, y) => y.score - x.score)
-  return scored.map((x) => x.entry)
+  return scored.map((x) => x.prompt)
 }
 
 /**

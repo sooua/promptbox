@@ -2,9 +2,6 @@ import { existsSync, readdirSync, readFileSync, renameSync, writeFileSync } from
 import { join } from 'path'
 import { nanoid } from 'nanoid'
 import type {
-  Asset,
-  AssetInput,
-  AssetKind,
   Category,
   ExportBundle,
   ImportMode,
@@ -15,6 +12,7 @@ import type {
   PromptVersion,
   Tombstone
 } from '@shared/types'
+import { TRASH_TTL_MS } from '@shared/types'
 import { syncVariables } from '@shared/variables'
 import { ensureDir } from './config'
 
@@ -27,8 +25,47 @@ function now(): number {
   return Date.now()
 }
 
+/** Fields whose change counts as an *edit* and therefore orders the sync merge. */
+const EDIT_FIELDS = ['title', 'content', 'description', 'categoryId', 'tags', 'variables'] as const
+
+/**
+ * A file the user picked is untrusted input. Without this check `bundle.prompts
+ * ?? []` turned "this isn't a PromptBox export" into "this export has zero
+ * prompts", and a replace-import of any stray .json silently wiped the library
+ * while reporting success.
+ */
+export function isExportBundle(v: unknown): v is ExportBundle {
+  const b = v as Partial<ExportBundle> | null
+  if (!b || typeof b !== 'object') return false
+  if (b.app !== 'promptbox') return false
+  if (!Array.isArray(b.prompts) || !Array.isArray(b.categories)) return false
+  if (b.tombstones !== undefined && !Array.isArray(b.tombstones)) return false
+  const usable = (x: unknown): boolean =>
+    !!x &&
+    typeof x === 'object' &&
+    typeof (x as Prompt).id === 'string' &&
+    typeof (x as Prompt).updatedAt === 'number'
+  return b.prompts.every(usable) && b.categories.every(usable)
+}
+
+/**
+ * The one place tags are normalised. The rule (trim, drop a leading `#`, drop
+ * empties, dedupe) previously lived in three separate callers — the editor, the
+ * bulk action and the markdown importer — so anything reaching the store by a
+ * fourth route kept whatever shape it arrived in.
+ */
+export function normalizeTags(tags: string[]): string[] {
+  const out: string[] = []
+  for (const raw of tags) {
+    if (typeof raw !== 'string') continue
+    const tag = raw.trim().replace(/^#/, '').trim()
+    if (tag && !out.includes(tag)) out.push(tag)
+  }
+  return out
+}
+
 function emptyData(): PromptBoxData {
-  return { version: DATA_VERSION, prompts: [], categories: [], assets: [], tombstones: [] }
+  return { version: DATA_VERSION, prompts: [], categories: [], tombstones: [] }
 }
 
 /**
@@ -46,11 +83,17 @@ export interface Repository {
   getDataDir(): string
 
   listPrompts(): Prompt[]
+  listDeletedPrompts(): Prompt[]
   getPrompt(id: string): Prompt | undefined
   createPrompt(input: PromptInput): Prompt
   updatePrompt(id: string, patch: Partial<PromptInput>): Prompt | undefined
-  addPrompt(prompt: Prompt): Prompt
+  addTag(id: string, tag: string): Prompt | undefined
+  /** Soft delete — recoverable from the trash for TRASH_TTL_MS. */
   deletePrompt(id: string): boolean
+  restoreDeletedPrompt(id: string): Prompt | undefined
+  /** Irreversible: drops the record and records a tombstone so peers follow. */
+  purgePrompt(id: string): boolean
+  purgeAllDeleted(): number
   duplicatePrompt(id: string): Prompt | undefined
   toggleFavorite(id: string): Prompt | undefined
   togglePin(id: string): Prompt | undefined
@@ -65,22 +108,7 @@ export interface Repository {
   updateCategory(id: string, patch: Partial<Pick<Category, 'name' | 'color'>>): Category | undefined
   deleteCategory(id: string): boolean
 
-  listAssets(kind?: AssetKind): Asset[]
-  getAsset(id: string): Asset | undefined
-  createAsset(input: AssetInput): Asset
-  updateAsset(id: string, patch: Partial<AssetInput>): Asset | undefined
-  restoreAssetVersion(assetId: string, versionId: string): Asset | undefined
-  addAsset(asset: Asset): Asset
-  deleteAsset(id: string): boolean
-  duplicateAsset(id: string): Asset | undefined
-  toggleAssetFavorite(id: string): Asset | undefined
-
-  replaceAll(
-    prompts: Prompt[],
-    categories: Category[],
-    assets?: Asset[],
-    tombstones?: Tombstone[]
-  ): void
+  replaceAll(prompts: Prompt[], categories: Category[], tombstones?: Tombstone[]): void
   export(): ExportBundle
   getTombstones(): Tombstone[]
   import(bundle: ExportBundle, mode: ImportMode): ImportResult
@@ -157,26 +185,54 @@ export class PromptRepository implements Repository {
     const categoriesByCreated = [...(parsed.categories ?? [])].sort(
       (a, b) => a.createdAt - b.createdAt
     )
+    this.archiveDroppedAssets(parsed)
+
+    // Trash retention is enforced on load rather than on a timer: an app that
+    // sat closed for months still cleans up the moment it comes back.
+    const cutoff = now() - TRASH_TTL_MS
+    const expired = (parsed.prompts ?? []).filter((p) => p.deletedAt && p.deletedAt < cutoff)
+    const tombstones = [...(parsed.tombstones ?? [])]
+    for (const p of expired) {
+      if (!tombstones.some((t) => t.id === p.id)) {
+        tombstones.push({ id: p.id, type: 'prompt', deletedAt: p.deletedAt as number })
+      }
+    }
+
     return {
       version: parsed.version ?? DATA_VERSION,
-      prompts: (parsed.prompts ?? []).map((p) => ({
-        ...p,
-        pinned: p.pinned ?? false,
-        useCount: p.useCount ?? 0,
-        lastUsedAt: p.lastUsedAt ?? null
-      })),
+      prompts: (parsed.prompts ?? [])
+        .filter((p) => !(p.deletedAt && p.deletedAt < cutoff))
+        .map((p) => ({
+          ...p,
+          pinned: p.pinned ?? false,
+          useCount: p.useCount ?? 0,
+          lastUsedAt: p.lastUsedAt ?? null,
+          // Pre-split records carried metadata on `updatedAt`; seeding from it
+          // keeps their relative order intact through the first merge.
+          metaUpdatedAt: p.metaUpdatedAt ?? p.updatedAt
+        })),
       categories: (parsed.categories ?? []).map((c) => ({
         ...c,
         order: c.order ?? categoriesByCreated.findIndex((x) => x.id === c.id),
         updatedAt: c.updatedAt ?? c.createdAt
       })),
-      assets: (parsed.assets ?? []).map((a) => ({
-        ...a,
-        categoryId: a.categoryId ?? null,
-        files: a.files ?? [],
-        versions: a.versions ?? []
-      })),
-      tombstones: parsed.tombstones ?? []
+      tombstones
+    }
+  }
+
+  /**
+   * Skill/Agent/MCP assets were removed from the product. Any still on disk are
+   * written out once to a sidecar file before being dropped, so users who had
+   * them keep a recoverable copy instead of losing data on the next flush.
+   */
+  private archiveDroppedAssets(parsed: PromptBoxData & { assets?: unknown[] }): void {
+    if (!Array.isArray(parsed.assets) || parsed.assets.length === 0) return
+    const path = join(this.dataDir, 'assets-archive.json')
+    if (existsSync(path)) return
+    try {
+      writeFileSync(path, JSON.stringify(parsed.assets, null, 2), 'utf-8')
+    } catch {
+      /* best effort — never block loading the library over the archive */
     }
   }
 
@@ -273,8 +329,19 @@ export class PromptRepository implements Repository {
 
   // ---- Prompts ----
 
+  /**
+   * Soft-deleted prompts are filtered out here rather than in the renderer.
+   * This is the single source the UI reads from, so every list, count, filter
+   * and search index stays correct without touching any of them.
+   */
   listPrompts(): Prompt[] {
-    return [...this.data.prompts].sort((a, b) => b.updatedAt - a.updatedAt)
+    return this.data.prompts.filter((p) => !p.deletedAt).sort((a, b) => b.updatedAt - a.updatedAt)
+  }
+
+  listDeletedPrompts(): Prompt[] {
+    return this.data.prompts
+      .filter((p) => p.deletedAt)
+      .sort((a, b) => (b.deletedAt ?? 0) - (a.deletedAt ?? 0))
   }
 
   getPrompt(id: string): Prompt | undefined {
@@ -289,7 +356,7 @@ export class PromptRepository implements Repository {
       content: input.content ?? '',
       description: input.description ?? '',
       categoryId: input.categoryId ?? null,
-      tags: input.tags ?? [],
+      tags: normalizeTags(input.tags ?? []),
       favorite: input.favorite ?? false,
       pinned: false,
       variables: syncVariables(input.content ?? '', input.variables ?? []),
@@ -297,7 +364,8 @@ export class PromptRepository implements Repository {
       useCount: 0,
       lastUsedAt: null,
       createdAt: ts,
-      updatedAt: ts
+      updatedAt: ts,
+      metaUpdatedAt: ts
     }
     this.data.prompts.push(prompt)
     this.flush()
@@ -332,7 +400,7 @@ export class PromptRepository implements Repository {
     if (patch.content !== undefined) prompt.content = patch.content
     if (patch.description !== undefined) prompt.description = patch.description
     if (patch.categoryId !== undefined) prompt.categoryId = patch.categoryId
-    if (patch.tags !== undefined) prompt.tags = patch.tags
+    if (patch.tags !== undefined) prompt.tags = normalizeTags(patch.tags)
     if (patch.favorite !== undefined) prompt.favorite = patch.favorite
 
     // Keep variable definitions reconciled with the (possibly new) content.
@@ -340,22 +408,54 @@ export class PromptRepository implements Repository {
       prompt.content,
       patch.variables ?? prompt.variables
     )
+    // Which clock moves is decided from the patch, not from the caller. Setting
+    // a favourite through this method (the bulk action does) must behave the
+    // same as toggleFavorite, or the same rule has two answers.
+    if (EDIT_FIELDS.some((k) => patch[k] !== undefined)) prompt.updatedAt = now()
+    if (patch.favorite !== undefined) this.touchMeta(prompt)
+    this.flush()
+    return prompt
+  }
+
+  /**
+   * Append a tag. Lives here rather than in the caller because "read the tags,
+   * append if absent, write them back" across the IPC boundary races anything
+   * that changes tags in between — a cloud pull, or the next id in a bulk run.
+   */
+  addTag(id: string, tag: string): Prompt | undefined {
+    const prompt = this.getPrompt(id)
+    if (!prompt) return undefined
+    const [clean] = normalizeTags([tag])
+    if (!clean || prompt.tags.includes(clean)) return prompt
+    prompt.tags = [...prompt.tags, clean]
     prompt.updatedAt = now()
     this.flush()
     return prompt
   }
 
-  /** Re-insert a previously-deleted prompt verbatim (undo). */
-  addPrompt(prompt: Prompt): Prompt {
-    if (!this.data.prompts.some((p) => p.id === prompt.id)) {
-      this.data.prompts.push(structuredClone(prompt))
-      this.data.tombstones = this.data.tombstones.filter((t) => t.id !== prompt.id)
-      this.flush()
-    }
+  /**
+   * Soft delete. `updatedAt` is bumped so the change wins the sync merge and the
+   * trash stays consistent across devices — no tombstone until it is purged.
+   */
+  deletePrompt(id: string): boolean {
+    const prompt = this.getPrompt(id)
+    if (!prompt || prompt.deletedAt) return false
+    prompt.deletedAt = now()
+    prompt.updatedAt = prompt.deletedAt
+    this.flush()
+    return true
+  }
+
+  restoreDeletedPrompt(id: string): Prompt | undefined {
+    const prompt = this.getPrompt(id)
+    if (!prompt?.deletedAt) return undefined
+    prompt.deletedAt = null
+    prompt.updatedAt = now()
+    this.flush()
     return prompt
   }
 
-  deletePrompt(id: string): boolean {
+  purgePrompt(id: string): boolean {
     const before = this.data.prompts.length
     this.data.prompts = this.data.prompts.filter((p) => p.id !== id)
     const changed = this.data.prompts.length !== before
@@ -364,6 +464,15 @@ export class PromptRepository implements Repository {
       this.flush()
     }
     return changed
+  }
+
+  purgeAllDeleted(): number {
+    const doomed = this.data.prompts.filter((p) => p.deletedAt)
+    if (doomed.length === 0) return 0
+    this.data.prompts = this.data.prompts.filter((p) => !p.deletedAt)
+    for (const p of doomed) this.tomb(p.id, 'prompt')
+    this.flush()
+    return doomed.length
   }
 
   duplicatePrompt(id: string): Prompt | undefined {
@@ -379,19 +488,30 @@ export class PromptRepository implements Repository {
       pinned: false,
       useCount: 0,
       lastUsedAt: null,
+      deletedAt: null,
       createdAt: ts,
-      updatedAt: ts
+      updatedAt: ts,
+      metaUpdatedAt: ts
     }
     this.data.prompts.push(copy)
     this.flush()
     return copy
   }
 
+  /**
+   * The four metadata fields share one clock, separate from `updatedAt`. None
+   * of them is an edit, so none of them should be able to win — or lose — a
+   * merge against someone else's body edit.
+   */
+  private touchMeta(prompt: Prompt): void {
+    prompt.metaUpdatedAt = now()
+  }
+
   toggleFavorite(id: string): Prompt | undefined {
     const prompt = this.getPrompt(id)
     if (!prompt) return undefined
     prompt.favorite = !prompt.favorite
-    prompt.updatedAt = now()
+    this.touchMeta(prompt)
     this.flush()
     return prompt
   }
@@ -400,20 +520,18 @@ export class PromptRepository implements Repository {
     const prompt = this.getPrompt(id)
     if (!prompt) return undefined
     prompt.pinned = !prompt.pinned
-    // pin is metadata — don't bump updatedAt or churn the edit-order
+    this.touchMeta(prompt)
     this.flush()
     return prompt
   }
 
-  /**
-   * Record that a prompt was copied/used. Intentionally does NOT touch
-   * updatedAt or create a version — usage is metadata, not an edit.
-   */
+  /** Record that a prompt was copied/used. Usage is metadata, not an edit. */
   recordUse(id: string): Prompt | undefined {
     const prompt = this.getPrompt(id)
     if (!prompt) return undefined
     prompt.useCount = (prompt.useCount ?? 0) + 1
     prompt.lastUsedAt = now()
+    this.touchMeta(prompt)
     this.flush()
     return prompt
   }
@@ -440,14 +558,17 @@ export class PromptRepository implements Repository {
     })
   }
 
-  /** Remove a single saved version. Does not touch the current content. */
+  /**
+   * Remove a single saved version. Does not touch the current content — and so
+   * must not bump `updatedAt` either: pruning history on one device used to win
+   * the merge outright and wipe out a body edit made on another.
+   */
   deleteVersion(promptId: string, versionId: string): Prompt | undefined {
     const prompt = this.getPrompt(promptId)
     if (!prompt) return undefined
     const next = prompt.versions.filter((v) => v.id !== versionId)
     if (next.length === prompt.versions.length) return prompt
     prompt.versions = next
-    prompt.updatedAt = now()
     this.flush()
     return prompt
   }
@@ -504,12 +625,9 @@ export class PromptRepository implements Repository {
   deleteCategory(id: string): boolean {
     const before = this.data.categories.length
     this.data.categories = this.data.categories.filter((c) => c.id !== id)
-    // Orphaned prompts and assets fall back to "uncategorized".
+    // Orphaned prompts fall back to "uncategorized".
     for (const p of this.data.prompts) {
       if (p.categoryId === id) p.categoryId = null
-    }
-    for (const a of this.data.assets) {
-      if (a.categoryId === id) a.categoryId = null
     }
     const changed = this.data.categories.length !== before
     if (changed) {
@@ -519,160 +637,50 @@ export class PromptRepository implements Repository {
     return changed
   }
 
-  // ---- Assets ----
-
-  listAssets(kind?: AssetKind): Asset[] {
-    const all = kind ? this.data.assets.filter((a) => a.kind === kind) : this.data.assets
-    return [...all].sort((a, b) => b.updatedAt - a.updatedAt)
+  /**
+   * Ids a wholesale replacement drops. A replacement that leaves no tombstone
+   * is invisible to peers: the next merge only sees "the other device still
+   * has these items" and resurrects every one of them, so an import or a
+   * backup restore silently undoes itself on the next sync.
+   */
+  private droppedIds(
+    prompts: Prompt[],
+    categories: Category[]
+  ): Array<[string, Tombstone['type']]> {
+    const keptPrompts = new Set(prompts.map((p) => p.id))
+    const keptCategories = new Set(categories.map((c) => c.id))
+    const out: Array<[string, Tombstone['type']]> = []
+    for (const p of this.data.prompts) if (!keptPrompts.has(p.id)) out.push([p.id, 'prompt'])
+    for (const c of this.data.categories) if (!keptCategories.has(c.id)) out.push([c.id, 'category'])
+    return out
   }
 
-  getAsset(id: string): Asset | undefined {
-    return this.data.assets.find((a) => a.id === id)
-  }
-
-  createAsset(input: AssetInput): Asset {
-    const ts = now()
-    const asset: Asset = {
-      id: nanoid(),
-      kind: input.kind,
-      name: input.name?.trim() || '未命名',
-      description: input.description ?? '',
-      categoryId: input.categoryId ?? null,
-      tags: input.tags ?? [],
-      favorite: false,
-      content: input.content ?? '',
-      meta: input.meta ?? {},
-      files: input.files ?? [],
-      versions: [],
-      createdAt: ts,
-      updatedAt: ts
-    }
-    this.data.assets.push(asset)
-    this.flush()
-    return asset
-  }
-
-  updateAsset(id: string, patch: Partial<AssetInput>): Asset | undefined {
-    const asset = this.getAsset(id)
-    if (!asset) return undefined
-
-    const contentChanged = patch.content !== undefined && patch.content !== asset.content
-    const metaChanged =
-      patch.meta !== undefined &&
-      JSON.stringify({ ...asset.meta, ...patch.meta }) !== JSON.stringify(asset.meta)
-
-    // Snapshot prior state on meaningful changes, coalescing rapid edits.
-    if (contentChanged || metaChanged) {
-      const latest = asset.versions[0]
-      const fresh = latest && now() - latest.createdAt < VERSION_COALESCE_MS
-      if (!fresh) {
-        asset.versions = [
-          {
-            id: nanoid(),
-            name: asset.name,
-            content: asset.content,
-            meta: { ...asset.meta },
-            createdAt: asset.updatedAt
-          },
-          ...asset.versions
-        ].slice(0, MAX_VERSIONS)
-      }
-    }
-
-    if (patch.name !== undefined) asset.name = patch.name.trim() || '未命名'
-    if (patch.description !== undefined) asset.description = patch.description
-    if (patch.categoryId !== undefined) asset.categoryId = patch.categoryId
-    if (patch.tags !== undefined) asset.tags = patch.tags
-    if (patch.content !== undefined) asset.content = patch.content
-    if (patch.meta !== undefined) asset.meta = { ...asset.meta, ...patch.meta }
-    if (patch.files !== undefined) asset.files = patch.files
-    asset.updatedAt = now()
-    this.flush()
-    return asset
-  }
-
-  restoreAssetVersion(assetId: string, versionId: string): Asset | undefined {
-    const asset = this.getAsset(assetId)
-    if (!asset) return undefined
-    const version = asset.versions.find((v) => v.id === versionId)
-    if (!version) return undefined
-    // snapshot the current state, then fully replace content + meta
-    asset.versions = [
-      {
-        id: nanoid(),
-        name: asset.name,
-        content: asset.content,
-        meta: { ...asset.meta },
-        createdAt: asset.updatedAt
-      },
-      ...asset.versions
-    ].slice(0, MAX_VERSIONS)
-    asset.content = version.content
-    asset.meta = { ...version.meta }
-    asset.updatedAt = now()
-    this.flush()
-    return asset
-  }
-
-  /** Re-insert a previously-deleted asset verbatim (undo). */
-  addAsset(asset: Asset): Asset {
-    if (!this.data.assets.some((a) => a.id === asset.id)) {
-      this.data.assets.push(structuredClone(asset))
-      this.data.tombstones = this.data.tombstones.filter((t) => t.id !== asset.id)
-      this.flush()
-    }
-    return asset
-  }
-
-  deleteAsset(id: string): boolean {
-    const before = this.data.assets.length
-    this.data.assets = this.data.assets.filter((a) => a.id !== id)
-    const changed = this.data.assets.length !== before
-    if (changed) {
-      this.tomb(id, 'asset')
-      this.flush()
-    }
-    return changed
-  }
-
-  duplicateAsset(id: string): Asset | undefined {
-    const src = this.getAsset(id)
-    if (!src) return undefined
-    const ts = now()
-    const copy: Asset = {
-      ...structuredClone(src),
-      id: nanoid(),
-      name: `${src.name} (副本)`,
-      favorite: false,
-      versions: [],
-      createdAt: ts,
-      updatedAt: ts
-    }
-    this.data.assets.push(copy)
-    this.flush()
-    return copy
-  }
-
-  toggleAssetFavorite(id: string): Asset | undefined {
-    const asset = this.getAsset(id)
-    if (!asset) return undefined
-    asset.favorite = !asset.favorite
-    asset.updatedAt = now()
-    this.flush()
-    return asset
+  /**
+   * Invariant: a record that is present must not also carry a tombstone.
+   * Re-adding an id (import, restore) is an explicit resurrection and has to
+   * clear the old deletion, or the merge deletes it again behind the user.
+   */
+  private pruneResurrected(): void {
+    const live = new Set([
+      ...this.data.prompts.map((p) => p.id),
+      ...this.data.categories.map((c) => c.id)
+    ])
+    this.data.tombstones = this.data.tombstones.filter((t) => !live.has(t.id))
   }
 
   /** Wholesale replace of all data — used when applying a merged sync snapshot. */
-  replaceAll(
-    prompts: Prompt[],
-    categories: Category[],
-    assets: Asset[] = [],
-    tombstones?: Tombstone[]
-  ): void {
+  replaceAll(prompts: Prompt[], categories: Category[], tombstones?: Tombstone[]): void {
+    const dropped = this.droppedIds(prompts, categories)
     this.data.prompts = structuredClone(prompts)
     this.data.categories = structuredClone(categories)
-    this.data.assets = structuredClone(assets)
     if (tombstones) this.data.tombstones = structuredClone(tombstones)
+    // No-op for a sync merge (its output is a superset of local minus items
+    // already tombstoned); the deletions it records are the ones a restore or
+    // a replace-import would otherwise lose.
+    for (const [id, type] of dropped) {
+      if (!this.data.tombstones.some((t) => t.id === id)) this.tomb(id, type)
+    }
+    this.pruneResurrected()
     this.flush()
   }
 
@@ -685,7 +693,6 @@ export class PromptRepository implements Repository {
       exportedAt: now(),
       prompts: this.data.prompts,
       categories: this.data.categories,
-      assets: this.data.assets,
       tombstones: this.data.tombstones
     }
   }
@@ -695,15 +702,19 @@ export class PromptRepository implements Repository {
   }
 
   import(bundle: ExportBundle, mode: ImportMode): ImportResult {
-    const incomingPrompts = bundle.prompts ?? []
-    const incomingCategories = bundle.categories ?? []
-    const incomingAssets = bundle.assets ?? []
+    // Enforced here rather than at the IPC handler so no future entry point can
+    // reach a destructive replace with an unvalidated document.
+    if (!isExportBundle(bundle)) {
+      throw new Error('这不是 PromptBox 导出文件，或文件已损坏')
+    }
+    const incomingPrompts = bundle.prompts
+    const incomingCategories = bundle.categories
 
     if (mode === 'replace') {
-      this.data.prompts = structuredClone(incomingPrompts)
-      this.data.categories = structuredClone(incomingCategories)
-      this.data.assets = structuredClone(incomingAssets)
-      this.flush()
+      // Routed through replaceAll so the ids this drops are tombstoned and the
+      // ids it (re)introduces lose theirs — otherwise the next sync undoes the
+      // whole import.
+      this.replaceAll(incomingPrompts, incomingCategories)
       return {
         importedPrompts: incomingPrompts.length,
         importedCategories: incomingCategories.length
@@ -713,7 +724,6 @@ export class PromptRepository implements Repository {
     // merge: keep existing, add new ids, regenerate clashing ids.
     const existingPromptIds = new Set(this.data.prompts.map((p) => p.id))
     const existingCategoryIds = new Set(this.data.categories.map((c) => c.id))
-    const existingAssetIds = new Set(this.data.assets.map((a) => a.id))
 
     let importedPrompts = 0
     let importedCategories = 0
@@ -735,12 +745,7 @@ export class PromptRepository implements Repository {
       existingPromptIds.add(clone.id)
       importedPrompts++
     }
-    for (const a of incomingAssets) {
-      const clone = structuredClone(a)
-      if (existingAssetIds.has(clone.id)) clone.id = nanoid()
-      this.data.assets.push(clone)
-      existingAssetIds.add(clone.id)
-    }
+    this.pruneResurrected()
     this.flush()
     return { importedPrompts, importedCategories }
   }

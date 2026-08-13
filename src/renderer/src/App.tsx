@@ -3,9 +3,8 @@ import { useStore } from './store'
 import { Sidebar } from './components/Sidebar'
 import { PromptList } from './components/PromptList'
 import { EditorPanel } from './components/EditorPanel'
-import { AssetList } from './components/AssetList'
-import { AssetEditor } from './components/AssetEditor'
 import { SettingsView } from './components/SettingsView'
+import { TrashView } from './components/TrashView'
 import { CommandPalette } from './components/CommandPalette'
 import { QuickFill } from './components/QuickFill'
 import { CloudSyncModal } from './components/CloudSyncModal'
@@ -31,16 +30,9 @@ function useThemeEffect(): void {
   }, [theme])
 }
 
-const WORKSPACE_KEYS: Record<string, 'prompts' | 'skill' | 'agent' | 'mcp'> = {
-  '1': 'prompts',
-  '2': 'skill',
-  '3': 'agent',
-  '4': 'mcp'
-}
-
 /**
  * Global keymap (all ⌘/Ctrl-modified): K palette, N new, D duplicate, S save,
- * F focus search, 1-4 workspace, , settings; Esc back.
+ * F focus search, , settings; Esc back.
  */
 function useGlobalKeys(): void {
   useEffect(() => {
@@ -49,7 +41,7 @@ function useGlobalKeys(): void {
       const modalOpen = s.paletteOpen || s.cloudOpen || s.quickFillPromptId !== null
 
       if (e.key === 'Escape') {
-        if (!modalOpen && s.view === 'settings') s.setView('library')
+        if (!modalOpen && s.view !== 'library') s.setView('library')
         return
       }
 
@@ -68,25 +60,17 @@ function useGlobalKeys(): void {
       if (k === 'n') {
         e.preventDefault()
         if (s.view === 'settings') return
-        if (s.workspace === 'prompts') {
-          void s.createPrompt({ title: t('未命名 Prompt'), content: '', categoryId: null })
-        } else {
-          void s.createAsset(s.workspace)
-        }
+        void s.createPrompt({ title: t('未命名 Prompt'), content: '', categoryId: null })
       } else if (k === 'd') {
         // duplicate the current item
         if (s.view === 'settings') return
         e.preventDefault()
-        if (s.workspace === 'prompts') {
-          if (s.selectedId) void s.duplicatePrompt(s.selectedId).then(() => toast.success(t('已创建副本')))
-        } else if (s.selectedAssetId) {
-          void s.duplicateAsset(s.selectedAssetId).then(() => toast.success(t('已创建副本')))
-        }
+        if (s.selectedId) void s.duplicatePrompt(s.selectedId).then(() => toast.success(t('已创建副本')))
       } else if (k === 's') {
-        // edits autosave; flush any pending debounce and confirm.
+        // Edits autosave; just flush any pending debounce. The editor reports
+        // the real outcome — this used to toast success unconditionally.
         e.preventDefault()
         window.dispatchEvent(new CustomEvent('promptbox:flush-save'))
-        toast.success(t('已保存'))
       } else if (k === 'f') {
         // focus the current list's search box
         e.preventDefault()
@@ -96,9 +80,6 @@ function useGlobalKeys(): void {
       } else if (e.key === ',') {
         e.preventDefault()
         s.setView('settings')
-      } else if (WORKSPACE_KEYS[e.key]) {
-        e.preventDefault()
-        s.setWorkspace(WORKSPACE_KEYS[e.key])
       }
     }
     window.addEventListener('keydown', onKey)
@@ -112,7 +93,6 @@ export default function App(): React.JSX.Element {
   const view = useStore((s) => s.view)
   const paletteOpen = useStore((s) => s.paletteOpen)
   const cloudOpen = useStore((s) => s.cloudOpen)
-  const workspace = useStore((s) => s.workspace)
 
   const openPalette = useStore((s) => s.openPalette)
   const t = useT()
@@ -187,15 +167,12 @@ export default function App(): React.JSX.Element {
             <SettingsView />
           ) : view === 'discover' ? (
             <DiscoverView />
-          ) : workspace === 'prompts' ? (
+          ) : view === 'trash' ? (
+            <TrashView />
+          ) : (
             <>
               <PromptList />
               <EditorPanel />
-            </>
-          ) : (
-            <>
-              <AssetList kind={workspace} />
-              <AssetEditor />
             </>
           )}
         </div>

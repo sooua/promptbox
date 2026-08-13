@@ -1,7 +1,7 @@
 import { app } from 'electron'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join } from 'path'
-import type { AppSettings, Language, ThemeMode } from '@shared/types'
+import type { AppSettings, CloseAction, Language, ThemeMode } from '@shared/types'
 import { DEFAULT_HOTKEY } from '@shared/types'
 
 /**
@@ -9,6 +9,8 @@ import { DEFAULT_HOTKEY } from '@shared/types'
  * independent of the user-chosen data directory. This is the bootstrap record
  * that tells us where the actual prompt data lives.
  */
+
+const CLOSE_ACTIONS: CloseAction[] = ['ask', 'tray', 'quit']
 
 function configPath(): string {
   return join(app.getPath('userData'), 'promptbox.config.json')
@@ -24,11 +26,10 @@ export function loadSettings(): AppSettings {
     theme: 'system',
     language: 'zh',
     marketEnabled: true,
-    githubSources: [],
-    mcpRegistries: [],
     promptSources: [],
     proxy: '',
-    globalHotkey: DEFAULT_HOTKEY
+    globalHotkey: DEFAULT_HOTKEY,
+    closeAction: 'ask'
   }
   try {
     const raw = readFileSync(configPath(), 'utf-8')
@@ -38,11 +39,12 @@ export function loadSettings(): AppSettings {
       theme: (parsed.theme as ThemeMode) || fallback.theme,
       language: (parsed.language as Language) || fallback.language,
       marketEnabled: parsed.marketEnabled ?? fallback.marketEnabled,
-      githubSources: Array.isArray(parsed.githubSources) ? parsed.githubSources : fallback.githubSources,
-      mcpRegistries: Array.isArray(parsed.mcpRegistries) ? parsed.mcpRegistries : fallback.mcpRegistries,
       promptSources: Array.isArray(parsed.promptSources) ? parsed.promptSources : fallback.promptSources,
       proxy: parsed.proxy ?? fallback.proxy,
-      globalHotkey: parsed.globalHotkey || fallback.globalHotkey
+      globalHotkey: parsed.globalHotkey || fallback.globalHotkey,
+      closeAction: CLOSE_ACTIONS.includes(parsed.closeAction as CloseAction)
+        ? (parsed.closeAction as CloseAction)
+        : fallback.closeAction
     }
   } catch {
     return fallback

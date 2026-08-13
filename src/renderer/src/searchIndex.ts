@@ -1,4 +1,4 @@
-import type { Asset, Prompt } from '@shared/types'
+import type { Prompt } from '@shared/types'
 import { pinyinForms } from './pinyin'
 
 /**
@@ -20,7 +20,6 @@ import { pinyinForms } from './pinyin'
  */
 
 const promptKeys = new WeakMap<object, string>()
-const assetKeys = new WeakMap<object, string>()
 
 /** title/desc/tags get pinyin (short, Chinese-likely); the body stays literal. */
 function buildKey(short: string, body: string): string {
@@ -36,20 +35,7 @@ export function promptSearchKey(p: Prompt): string {
   return key
 }
 
-export function assetSearchKey(a: Asset): string {
-  const hit = assetKeys.get(a)
-  if (hit !== undefined) return hit
-  const body = a.kind === 'mcp' ? Object.values(a.meta).join(' ') : a.content
-  const key = buildKey(`${a.name} ${a.description ?? ''} ${a.tags.join(' ')}`, body)
-  assetKeys.set(a, key)
-  return key
-}
-
 /** True when the (already lowercased) query hits the item's precomputed blob. */
 export function promptMatches(p: Prompt, qLower: string): boolean {
   return !qLower || promptSearchKey(p).includes(qLower)
-}
-
-export function assetMatches(a: Asset, qLower: string): boolean {
-  return !qLower || assetSearchKey(a).includes(qLower)
 }

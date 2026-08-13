@@ -6,7 +6,51 @@ import type {
 import type { Repository } from '../store/repository'
 import { httpFetch as fetch } from '../net'
 import { loadSettings } from '../store/config'
-import { defaultBranch, treePaths } from './github'
+import { mt } from '../i18n'
+
+/**
+ * Trees change rarely and the unauthenticated GitHub quota is only 60 calls an
+ * hour *per IP* — shared with everything else on the machine. An hour of cache
+ * keeps normal browsing (switching sources, going back and forth) free.
+ */
+const TTL_MS = 60 * 60 * 1000
+const treeCache = new Map<string, { at: number; paths: string[] }>()
+
+/**
+ * `HEAD` resolves to the repo's default branch, so listing costs one request
+ * instead of two — the extra `/repos/{repo}` call existed only to learn the
+ * branch name. At eight built-in repo sources that is the difference between
+ * burning a quarter of the hourly quota per browse and an eighth.
+ */
+const REF = 'HEAD'
+
+/** Turn a failed GitHub response into something the user can act on. */
+async function ghError(res: Response): Promise<Error> {
+  if ((res.status === 403 || res.status === 429) && res.headers.get('x-ratelimit-remaining') === '0') {
+    const reset = Number(res.headers.get('x-ratelimit-reset'))
+    const mins = Number.isFinite(reset) ? Math.max(1, Math.ceil((reset * 1000 - Date.now()) / 60000)) : 60
+    // "GitHub 403" told the user nothing and looked like a broken source.
+    return new Error(mt('GitHub 接口调用已达上限（未登录每小时 60 次），约 {n} 分钟后恢复', { n: mins }))
+  }
+  if (res.status === 404) return new Error(mt('来源仓库不存在或已改名'))
+  return new Error(`GitHub ${res.status}`)
+}
+
+async function treePaths(repo: string): Promise<string[]> {
+  const hit = treeCache.get(repo)
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.paths
+  const res = await fetch(`https://api.github.com/repos/${repo}/git/trees/${REF}?recursive=1`, {
+    headers: { Accept: 'application/vnd.github+json' }
+  })
+  if (!res.ok) throw await ghError(res)
+  const data = (await res.json()) as {
+    tree?: Array<{ path: string; type: string }>
+    truncated?: boolean
+  }
+  const paths = (data.tree ?? []).filter((x) => x.type === 'blob').map((x) => x.path)
+  treeCache.set(repo, { at: Date.now(), paths })
+  return paths
+}
 
 /**
  * Prompt Discover. Two kinds of source:
@@ -92,6 +136,60 @@ const BUILTIN: ResolvedSource[] = [
     match: /^instructions\/.+\.instructions\.md$/i,
     title: (p) => prettify(base(p).replace(/\.instructions$/i, '')),
     category: () => 'Copilot'
+  },
+  {
+    kind: 'repo',
+    id: 'copilot-agents',
+    label: 'GitHub Copilot Agents (EN)',
+    repo: 'github/awesome-copilot',
+    match: /^agents\/.+\.agent\.md$/i,
+    title: (p) => prettify(base(p).replace(/\.agent$/i, '')),
+    category: () => 'Copilot Agents'
+  },
+  {
+    // Patterns live under data/patterns/<name>/system.md — one folder per task.
+    kind: 'repo',
+    id: 'fabric-patterns',
+    label: 'Fabric Patterns (EN)',
+    repo: 'danielmiessler/fabric',
+    match: /^data\/patterns\/[^/]+\/system\.md$/i,
+    title: (p) => prettify(p.split('/')[2]),
+    category: () => 'Fabric'
+  },
+  {
+    kind: 'repo',
+    id: 'gpts-prompts',
+    label: 'GPTs 系统提示词 (EN/ZH)',
+    repo: 'linexjlin/GPTs',
+    match: /^prompts\/.+\.md$/i,
+    exclude: /(^|\/)(README|INDEX|LICENSE)/i,
+    // File names are already human-readable ("GPT Idea Genie"), sometimes
+    // wrapped in parentheses; strip those rather than reformatting the rest.
+    title: (p) => prettify(base(p)).replace(/^\((.*)\)$/, '$1'),
+    category: () => 'GPTs'
+  },
+  {
+    // SystemPrompts/<vendor>/<file>.md. Deeper paths are per-module dumps
+    // (Notion's internal AGENTS.md and friends), not prompts worth listing.
+    kind: 'repo',
+    id: 'big-prompt-library',
+    label: 'The Big Prompt Library (EN)',
+    repo: '0xeb/TheBigPromptLibrary',
+    match: /^SystemPrompts\/[^/]+\/[^/]+\.md$/i,
+    exclude: /(^|\/)(README|LICENSE)/i,
+    title: (p) => `${p.split('/')[1]} · ${prettify(base(p))}`,
+    category: (p) => p.split('/')[1]
+  },
+  {
+    // prompts/<topic>/<name>.md — the topic folder makes a good category.
+    kind: 'repo',
+    id: 'llm-prompt-library',
+    label: 'LLM Prompt Library (EN)',
+    repo: 'abilzerian/LLM-Prompt-Library',
+    match: /^prompts\/.+\/.+\.md$/i,
+    exclude: /(^|\/)(README|INDEX|LICENSE)/i,
+    title: (p) => prettify(base(p)),
+    category: (p) => prettify(p.split('/')[1])
   }
 ]
 
@@ -236,8 +334,7 @@ async function listFile(src: FileSource, have: Set<string>): Promise<PromptDisco
 }
 
 async function listRepo(src: RepoSource, have: Set<string>): Promise<PromptDiscoverItem[]> {
-  const branch = await defaultBranch(src.repo)
-  const paths = await treePaths(src.repo, branch)
+  const paths = await treePaths(src.repo)
   const seen = new Set<string>()
   const items: PromptDiscoverItem[] = []
   for (const p of paths) {
@@ -254,7 +351,7 @@ async function listRepo(src: RepoSource, have: Set<string>): Promise<PromptDisco
       subtitle: src.category(p),
       imported: have.has(key),
       repo: src.repo,
-      branch,
+      branch: REF,
       path: p
     })
   }
@@ -287,8 +384,10 @@ export async function importPrompt(
   if (existing) return { id: existing.id, duplicate: true }
 
   let content = item.content
-  if (!content && item.repo && item.branch && item.path) {
-    const res = await fetch(rawUrl(item.repo, item.branch, item.path))
+  if (!content && item.repo && item.path) {
+    // raw.githubusercontent.com resolves HEAD too, so a stale item from an
+    // older listing (which carried a real branch name) still works.
+    const res = await fetch(rawUrl(item.repo, item.branch || REF, item.path))
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
     content = await res.text()
   }

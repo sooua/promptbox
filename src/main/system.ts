@@ -45,20 +45,31 @@ function buildTrayMenu(): void {
   tray.setContextMenu(menu)
 }
 
-/** (Re)register the global quick-launch hotkey. Returns whether it took. */
+/**
+ * (Re)register the global quick-launch hotkey. Returns whether it took.
+ *
+ * Registers the new accelerator *before* releasing the old one. Unregistering
+ * first meant a rejected combination (already taken by another app) left the
+ * user with no working hotkey at all, while the settings screen still showed
+ * one — a failed change that silently broke the feature it was changing.
+ */
 export function updateHotkey(accelerator: string): boolean {
-  if (currentAccelerator) {
-    globalShortcut.unregister(currentAccelerator)
+  if (accelerator && accelerator === currentAccelerator) return true
+  if (!accelerator) {
+    if (currentAccelerator) globalShortcut.unregister(currentAccelerator)
     currentAccelerator = ''
-  }
-  if (!accelerator) return false
-  try {
-    const ok = globalShortcut.register(accelerator, () => summon(true))
-    if (ok) currentAccelerator = accelerator
-    return ok
-  } catch {
     return false
   }
+  let ok = false
+  try {
+    ok = globalShortcut.register(accelerator, () => summon(true))
+  } catch {
+    ok = false
+  }
+  if (!ok) return false // the previous hotkey is still registered and still works
+  if (currentAccelerator) globalShortcut.unregister(currentAccelerator)
+  currentAccelerator = accelerator
+  return true
 }
 
 export function setupSystem(options: SystemDeps & { accelerator: string }): void {

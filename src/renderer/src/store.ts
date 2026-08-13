@@ -1,19 +1,11 @@
 import { create } from 'zustand'
 import type {
   AppSettings,
-  Asset,
-  AssetInput,
-  AssetKind,
   BackupInfo,
+  CloseAction,
   Category,
   ImportMode,
   Language,
-  GithubDiscoverItem,
-  GithubDiscoverResult,
-  GithubSourceConfig,
-  McpDiscoverItem,
-  McpDiscoverResult,
-  McpRegistryConfig,
   PromptDiscoverItem,
   PromptDiscoverResult,
   PromptSource,
@@ -31,8 +23,7 @@ import type {
 
 const api = window.api
 
-export type View = 'library' | 'settings' | 'discover'
-export type Workspace = 'prompts' | AssetKind
+export type View = 'library' | 'settings' | 'discover' | 'trash'
 
 /** Special filter sentinels for the category rail. */
 export type CategoryFilter =
@@ -57,17 +48,13 @@ export function isCategoryId(f: CategoryFilter): boolean {
 
 interface State {
   prompts: Prompt[]
+  /** Soft-deleted prompts, kept separate so nothing else has to filter. */
+  deletedPrompts: Prompt[]
   categories: Category[]
-  assets: Asset[]
   settings: AppSettings | null
 
-  workspace: Workspace
   view: View
   selectedId: string | null
-  selectedAssetId: string | null
-  assetSearch: string
-  assetFavOnly: boolean
-  assetCategoryId: string | null
   categoryFilter: CategoryFilter
   /** active tag filters combined with AND */
   tagFilters: string[]
@@ -90,25 +77,6 @@ interface State {
   init(): Promise<void>
   refreshPrompts(): Promise<void>
   refreshCategories(): Promise<void>
-  refreshAssets(): Promise<void>
-
-  // assets
-  setWorkspace(w: Workspace): void
-  selectAsset(id: string | null): void
-  setAssetSearch(s: string): void
-  setAssetFavOnly(b: boolean): void
-  setAssetCategory(id: string | null): void
-  restoreAssetVersion(assetId: string, versionId: string): Promise<void>
-  createAsset(kind: AssetKind): Promise<Asset>
-  updateAsset(id: string, patch: Partial<AssetInput>): Promise<void>
-  deleteAsset(id: string): Promise<void>
-  restoreAsset(asset: Asset): Promise<void>
-  duplicateAsset(id: string): Promise<void>
-  toggleAssetFavorite(id: string): Promise<void>
-  exportAsset(id: string): Promise<{ ok: boolean; path?: string }>
-  importAssets(kind: AssetKind): Promise<{ ok: boolean; count: number; failed: string[] }>
-  installAsset(id: string, preset?: string): Promise<{ ok: boolean; path?: string }>
-  mergeMcp(id: string, preset?: string): Promise<{ ok: boolean; path?: string; server?: string }>
 
   // navigation / filters
   setView(v: View): void
@@ -121,12 +89,17 @@ interface State {
   // prompt mutations
   createPrompt(input: PromptInput): Promise<Prompt>
   updatePrompt(id: string, patch: Partial<PromptInput>): Promise<void>
+  /** Soft delete — recoverable from the trash. */
   deletePrompt(id: string): Promise<void>
-  restorePrompt(prompt: Prompt): Promise<void>
   duplicatePrompt(id: string): Promise<void>
+  // trash
+  refreshDeleted(): Promise<void>
+  restoreDeleted(id: string): Promise<void>
+  purgePrompt(id: string): Promise<void>
+  purgeAllDeleted(): Promise<number>
   // batch operations over multiple prompts
-  bulkDeletePrompts(ids: string[]): Promise<Prompt[]>
-  bulkRestorePrompts(prompts: Prompt[]): Promise<void>
+  bulkDeletePrompts(ids: string[]): Promise<void>
+  bulkRestoreDeleted(ids: string[]): Promise<void>
   bulkSetCategory(ids: string[], categoryId: string | null): Promise<void>
   bulkSetFavorite(ids: string[], favorite: boolean): Promise<void>
   bulkAddTag(ids: string[], tag: string): Promise<void>
@@ -141,6 +114,10 @@ interface State {
   copyAndUse(id: string): Promise<boolean>
   /** Copy already-resolved text (variables filled) and count it as a use. */
   copyResolvedAndUse(id: string, text: string): Promise<boolean>
+  /** Bulk-import .md/.txt files into `categoryId`. */
+  importPromptFiles(
+    categoryId: string | null
+  ): Promise<{ ok: boolean; count: number; failed: string[] }>
 
   // command palette
   openPalette(): void
@@ -178,23 +155,20 @@ interface State {
   setLanguage(language: Language): Promise<void>
   setMarket(enabled: boolean): Promise<void>
   setProxy(proxy: string): Promise<void>
-  setGithubSources(sources: GithubSourceConfig[]): Promise<void>
-  setMcpRegistries(regs: McpRegistryConfig[]): Promise<void>
+  setCloseAction(action: CloseAction): Promise<void>
   setPromptSources(sources: PromptSourceConfig[]): Promise<void>
   setHotkey(accelerator: string): Promise<boolean>
 
   // discover / marketplace
-  searchMcp(query: string, cursor?: string, registry?: string): Promise<McpDiscoverResult>
-  importMcp(item: McpDiscoverItem): Promise<{ id: string; duplicate: boolean }>
-  listGithub(kind: 'skill' | 'agent'): Promise<GithubDiscoverResult>
-  importGithub(item: GithubDiscoverItem): Promise<{ id: string; duplicate: boolean }>
   listPromptSources(): Promise<PromptSource[]>
   listPrompts(sourceId: string): Promise<PromptDiscoverResult>
   importPrompt(item: PromptDiscoverItem): Promise<{ id: string; duplicate: boolean }>
   chooseDataDir(): Promise<void>
   openDataDir(): Promise<void>
   exportData(): Promise<{ ok: boolean; path?: string }>
-  importData(mode: ImportMode): Promise<{ ok: boolean; result?: unknown }>
+  importData(
+    mode: ImportMode
+  ): Promise<{ ok: boolean; result?: unknown; backedUp?: boolean; error?: string }>
 
   // backups
   listBackups(): Promise<BackupInfo[]>
@@ -206,6 +180,9 @@ interface State {
   setUpdateStatus(status: UpdateStatus): void
   checkUpdate(): Promise<UpdateStatus>
   installUpdate(): Promise<void>
+
+  /** Quit for real — closing the window only hides to the tray. */
+  quitApp(): Promise<void>
 }
 
 /** After a pull/restore overwrote local data in main, reload it into the UI. */
@@ -213,35 +190,28 @@ async function reloadAfterPull(
   get: () => State,
   set: (partial: Partial<State>) => void
 ): Promise<void> {
-  const [prompts, categories, assets] = await Promise.all([
+  const [prompts, deletedPrompts, categories] = await Promise.all([
     api.prompts.list(),
-    api.categories.list(),
-    api.assets.list()
+    api.prompts.listDeleted(),
+    api.categories.list()
   ])
   const promptThere = prompts.some((p) => p.id === get().selectedId)
-  const assetThere = assets.some((a) => a.id === get().selectedAssetId)
   set({
     prompts,
+    deletedPrompts,
     categories,
-    assets,
-    selectedId: promptThere ? get().selectedId : (prompts[0]?.id ?? null),
-    selectedAssetId: assetThere ? get().selectedAssetId : (assets[0]?.id ?? null)
+    selectedId: promptThere ? get().selectedId : (prompts[0]?.id ?? null)
   })
 }
 
 export const useStore = create<State>((set, get) => ({
   prompts: [],
+  deletedPrompts: [],
   categories: [],
-  assets: [],
   settings: null,
 
-  workspace: 'prompts',
   view: 'library',
   selectedId: null,
-  selectedAssetId: null,
-  assetSearch: '',
-  assetFavOnly: false,
-  assetCategoryId: null,
   categoryFilter: 'all',
   tagFilters: [],
   search: '',
@@ -255,18 +225,20 @@ export const useStore = create<State>((set, get) => ({
   updateStatus: null,
 
   async init() {
-    const [prompts, categories, assets, settings, syncState, appVersion] = await Promise.all([
-      api.prompts.list(),
-      api.categories.list(),
-      api.assets.list(),
-      api.settings.get(),
-      api.sync.getState(),
-      api.update.getVersion()
-    ])
+    const [prompts, deletedPrompts, categories, settings, syncState, appVersion] = await Promise.all(
+      [
+        api.prompts.list(),
+        api.prompts.listDeleted(),
+        api.categories.list(),
+        api.settings.get(),
+        api.sync.getState(),
+        api.update.getVersion()
+      ]
+    )
     set({
       prompts,
+      deletedPrompts,
       categories,
-      assets,
       settings,
       syncState,
       appVersion,
@@ -281,90 +253,6 @@ export const useStore = create<State>((set, get) => ({
 
   async refreshCategories() {
     set({ categories: await api.categories.list() })
-  },
-
-  async refreshAssets() {
-    set({ assets: await api.assets.list() })
-  },
-
-  setWorkspace(workspace) {
-    const firstOfKind =
-      workspace === 'prompts'
-        ? null
-        : (get().assets.find((a) => a.kind === workspace)?.id ?? null)
-    set({ workspace, view: 'library', selectedAssetId: firstOfKind })
-  },
-
-  selectAsset: (selectedAssetId) => set({ selectedAssetId, view: 'library' }),
-  setAssetSearch: (assetSearch) => set({ assetSearch }),
-  setAssetFavOnly: (assetFavOnly) => set({ assetFavOnly, assetCategoryId: null }),
-  setAssetCategory: (assetCategoryId) => set({ assetCategoryId, assetFavOnly: false }),
-
-  async restoreAssetVersion(assetId, versionId) {
-    await api.assets.restoreVersion(assetId, versionId)
-    await get().refreshAssets()
-  },
-
-  async createAsset(kind) {
-    const asset = await api.assets.create({ kind, name: '未命名' })
-    await get().refreshAssets()
-    set({ selectedAssetId: asset.id })
-    return asset
-  },
-
-  async updateAsset(id, patch) {
-    await api.assets.update(id, patch)
-    await get().refreshAssets()
-  },
-
-  async deleteAsset(id) {
-    await api.assets.delete(id)
-    const remaining = get().assets.filter((a) => a.id !== id)
-    const sameKind = remaining.filter((a) => a.kind === get().workspace)
-    set({
-      assets: remaining,
-      selectedAssetId:
-        get().selectedAssetId === id ? (sameKind[0]?.id ?? null) : get().selectedAssetId
-    })
-  },
-
-  async restoreAsset(asset) {
-    await api.assets.add(asset)
-    await get().refreshAssets()
-    set({ selectedAssetId: asset.id })
-  },
-
-  async duplicateAsset(id) {
-    const copy = await api.assets.duplicate(id)
-    await get().refreshAssets()
-    if (copy) set({ selectedAssetId: copy.id })
-  },
-
-  async toggleAssetFavorite(id) {
-    await api.assets.toggleFavorite(id)
-    await get().refreshAssets()
-  },
-
-  exportAsset(id) {
-    return api.assets.exportFile(id)
-  },
-
-  installAsset(id, preset) {
-    return api.assets.install(id, preset)
-  },
-
-  mergeMcp(id, preset) {
-    return api.assets.mergeMcp(id, preset)
-  },
-
-  async importAssets(kind) {
-    const res = await api.assets.importFile(kind)
-    if (res.ok) {
-      await get().refreshAssets()
-      const first = get().assets.find((a) => a.kind === kind)
-      if (first) set({ selectedAssetId: first.id })
-    }
-    return res
   },
 
   setView: (view) => set({ view }),
@@ -398,12 +286,28 @@ export const useStore = create<State>((set, get) => ({
       prompts: remaining,
       selectedId: get().selectedId === id ? (remaining[0]?.id ?? null) : get().selectedId
     })
+    await get().refreshDeleted()
   },
 
-  async restorePrompt(prompt) {
-    await api.prompts.add(prompt)
-    await get().refreshPrompts()
-    set({ selectedId: prompt.id })
+  async refreshDeleted() {
+    set({ deletedPrompts: await api.prompts.listDeleted() })
+  },
+
+  async restoreDeleted(id) {
+    await api.prompts.restoreDeleted(id)
+    await Promise.all([get().refreshPrompts(), get().refreshDeleted()])
+    set({ selectedId: id })
+  },
+
+  async purgePrompt(id) {
+    await api.prompts.purge(id)
+    await get().refreshDeleted()
+  },
+
+  async purgeAllDeleted() {
+    const n = await api.prompts.purgeAll()
+    await get().refreshDeleted()
+    return n
   },
 
   async duplicatePrompt(id) {
@@ -414,7 +318,6 @@ export const useStore = create<State>((set, get) => ({
 
   async bulkDeletePrompts(ids) {
     const idSet = new Set(ids)
-    const snapshots = get().prompts.filter((p) => idSet.has(p.id))
     for (const id of ids) await api.prompts.delete(id)
     const remaining = get().prompts.filter((p) => !idSet.has(p.id))
     set({
@@ -423,12 +326,12 @@ export const useStore = create<State>((set, get) => ({
         ? (remaining[0]?.id ?? null)
         : get().selectedId
     })
-    return snapshots
+    await get().refreshDeleted()
   },
 
-  async bulkRestorePrompts(prompts) {
-    for (const p of prompts) await api.prompts.add(p)
-    await get().refreshPrompts()
+  async bulkRestoreDeleted(ids) {
+    for (const id of ids) await api.prompts.restoreDeleted(id)
+    await Promise.all([get().refreshPrompts(), get().refreshDeleted()])
   },
 
   async bulkSetCategory(ids, categoryId) {
@@ -442,12 +345,10 @@ export const useStore = create<State>((set, get) => ({
   },
 
   async bulkAddTag(ids, tag) {
-    const t = tag.trim().replace(/^#/, '')
-    if (!t) return
-    for (const id of ids) {
-      const p = get().prompts.find((x) => x.id === id)
-      if (p && !p.tags.includes(t)) await api.prompts.update(id, { tags: [...p.tags, t] })
-    }
+    // Normalising and appending both happen in the main process: doing the
+    // read-modify-write here raced anything that changed tags mid-run, and kept
+    // a second copy of the tag rules that could drift from the editor's.
+    for (const id of ids) await api.prompts.addTag(id, tag)
     await get().refreshPrompts()
   },
 
@@ -501,6 +402,16 @@ export const useStore = create<State>((set, get) => ({
     }
     await get().recordUse(id)
     return true
+  },
+
+  async importPromptFiles(categoryId) {
+    const res = await api.prompts.importFiles(categoryId)
+    if (res.count > 0) {
+      await get().refreshPrompts()
+      // Land on the newest import so the user sees what just arrived.
+      set({ selectedId: get().prompts[0]?.id ?? null, view: 'library' })
+    }
+    return res
   },
 
   openPalette: () => set({ paletteOpen: true }),
@@ -630,39 +541,14 @@ export const useStore = create<State>((set, get) => ({
     set({ settings })
   },
 
-  async setGithubSources(sources) {
-    const settings = await api.settings.setGithubSources(sources)
-    set({ settings })
-  },
-
-  async setMcpRegistries(regs) {
-    const settings = await api.settings.setMcpRegistries(regs)
+  async setCloseAction(action) {
+    const settings = await api.settings.setCloseAction(action)
     set({ settings })
   },
 
   async setPromptSources(sources) {
     const settings = await api.settings.setPromptSources(sources)
     set({ settings })
-  },
-
-  searchMcp(query, cursor, registry) {
-    return api.market.mcpSearch(query, cursor, registry)
-  },
-
-  async importMcp(item) {
-    const r = await api.market.mcpImport(item)
-    await get().refreshAssets()
-    return r
-  },
-
-  listGithub(kind) {
-    return api.market.githubList(kind)
-  },
-
-  async importGithub(item) {
-    const r = await api.market.githubImport(item)
-    await get().refreshAssets()
-    return r
   },
 
   listPromptSources() {
@@ -739,5 +625,9 @@ export const useStore = create<State>((set, get) => ({
 
   async installUpdate() {
     await api.update.install()
+  },
+
+  async quitApp() {
+    await api.quit()
   }
 }))

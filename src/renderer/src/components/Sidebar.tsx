@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react'
 import {
-  Blocks,
-  Bot,
   Box,
   Clock,
   Cloud,
@@ -9,31 +7,22 @@ import {
   Flame,
   GripVertical,
   Pencil,
-  Plug,
   Plus,
   Settings,
-  Sparkles,
   Star,
   Tag,
   Trash2,
   Inbox,
-  Layers,
-  Upload
+  Layers
 } from 'lucide-react'
-import type { AssetKind } from '@shared/types'
-import { useStore, type CategoryFilter, type Workspace } from '../store'
+import { useStore, type CategoryFilter } from '../store'
 import { collectTags } from '../selectors'
 import { toast } from './Toast'
 import { useT } from '../i18n'
 
-const WORKSPACES: { id: Workspace; label: string; icon: React.ReactNode }[] = [
-  { id: 'prompts', label: 'Prompts', icon: <Blocks size={16} /> },
-  { id: 'skill', label: 'Skill', icon: <Sparkles size={16} /> },
-  { id: 'agent', label: 'Agent', icon: <Bot size={16} /> },
-  { id: 'mcp', label: 'MCP', icon: <Plug size={16} /> }
-]
-
 const SWATCHES = ['#c96442', '#d97757', '#7a8b6f', '#b08968', '#8a7355', '#a86b5c', '#6b7a8f']
+
+const isMac = window.api.platform === 'darwin'
 
 export function Sidebar(): React.JSX.Element {
   const prompts = useStore((s) => s.prompts)
@@ -50,8 +39,11 @@ export function Sidebar(): React.JSX.Element {
   const reorderCategories = useStore((s) => s.reorderCategories)
   const openCloud = useStore((s) => s.openCloud)
   const syncConnected = useStore((s) => s.syncState?.connected ?? false)
-  const workspace = useStore((s) => s.workspace)
-  const setWorkspace = useStore((s) => s.setWorkspace)
+  const syncFailed = useStore(
+    (s) => s.syncState?.lastStatus === 'error' || (s.syncState?.credentialError ?? false)
+  )
+  const syncNeedsAttention = useStore((s) => s.syncState?.credentialError ?? false)
+  const deletedCount = useStore((s) => s.deletedPrompts.length)
 
   const t = useT()
   const [adding, setAdding] = useState(false)
@@ -118,50 +110,29 @@ export function Sidebar(): React.JSX.Element {
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-canvas">
-      <div className={`app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-line ${window.api.platform === 'darwin' ? 'pl-[76px] pr-5' : 'px-5'}`}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-on-brand">
-          <Box size={18} />
-        </div>
-        <div>
-          <div className="font-serif text-[16px] leading-tight text-ink">PromptBox</div>
-          <div className="text-[11px] leading-tight text-faint">{t('本地 Prompt 资产库')}</div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-4 gap-1 px-2.5 pb-2 pt-3">
-        {WORKSPACES.map((w) => (
-          <button
-            key={w.id}
-            onClick={() => setWorkspace(w.id)}
-            title={w.label}
-            className={`flex flex-col items-center gap-1 rounded-lg py-1.5 text-[10px] transition ${
-              workspace === w.id
-                ? 'bg-brand/12 text-brand'
-                : 'text-muted hover:bg-surface-2 hover:text-ink'
-            }`}
-          >
-            {w.icon}
-            {w.label}
-          </button>
-        ))}
-      </div>
-
-      <button
-        onClick={() => setView('discover')}
-        className={`mx-2.5 mb-1 flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition ${
-          view === 'discover'
-            ? 'bg-brand/12 font-medium text-brand'
-            : 'text-muted hover:bg-surface-2 hover:text-ink'
+      {/* macOS draws its traffic lights over the top-left of the window, exactly
+          where the logo square would sit. There we drop the square and indent
+          past the buttons (see trafficLightPosition in main), keeping only the
+          wordmark. */}
+      <div
+        className={`app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-line ${
+          isMac ? 'pl-[78px] pr-4' : 'px-5'
         }`}
       >
-        <Compass size={15} />
-        {t('发现')}
-      </button>
+        {!isMac && (
+          <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-on-brand">
+            <Box size={18} />
+          </div>
+        )}
+        <div className="min-w-0">
+          <div className="font-serif text-[16px] leading-tight text-ink">PromptBox</div>
+          <div className="truncate text-[11px] leading-tight text-faint">
+            {t('本地 Prompt 资产库')}
+          </div>
+        </div>
+      </div>
 
-      {workspace !== 'prompts' ? (
-        <AssetNav kind={workspace} />
-      ) : (
-      <nav className="flex-1 overflow-y-auto px-2.5 pb-2">
+      <nav className="flex-1 overflow-y-auto px-2.5 pt-3 pb-2">
         <SectionLabel>{t('资产库')}</SectionLabel>
         <NavItem
           icon={<Layers size={15} />}
@@ -197,6 +168,17 @@ export function Sidebar(): React.JSX.Element {
           active={view === 'library' && categoryFilter === 'uncategorized'}
           count={uncatCount}
           onClick={() => setCategoryFilter('uncategorized')}
+        />
+        {/* The five items above filter the list in place; this one replaces the
+            whole right-hand pane. Identical styling in one run read as "another
+            filter", so the rule is separated out. */}
+        <div className="my-1 border-t border-line" />
+        <NavItem
+          icon={<Trash2 size={15} />}
+          label={t('回收站')}
+          active={view === 'trash'}
+          count={deletedCount}
+          onClick={() => setView('trash')}
         />
 
         <div className="mt-4 flex items-center justify-between pr-1">
@@ -289,6 +271,17 @@ export function Sidebar(): React.JSX.Element {
                     title={t('删除分类')}
                     onClick={async (e) => {
                       e.stopPropagation()
+                      // Deleting a category is not undoable and silently
+                      // re-files everything under it — say so before doing it.
+                      const n = countFor(c.id)
+                      if (
+                        !confirm(
+                          n > 0
+                            ? t('删除分类「{name}」？其中 {n} 条 Prompt 会移至「未分类」（Prompt 本身不会被删除）。', { name: c.name, n })
+                            : t('删除分类「{name}」？', { name: c.name })
+                        )
+                      )
+                        return
                       await deleteCategory(c.id)
                       toast.info(t('分类已删除，相关 Prompt 移至未分类'))
                     }}
@@ -345,12 +338,26 @@ export function Sidebar(): React.JSX.Element {
           </>
         )}
       </nav>
-      )}
 
+      {/* The three destinations that replace the whole right-hand pane live
+          together down here. "发现" used to float above the library nav, where
+          its prominence promised a primary action while it is an occasional
+          errand — and it visually merged with the filters right below it. */}
       <div className="flex border-t border-line">
         <button
+          onClick={() => setView('discover')}
+          className={`flex flex-1 items-center justify-center gap-2 px-3 py-3.5 text-sm transition ${
+            view === 'discover'
+              ? 'font-medium text-brand'
+              : 'text-muted hover:bg-surface-2 hover:text-ink'
+          }`}
+        >
+          <Compass size={16} />
+          {t('发现')}
+        </button>
+        <button
           onClick={() => setView('settings')}
-          className={`flex flex-1 items-center gap-2 px-5 py-3.5 text-sm transition ${
+          className={`flex flex-1 items-center justify-center gap-2 px-3 py-3.5 text-sm transition ${
             view === 'settings'
               ? 'font-medium text-brand'
               : 'text-muted hover:bg-surface-2 hover:text-ink'
@@ -361,119 +368,28 @@ export function Sidebar(): React.JSX.Element {
         </button>
         <button
           onClick={openCloud}
-          title={t('云同步')}
+          // A green dot for "connected" hid the case that matters most: connected
+          // but the last sync failed. Colour the dot by outcome, not by config.
+          title={
+            syncNeedsAttention
+              ? t('云同步：凭证无法解密，请重新连接')
+              : syncFailed
+                ? t('云同步：上次同步失败')
+                : t('云同步')
+          }
           className="relative flex items-center px-4 text-muted transition hover:bg-surface-2 hover:text-ink"
         >
           <Cloud size={16} />
-          {syncConnected && (
-            <span className="absolute right-2.5 top-3 h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          {(syncConnected || syncNeedsAttention) && (
+            <span
+              className={`absolute right-2.5 top-3 h-1.5 w-1.5 rounded-full ${
+                syncFailed ? 'bg-error' : 'bg-emerald-500'
+              }`}
+            />
           )}
         </button>
       </div>
     </aside>
-  )
-}
-
-function AssetNav({ kind }: { kind: AssetKind }): React.JSX.Element {
-  const assets = useStore((s) => s.assets)
-  const categories = useStore((s) => s.categories)
-  const favOnly = useStore((s) => s.assetFavOnly)
-  const categoryId = useStore((s) => s.assetCategoryId)
-  const setAssetFavOnly = useStore((s) => s.setAssetFavOnly)
-  const setAssetCategory = useStore((s) => s.setAssetCategory)
-  const importAssets = useStore((s) => s.importAssets)
-  const t = useT()
-
-  const ofKind = assets.filter((a) => a.kind === kind)
-  const favCount = ofKind.filter((a) => a.favorite).length
-  const isAll = !favOnly && !categoryId
-
-  async function handleImport() {
-    const res = await importAssets(kind)
-    if (res.ok) {
-      toast.success(t('已导入 {count} 个资产', { count: res.count }))
-      if (res.failed.length > 0)
-        toast.error(t('{count} 个文件无法解析：{names}', {
-          count: res.failed.length,
-          names: res.failed.join('、')
-        }))
-    } else if (res.failed.length > 0) {
-      toast.error(t('{count} 个文件无法解析：{names}', {
-        count: res.failed.length,
-        names: res.failed.join('、')
-      }))
-    } else {
-      toast.error(t('导入失败或已取消'))
-    }
-  }
-
-  return (
-    <nav className="flex-1 overflow-y-auto px-2.5 pb-2">
-      <SectionLabel>{t('资产')}</SectionLabel>
-      <button
-        onClick={() => setAssetCategory(null)}
-        className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition ${
-          isAll ? 'bg-brand/12 font-medium text-brand' : 'text-muted hover:bg-surface-2 hover:text-ink'
-        }`}
-      >
-        <span className="flex w-4 justify-center text-faint">
-          <Layers size={15} />
-        </span>
-        <span className="flex-1 text-left">{t('全部')}</span>
-        <span className="text-[11px] text-faint">{ofKind.length}</span>
-      </button>
-      <button
-        onClick={() => setAssetFavOnly(true)}
-        className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition ${
-          favOnly ? 'bg-brand/12 font-medium text-brand' : 'text-muted hover:bg-surface-2 hover:text-ink'
-        }`}
-      >
-        <span className="flex w-4 justify-center text-faint">
-          <Star size={15} />
-        </span>
-        <span className="flex-1 text-left">{t('收藏')}</span>
-        <span className="text-[11px] text-faint">{favCount}</span>
-      </button>
-
-      {categories.length > 0 && (
-        <>
-          <SectionLabel className="mt-3">{t('分类')}</SectionLabel>
-          {categories.map((c) => {
-            const count = ofKind.filter((a) => a.categoryId === c.id).length
-            return (
-              <button
-                key={c.id}
-                onClick={() => setAssetCategory(c.id)}
-                className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition ${
-                  categoryId === c.id
-                    ? 'bg-brand/12 font-medium text-brand'
-                    : 'text-muted hover:bg-surface-2 hover:text-ink'
-                }`}
-              >
-                <span className="flex w-4 justify-center">
-                  <span
-                    className="inline-block h-2.5 w-2.5 rounded-full"
-                    style={{ background: c.color ?? 'var(--color-brand)' }}
-                  />
-                </span>
-                <span className="flex-1 truncate text-left">{c.name}</span>
-                <span className="text-[11px] text-faint">{count}</span>
-              </button>
-            )
-          })}
-        </>
-      )}
-
-      <div className="mt-3 px-1">
-        <button
-          onClick={handleImport}
-          className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-line-strong py-1.5 text-xs text-muted transition hover:border-brand hover:text-brand"
-        >
-          <Upload size={13} />
-          {t('从文件导入')}
-        </button>
-      </div>
-    </nav>
   )
 }
 

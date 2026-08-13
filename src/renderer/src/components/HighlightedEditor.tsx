@@ -278,7 +278,7 @@ export function HighlightedEditor({
         <pre
           ref={preRef}
           aria-hidden
-          className={`hl-overlay pointer-events-none absolute inset-0 m-0 overflow-hidden ${SHARED}`}
+          className={`hl-overlay pointer-events-none absolute inset-0 m-0 overflow-x-hidden ${SHARED}`}
           dangerouslySetInnerHTML={{ __html: html }}
         />
         <textarea
@@ -310,7 +310,7 @@ export function HighlightedEditor({
           }}
           placeholder={placeholder}
           spellCheck={false}
-          className={`absolute inset-0 h-full w-full resize-none bg-transparent outline-none placeholder:text-faint ${SHARED}`}
+          className={`hl-input absolute inset-0 h-full w-full resize-none bg-transparent outline-none placeholder:text-faint ${SHARED}`}
           style={{ color: 'transparent', caretColor: 'var(--color-ink)' }}
         />
 

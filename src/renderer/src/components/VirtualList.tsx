@@ -13,7 +13,11 @@ export function VirtualList<T extends { id: string }>({
   className,
   tabIndex,
   onKeyDown,
-  scrollToIndex
+  scrollToIndex,
+  innerRef,
+  role,
+  ariaLabel,
+  ariaActiveDescendant
 }: {
   items: T[]
   rowHeight: number
@@ -23,8 +27,16 @@ export function VirtualList<T extends { id: string }>({
   tabIndex?: number
   onKeyDown?: (e: React.KeyboardEvent) => void
   scrollToIndex?: number
+  /** Exposes the scroll container so callers can focus it programmatically. */
+  innerRef?: React.MutableRefObject<HTMLDivElement | null>
+  role?: string
+  ariaLabel?: string
+  ariaActiveDescendant?: string
 }): React.JSX.Element {
   const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (innerRef) innerRef.current = ref.current
+  })
   const [scrollTop, setScrollTop] = useState(0)
   const [viewport, setViewport] = useState(0)
 
@@ -57,6 +69,9 @@ export function VirtualList<T extends { id: string }>({
     <div
       ref={ref}
       tabIndex={tabIndex}
+      role={role}
+      aria-label={ariaLabel}
+      aria-activedescendant={ariaActiveDescendant}
       onKeyDown={onKeyDown}
       onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
       className={className}

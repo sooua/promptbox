@@ -1,19 +1,10 @@
 import type {
   AppSettings,
-  Asset,
-  AssetInput,
-  AssetKind,
   BackupInfo,
+  CloseAction,
   Category,
-  ExportBundle,
   ImportMode,
   ImportResult,
-  GithubDiscoverItem,
-  GithubDiscoverResult,
-  GithubSourceConfig,
-  McpDiscoverItem,
-  McpDiscoverResult,
-  McpRegistryConfig,
   PromptDiscoverItem,
   PromptDiscoverResult,
   PromptSource,
@@ -36,8 +27,15 @@ export interface PromptBoxApi {
     get(id: string): Promise<Prompt | undefined>
     create(input: PromptInput): Promise<Prompt>
     update(id: string, patch: Partial<PromptInput>): Promise<Prompt | undefined>
+    /** Append one tag. Normalised and deduped in the main process. */
+    addTag(id: string, tag: string): Promise<Prompt | undefined>
+    /** Soft delete — the prompt moves to the trash and stays restorable. */
     delete(id: string): Promise<boolean>
-    add(prompt: Prompt): Promise<Prompt>
+    listDeleted(): Promise<Prompt[]>
+    restoreDeleted(id: string): Promise<Prompt | undefined>
+    /** Irreversible. */
+    purge(id: string): Promise<boolean>
+    purgeAll(): Promise<number>
     duplicate(id: string): Promise<Prompt | undefined>
     toggleFavorite(id: string): Promise<Prompt | undefined>
     togglePin(id: string): Promise<Prompt | undefined>
@@ -45,21 +43,10 @@ export interface PromptBoxApi {
     deleteVersion(promptId: string, versionId: string): Promise<Prompt | undefined>
     recordUse(id: string): Promise<Prompt | undefined>
     rememberVars(id: string, values: Record<string, string>): Promise<Prompt | undefined>
-  }
-  assets: {
-    list(kind?: AssetKind): Promise<Asset[]>
-    get(id: string): Promise<Asset | undefined>
-    create(input: AssetInput): Promise<Asset>
-    update(id: string, patch: Partial<AssetInput>): Promise<Asset | undefined>
-    delete(id: string): Promise<boolean>
-    add(asset: Asset): Promise<Asset>
-    duplicate(id: string): Promise<Asset | undefined>
-    toggleFavorite(id: string): Promise<Asset | undefined>
-    restoreVersion(assetId: string, versionId: string): Promise<Asset | undefined>
-    exportFile(id: string): Promise<{ ok: boolean; path?: string }>
-    importFile(kind: AssetKind): Promise<{ ok: boolean; count: number; failed: string[] }>
-    install(id: string, preset?: string): Promise<{ ok: boolean; path?: string }>
-    mergeMcp(id: string, preset?: string): Promise<{ ok: boolean; path?: string; server?: string }>
+    /** Bulk-import .md/.txt files picked in a native dialog. */
+    importFiles(
+      categoryId: string | null
+    ): Promise<{ ok: boolean; count: number; failed: string[] }>
   }
   categories: {
     list(): Promise<Category[]>
@@ -74,8 +61,7 @@ export interface PromptBoxApi {
     setLanguage(language: Language): Promise<AppSettings>
     setMarket(enabled: boolean): Promise<AppSettings>
     setProxy(proxy: string): Promise<AppSettings>
-    setGithubSources(sources: GithubSourceConfig[]): Promise<AppSettings>
-    setMcpRegistries(regs: McpRegistryConfig[]): Promise<AppSettings>
+    setCloseAction(action: CloseAction): Promise<AppSettings>
     setPromptSources(sources: PromptSourceConfig[]): Promise<AppSettings>
     setHotkey(accelerator: string): Promise<{ ok: boolean; settings: AppSettings }>
     chooseDataDir(): Promise<AppSettings | null>
@@ -83,7 +69,14 @@ export interface PromptBoxApi {
   }
   data: {
     export(): Promise<{ ok: boolean; path?: string }>
-    import(mode: ImportMode): Promise<{ ok: boolean; result?: ImportResult }>
+    /** `backedUp` is true when a replace import auto-snapshotted the old data first. */
+    import(mode: ImportMode): Promise<{
+      ok: boolean
+      result?: ImportResult
+      backedUp?: boolean
+      /** Why the import was rejected — shown verbatim to the user. */
+      error?: string
+    }>
   }
   backup: {
     list(): Promise<BackupInfo[]>
@@ -107,10 +100,6 @@ export interface PromptBoxApi {
   /** Quit the app entirely (the window close button only hides to tray). */
   quit(): Promise<void>
   market: {
-    mcpSearch(query: string, cursor?: string, registry?: string): Promise<McpDiscoverResult>
-    mcpImport(item: McpDiscoverItem): Promise<{ id: string; duplicate: boolean }>
-    githubList(kind: 'skill' | 'agent'): Promise<GithubDiscoverResult>
-    githubImport(item: GithubDiscoverItem): Promise<{ id: string; duplicate: boolean }>
     promptSources(): Promise<PromptSource[]>
     promptList(sourceId: string): Promise<PromptDiscoverResult>
     promptImport(item: PromptDiscoverItem): Promise<{ id: string; duplicate: boolean }>

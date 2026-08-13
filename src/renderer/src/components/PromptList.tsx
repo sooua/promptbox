@@ -1,5 +1,5 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { Command, Copy, Download, Pin, Plus, Search, Star, Tag, Trash2, X } from 'lucide-react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { Command, Copy, Download, Pin, Plus, Search, Star, Tag, Trash2, Upload, X } from 'lucide-react'
 import { useStore, isCategoryId } from '../store'
 import { categoryById, filterPrompts, relativeTime } from '../selectors'
 import { requestCopy } from '../copy'
@@ -25,10 +25,11 @@ export function PromptList(): React.JSX.Element {
   const deletePrompt = useStore((s) => s.deletePrompt)
   const openPalette = useStore((s) => s.openPalette)
   const bulkDeletePrompts = useStore((s) => s.bulkDeletePrompts)
-  const bulkRestorePrompts = useStore((s) => s.bulkRestorePrompts)
+  const bulkRestoreDeleted = useStore((s) => s.bulkRestoreDeleted)
   const bulkSetCategory = useStore((s) => s.bulkSetCategory)
   const bulkSetFavorite = useStore((s) => s.bulkSetFavorite)
   const bulkAddTag = useStore((s) => s.bulkAddTag)
+  const importPromptFiles = useStore((s) => s.importPromptFiles)
 
   // Defer the search term so typing stays responsive on large libraries —
   // filtering runs against the latest keystroke without blocking input.
@@ -37,6 +38,8 @@ export function PromptList(): React.JSX.Element {
     () => filterPrompts(prompts, { categoryFilter, tagFilters, search: deferredSearch }),
     [prompts, categoryFilter, tagFilters, deferredSearch]
   )
+
+  const listRef = useRef<HTMLDivElement | null>(null)
 
   // Multi-select for batch actions (Ctrl/⌘+click toggles, Shift+click ranges).
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -71,9 +74,10 @@ export function PromptList(): React.JSX.Element {
   const selectedIds = useMemo(() => [...selected], [selected])
 
   async function batchDelete() {
-    const snapshots = await bulkDeletePrompts(selectedIds)
+    const ids = selectedIds
+    await bulkDeletePrompts(ids)
     setSelected(new Set())
-    toast.undo(t('已删除 {n} 项', { n: snapshots.length }), () => void bulkRestorePrompts(snapshots))
+    toast.undo(t('已移到回收站 · {n} 项', { n: ids.length }), () => void bulkRestoreDeleted(ids))
   }
 
   function exportSelected() {
@@ -84,8 +88,7 @@ export function PromptList(): React.JSX.Element {
       version: 1,
       exportedAt: Date.now(),
       prompts: chosen,
-      categories: categories.filter((c) => usedCats.has(c.id)),
-      assets: []
+      categories: categories.filter((c) => usedCats.has(c.id))
     }
     const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -98,12 +101,33 @@ export function PromptList(): React.JSX.Element {
   }
 
   async function handleNew() {
+    // A new prompt matches neither the search box nor any tag filter, so it
+    // would be created *and immediately hidden*. Clear both first so the user
+    // actually sees what they just made.
+    setSearch('')
+    clearTagFilters()
     await createPrompt({
       title: t('未命名 Prompt'),
       content: '',
       categoryId: isCategoryId(categoryFilter) ? (categoryFilter as string) : null
     })
     toast.success(t('已创建 Prompt'))
+  }
+
+  const hasFilters = search.trim().length > 0 || tagFilters.length > 0
+
+  async function handleImportFiles() {
+    // Same trap as handleNew: imports that don't match the active filter would
+    // land invisibly.
+    setSearch('')
+    clearTagFilters()
+    const res = await importPromptFiles(
+      isCategoryId(categoryFilter) ? (categoryFilter as string) : null
+    )
+    if (res.count > 0) toast.success(t('已导入 {n} 条 Prompt', { n: res.count }))
+    if (res.failed.length > 0)
+      toast.error(t('{n} 个文件无法读取：{names}', { n: res.failed.length, names: res.failed.join('、') }))
+    else if (res.count === 0) toast.info(t('未导入任何文件'))
   }
 
   async function quickCopy(id: string) {
@@ -136,6 +160,22 @@ export function PromptList(): React.JSX.Element {
             data-search-input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              // ↓ / Enter hand off from the search box to the list, so the whole
+              // filter→pick→copy loop is reachable without the mouse.
+              if (e.key === 'ArrowDown' || e.key === 'Enter') {
+                if (filtered.length === 0) return
+                e.preventDefault()
+                // Never act on a prompt the current filter hides.
+                const visibleSelection = filtered.some((p) => p.id === selectedId)
+                if (e.key === 'Enter') {
+                  void quickCopy(visibleSelection ? selectedId! : filtered[0].id)
+                  return
+                }
+                if (!visibleSelection) select(filtered[0].id)
+                listRef.current?.focus()
+              }
+            }}
             placeholder={t('在当前列表内筛选…（Ctrl/⌘ + F）')}
             className="w-full rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-3 text-sm text-ink outline-none transition focus:border-focus"
           />
@@ -183,15 +223,18 @@ export function PromptList(): React.JSX.Element {
             <Star size={12} />
           </button>
           <select
-            value=""
+            value="__placeholder"
             onChange={(e) => {
+              if (e.target.value === '__placeholder') return
               void bulkSetCategory(selectedIds, e.target.value || null)
               toast.success(t('已移动所选项'))
             }}
             className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted outline-none"
             title={t('移动到分类')}
           >
-            <option value="" disabled>
+            {/* Sentinel value: an empty-string placeholder would collide with the
+                "未分类" option and render as if that were already selected. */}
+            <option value="__placeholder" disabled>
               {t('移动到…')}
             </option>
             <option value="">{t('未分类')}</option>
@@ -236,16 +279,51 @@ export function PromptList(): React.JSX.Element {
       )}
 
       {filtered.length === 0 ? (
+        // Two different empty states: "your filters hide everything" needs a way
+        // back, "your library is empty" needs a way forward.
         <div className="flex-1 px-4 pt-16 text-center text-sm text-faint">
-          {t('没有匹配的 Prompt。')}
-          <br />
-          {t('点击')} <span className="text-brand">＋</span> {t('新建一个。')}
+          {hasFilters ? (
+            <>
+              {t('没有匹配的 Prompt。')}
+              <br />
+              <button
+                onClick={() => {
+                  setSearch('')
+                  clearTagFilters()
+                }}
+                className="mt-3 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand"
+              >
+                {t('清除筛选条件')}
+              </button>
+            </>
+          ) : (
+            <>
+              {t('这里还没有 Prompt。')}
+              <br />
+              {t('点击')} <span className="text-brand">＋</span> {t('新建一个。')}
+              {/* Cold start: most users already have .md prompts on disk, and
+                  this screen is where they are when they realise it. */}
+              <div className="mt-4">
+                <button
+                  onClick={handleImportFiles}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand"
+                >
+                  <Upload size={14} />
+                  {t('从 Markdown 文件导入…')}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <VirtualList
           items={filtered}
           rowHeight={108}
           tabIndex={0}
+          innerRef={listRef}
+          role="listbox"
+          ariaLabel={t('Prompt 列表')}
+          ariaActiveDescendant={selectedId ? `prompt-row-${selectedId}` : undefined}
           onKeyDown={onKeyDown}
           scrollToIndex={filtered.findIndex((p) => p.id === selectedId)}
           className="flex-1 px-2.5 pb-3 outline-none"
@@ -255,6 +333,9 @@ export function PromptList(): React.JSX.Element {
             const isMulti = selected.has(p.id)
             return (
               <div
+                id={`prompt-row-${p.id}`}
+                role="option"
+                aria-selected={isSel}
                 onClick={(e) => onRowClick(e, p.id)}
                 className={`group relative mb-1 w-full cursor-pointer rounded-xl border px-3 py-2.5 text-left transition ${
                   isMulti
@@ -286,7 +367,7 @@ export function PromptList(): React.JSX.Element {
                       className={`rounded p-0.5 ${
                         p.pinned
                           ? 'text-brand'
-                          : 'text-faint opacity-0 hover:text-brand group-hover:opacity-100'
+                          : 'text-faint opacity-0 transition-opacity hover:text-brand focus-visible:opacity-100 group-hover:opacity-100'
                       }`}
                     >
                       <Pin size={14} className="-rotate-45" fill={p.pinned ? 'currentColor' : 'none'} />
@@ -300,7 +381,7 @@ export function PromptList(): React.JSX.Element {
                       className={`rounded p-0.5 ${
                         p.favorite
                           ? 'text-brand'
-                          : 'text-faint opacity-0 hover:text-brand group-hover:opacity-100'
+                          : 'text-faint opacity-0 transition-opacity hover:text-brand focus-visible:opacity-100 group-hover:opacity-100'
                       }`}
                     >
                       <Star size={15} fill={p.favorite ? 'currentColor' : 'none'} />
@@ -308,15 +389,15 @@ export function PromptList(): React.JSX.Element {
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        const snapshot = p
-                        void deletePrompt(p.id).then(() =>
-                          toast.undo(t('已删除「{title}」', { title: snapshot.title }), () =>
-                            useStore.getState().restorePrompt(snapshot)
+                        const { id, title } = p
+                        void deletePrompt(id).then(() =>
+                          toast.undo(t('已移到回收站：「{title}」', { title }), () =>
+                            useStore.getState().restoreDeleted(id)
                           )
                         )
                       }}
                       title={t('删除')}
-                      className="rounded p-0.5 text-faint opacity-0 hover:text-error group-hover:opacity-100"
+                      className="rounded p-0.5 text-faint opacity-0 transition-opacity hover:text-error focus-visible:opacity-100 group-hover:opacity-100"
                     >
                       <Trash2 size={14} />
                     </button>

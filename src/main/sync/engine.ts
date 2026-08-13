@@ -1,6 +1,5 @@
 import { createHash } from 'crypto'
 import type {
-  Asset,
   Category,
   Prompt,
   S3ConfigInput,
@@ -20,16 +19,30 @@ import { S3Provider, testS3 } from './s3'
 import { decryptPayload, encryptPayload, isEncrypted } from './crypto'
 import type { SyncProvider } from './provider'
 
-const SCHEMA = 1
+/**
+ * Bumped when the envelope's shape changes. v1 carried an `assets` array that
+ * v2 dropped; a v1 client reading a v2 blob silently merged that array as empty
+ * and pushed the deletion back. Older clients cannot be fixed retroactively,
+ * but every client from here on refuses a blob it is too old to understand
+ * rather than merging it under the wrong rules.
+ */
+const SCHEMA = 2
 const AUTO_DEBOUNCE_MS = 4000
 /** Cap for exponential backoff after repeated auto-sync failures. */
 const AUTO_BACKOFF_MAX_MS = 5 * 60 * 1000
-const TOMBSTONE_TTL_MS = 90 * 24 * 60 * 60 * 1000
+/**
+ * A device that has been offline longer than this resurrects everything it
+ * still holds, because the tombstones proving those items were deleted have
+ * aged out. A year of tombstones costs ~60 bytes each — cheap next to asking
+ * the user to pick a winning side.
+ */
+const TOMBSTONE_TTL_MS = 365 * 24 * 60 * 60 * 1000
+/** Report a peer whose clock is at least this far ahead of ours. */
+const CLOCK_SKEW_WARN_MS = 5 * 60 * 1000
 
 interface Bundle {
   prompts: Prompt[]
   categories: Category[]
-  assets: Asset[]
   tombstones: Tombstone[]
 }
 
@@ -39,12 +52,45 @@ function errMsg(e: unknown): string {
 
 type WithMeta = { id: string; updatedAt: number }
 
-/** Merge two collections by id, keeping the newer item; deleted ids drop out. */
-export function mergeCollection<T extends WithMeta>(a: T[], b: T[], tombs: Map<string, number>): T[] {
+/**
+ * Metadata carries its own clock, so a favourite toggled on one device neither
+ * beats nor loses to a body edit made on another — both survive. Only these
+ * four fields are grafted across; everything else follows the edit winner.
+ */
+export function mergeMeta(winner: Prompt, loser: Prompt): Prompt {
+  if ((loser.metaUpdatedAt ?? 0) <= (winner.metaUpdatedAt ?? 0)) return winner
+  return {
+    ...winner,
+    favorite: loser.favorite,
+    pinned: loser.pinned,
+    useCount: loser.useCount,
+    lastUsedAt: loser.lastUsedAt,
+    metaUpdatedAt: loser.metaUpdatedAt
+  }
+}
+
+/**
+ * Merge two collections by id, keeping the newer item; deleted ids drop out.
+ * `onCollision` gets a say when both sides hold the same id, so a type can
+ * salvage fields from the side that lost on `updatedAt`.
+ */
+export function mergeCollection<T extends WithMeta>(
+  a: T[],
+  b: T[],
+  tombs: Map<string, number>,
+  onCollision?: (winner: T, loser: T) => T
+): T[] {
   const map = new Map<string, T>()
   for (const item of [...a, ...b]) {
     const existing = map.get(item.id)
-    if (!existing || item.updatedAt > existing.updatedAt) map.set(item.id, item)
+    if (!existing) {
+      map.set(item.id, item)
+      continue
+    }
+    // Ties keep `existing` (the local side), as before.
+    const winner = item.updatedAt > existing.updatedAt ? item : existing
+    const loser = winner === item ? existing : item
+    map.set(item.id, onCollision ? onCollision(winner, loser) : winner)
   }
   const out: T[] = []
   for (const item of map.values()) {
@@ -57,8 +103,7 @@ export function mergeCollection<T extends WithMeta>(a: T[], b: T[], tombs: Map<s
 
 /** Count items the merge adds to / removes from the local bundle (for UX visibility). */
 function bundleDelta(local: Bundle, merged: Bundle): { added: number; removed: number } {
-  const ids = (b: Bundle) =>
-    new Set([...b.prompts, ...b.categories, ...b.assets].map((x) => x.id))
+  const ids = (b: Bundle) => new Set([...b.prompts, ...b.categories].map((x) => x.id))
   const before = ids(local)
   const after = ids(merged)
   let added = 0
@@ -83,9 +128,8 @@ export function mergeBundles(local: Bundle, remote: Bundle): Bundle {
   const tombstones = mergeTombstones(local.tombstones, remote.tombstones)
   const tombMap = new Map(tombstones.map((t) => [t.id, t.deletedAt]))
   return {
-    prompts: mergeCollection(local.prompts, remote.prompts, tombMap),
+    prompts: mergeCollection(local.prompts, remote.prompts, tombMap, mergeMeta),
     categories: mergeCollection(local.categories, remote.categories, tombMap),
-    assets: mergeCollection(local.assets, remote.assets, tombMap),
     tombstones
   }
 }
@@ -137,7 +181,8 @@ export class SyncEngine {
       lastSyncedAt: this.config.lastSyncedAt,
       lastStatus: this.config.lastStatus,
       lastMessage: this.config.lastMessage,
-      deviceId: this.config.deviceId
+      deviceId: this.config.deviceId,
+      credentialError: this.config.credentialError
     }
   }
 
@@ -226,6 +271,10 @@ export class SyncEngine {
     this.config.lastRemoteUpdatedAt = undefined
     this.config.lastStatus = 'idle'
     this.config.lastMessage = undefined
+    // A successful (re)connect replaces whatever credential failed to decrypt,
+    // so the preserved ciphertext is no longer worth keeping either.
+    this.config.credentialError = undefined
+    this.config.preserved = undefined
   }
 
   async connectGist(token: string): Promise<SyncState> {
@@ -300,16 +349,19 @@ export class SyncEngine {
     return {
       prompts: b.prompts,
       categories: b.categories,
-      assets: b.assets,
       tombstones: b.tombstones ?? []
     }
   }
 
   private bundleOf(env: SyncEnvelope): Bundle {
+    // Reject a blob written by a newer schema rather than mis-merging it under
+    // rules this build does not have — and pushing the damage back.
+    if ((env.schemaVersion ?? 1) > SCHEMA) {
+      throw new Error('云端数据由更新版本的 PromptBox 写入，请先升级本机后再同步')
+    }
     return {
       prompts: env.prompts ?? [],
       categories: env.categories ?? [],
-      assets: env.assets ?? [],
       tombstones: env.tombstones ?? []
     }
   }
@@ -320,7 +372,6 @@ export class SyncEngine {
     const norm = {
       prompts: byId(b.prompts),
       categories: byId(b.categories),
-      assets: byId(b.assets),
       tombstones: byId(b.tombstones)
     }
     return createHash('sha1').update(JSON.stringify(norm)).digest('hex')
@@ -334,7 +385,6 @@ export class SyncEngine {
       deviceId: this.config.deviceId,
       prompts: b.prompts,
       categories: b.categories,
-      assets: b.assets,
       tombstones: b.tombstones
     }
   }
@@ -343,7 +393,7 @@ export class SyncEngine {
   private replaceLocal(b: Bundle): void {
     this.suppressAuto = true
     try {
-      this.repo.replaceAll(b.prompts, b.categories, b.assets, b.tombstones)
+      this.repo.replaceAll(b.prompts, b.categories, b.tombstones)
     } finally {
       this.suppressAuto = false
     }
@@ -366,6 +416,13 @@ export class SyncEngine {
   }
 
   async run(): Promise<SyncResult> {
+    // A secret that won't decrypt on this machine must stop the sync outright.
+    // Carrying on would either push with no credential at all or — when it is
+    // the E2E passphrase that failed — quietly replace the encrypted remote
+    // with plaintext.
+    if (this.config.credentialError) {
+      return this.finish('error', '本机无法解密已保存的同步凭证，请重新连接后再同步')
+    }
     const prov = this.provider()
     if (!prov) return this.finish('error', '未连接云服务')
     if (this.running) return { status: this.config.lastStatus ?? 'idle', message: '同步进行中' }
@@ -385,9 +442,6 @@ export class SyncEngine {
    * items both survive.
    */
   private async runInner(prov: SyncProvider): Promise<SyncResult> {
-    const local = this.localBundle()
-    const localHash = this.hashOf(local)
-
     let raw: string | null
     try {
       raw = await prov.pull()
@@ -395,13 +449,31 @@ export class SyncEngine {
       return this.finish('error', errMsg(e))
     }
 
+    // Read local state *after* the network round-trip, never before. The pull
+    // can take seconds, and everything below ends in replaceLocal(merged): a
+    // snapshot taken before the await would silently discard any autosave that
+    // landed while it was in flight. Reading here leaves no window — the read,
+    // the merge and the write are all synchronous.
+    const local = this.localBundle()
+    const localHash = this.hashOf(local)
+
     try {
       if (!raw) {
         await this.pushBundle(prov, local)
         return this.finish('pushed', '已创建云端数据')
       }
-      const remote = this.bundleOf(this.decode(raw))
+      const env = this.decode(raw)
+      const remote = this.bundleOf(env)
       const remoteHash = this.hashOf(remote)
+
+      // The merge is newer-wins on wall-clock timestamps, so a peer whose clock
+      // runs ahead quietly wins every conflict and the user just sees edits go
+      // missing. We can't fix its clock — but we can stop it being invisible.
+      const skew = (env.updatedAt ?? 0) - Date.now()
+      const skewNote =
+        skew > CLOCK_SKEW_WARN_MS
+          ? `（另一台设备的时间比本机快约 ${Math.round(skew / 60000)} 分钟，冲突时它的改动会优先）`
+          : ''
 
       if (localHash === remoteHash) {
         this.config.lastSyncedHash = localHash
@@ -429,9 +501,10 @@ export class SyncEngine {
         this.config.lastSyncedAt = Date.now()
       }
 
-      if (localChanged && remoteChanged) return this.finish('pulled', `已合并双方改动${deltaText}`)
-      if (localChanged) return this.finish('pulled', `已合并云端更新${deltaText}`)
-      return this.finish('pushed', '已上传本地改动')
+      if (localChanged && remoteChanged)
+        return this.finish('pulled', `已合并双方改动${deltaText}${skewNote}`)
+      if (localChanged) return this.finish('pulled', `已合并云端更新${deltaText}${skewNote}`)
+      return this.finish('pushed', `已上传本地改动${skewNote}`)
     } catch (e) {
       return this.finish('error', errMsg(e))
     }

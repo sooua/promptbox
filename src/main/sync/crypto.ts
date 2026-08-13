@@ -14,8 +14,26 @@ interface EncWrapper {
   data: string
 }
 
+/**
+ * A substring test would misfire on a plaintext envelope that merely *contains*
+ * the marker (a prompt documenting this format, for instance), which would make
+ * every later sync fail with "云端数据已加密". Check the parsed shape instead.
+ */
 export function isEncrypted(raw: string): boolean {
-  return raw.includes('"promptbox_enc"')
+  try {
+    const parsed = JSON.parse(raw) as Partial<EncWrapper>
+    return (
+      !!parsed &&
+      typeof parsed === 'object' &&
+      parsed.promptbox_enc === 1 &&
+      typeof parsed.data === 'string' &&
+      typeof parsed.iv === 'string' &&
+      typeof parsed.tag === 'string' &&
+      typeof parsed.salt === 'string'
+    )
+  } catch {
+    return false
+  }
 }
 
 export function encryptPayload(plain: string, passphrase: string): string {

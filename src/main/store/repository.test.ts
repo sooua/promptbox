@@ -3,7 +3,8 @@ import { mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { PromptRepository } from './repository'
-import type { ExportBundle, PromptBoxData } from '@shared/types'
+import { BackupManager } from '../backup'
+import type { ExportBundle, Prompt, PromptBoxData } from '@shared/types'
 
 let dataDir: string
 
@@ -20,9 +21,24 @@ const dataDoc = (over: Partial<PromptBoxData> = {}): PromptBoxData => ({
   version: 1,
   prompts: [],
   categories: [],
-  assets: [],
   tombstones: [],
   ...over
+})
+
+/** A minimal on-disk prompt record. */
+const promptRecord = (id: string): Prompt => ({
+  id,
+  title: id,
+  content: 'x',
+  tags: [],
+  favorite: false,
+  pinned: false,
+  variables: [],
+  versions: [],
+  useCount: 0,
+  lastUsedAt: null,
+  createdAt: 1,
+  updatedAt: 1
 })
 
 const bundle = (over: Partial<ExportBundle> = {}): ExportBundle => ({
@@ -31,9 +47,299 @@ const bundle = (over: Partial<ExportBundle> = {}): ExportBundle => ({
   exportedAt: Date.now(),
   prompts: [],
   categories: [],
-  assets: [],
   tombstones: [],
   ...over
+})
+
+describe('PromptRepository — import rejects documents that are not exports', () => {
+  const wipeCandidates: Array<[string, unknown]> = [
+    ['a foreign JSON object', { some: 'other tool' }],
+    ['an empty object', {}],
+    ['a bundle with the wrong app tag', { app: 'notpromptbox', prompts: [], categories: [] }],
+    ['a bundle whose prompts is not an array', { app: 'promptbox', prompts: {}, categories: [] }],
+    [
+      'a bundle holding a record with no id',
+      { app: 'promptbox', prompts: [{ title: 'x', updatedAt: 1 }], categories: [] }
+    ],
+    ['null', null]
+  ]
+
+  for (const [label, doc] of wipeCandidates) {
+    it(`refuses ${label} instead of wiping the library`, () => {
+      const repo = new PromptRepository(dataDir)
+      repo.createPrompt({ title: 'Precious', content: 'x' })
+
+      // `bundle.prompts ?? []` used to read this as "an export with zero
+      // prompts" and replace-mode wiped everything while reporting success.
+      expect(() => repo.import(doc as ExportBundle, 'replace')).toThrow()
+      expect(repo.listPrompts()).toHaveLength(1)
+      expect(repo.getTombstones()).toEqual([])
+    })
+  }
+
+  it('still accepts a real export with no tombstones key', () => {
+    const repo = new PromptRepository(dataDir)
+    const doc = { app: 'promptbox', version: 1, exportedAt: 1, prompts: [], categories: [] }
+    expect(() => repo.import(doc as ExportBundle, 'merge')).not.toThrow()
+  })
+})
+
+describe('PromptRepository — tag rules live in one place', () => {
+  it('normalises tags however they arrive', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a', tags: [' #dup ', 'dup', '', '  '] })
+    expect(p.tags).toEqual(['dup'])
+
+    const updated = repo.updatePrompt(p.id, { tags: ['#one', 'one', ' two '] })!
+    expect(updated.tags).toEqual(['one', 'two'])
+  })
+
+  it('appends a tag without reading it back through the caller', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a', tags: ['keep'] })
+
+    repo.addTag(p.id, '#added')
+    // Re-adding is a no-op, so a repeated click or retry cannot duplicate it.
+    repo.addTag(p.id, 'added')
+
+    expect(repo.getPrompt(p.id)!.tags).toEqual(['keep', 'added'])
+  })
+
+  it('ignores a tag that normalises to nothing', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a' })
+    repo.addTag(p.id, '  #  ')
+    expect(repo.getPrompt(p.id)!.tags).toEqual([])
+  })
+})
+
+describe('PromptRepository — edits and metadata use separate clocks', () => {
+  it('does not treat favourite, pin or use as an edit', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a' })
+    const editedAt = repo.getPrompt(p.id)!.updatedAt
+
+    repo.toggleFavorite(p.id)
+    repo.togglePin(p.id)
+    repo.recordUse(p.id)
+
+    const after = repo.getPrompt(p.id)!
+    // `updatedAt` orders the sync merge. If metadata bumped it, toggling a
+    // favourite here would overwrite a body edit made on another device.
+    expect(after.updatedAt).toBe(editedAt)
+    expect(after.metaUpdatedAt).toBeGreaterThanOrEqual(editedAt)
+    expect(after.favorite).toBe(true)
+    expect(after.pinned).toBe(true)
+    expect(after.useCount).toBe(1)
+  })
+
+  it('does not treat pruning history as an edit', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a' })
+    const withVersion = repo.updatePrompt(p.id, { content: 'b' })!
+    expect(withVersion.versions).toHaveLength(1)
+    const editedAt = withVersion.updatedAt
+
+    const after = repo.deleteVersion(p.id, withVersion.versions[0].id)!
+
+    expect(after.versions).toHaveLength(0)
+    expect(after.updatedAt).toBe(editedAt)
+  })
+
+  it('gives the bulk favourite path the same answer as the single toggle', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a' })
+    const editedAt = repo.getPrompt(p.id)!.updatedAt
+
+    // The bulk action goes through updatePrompt, the row button through
+    // toggleFavorite. Same rule, so it must move the same clock.
+    const after = repo.updatePrompt(p.id, { favorite: true })!
+
+    expect(after.favorite).toBe(true)
+    expect(after.updatedAt).toBe(editedAt)
+    expect(after.metaUpdatedAt).toBeGreaterThanOrEqual(editedAt)
+  })
+
+  it('still treats a body edit as an edit', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a' })
+    const before = repo.getPrompt(p.id)!.updatedAt
+
+    const after = repo.updatePrompt(p.id, { content: 'changed' })!
+
+    expect(after.updatedAt).toBeGreaterThanOrEqual(before)
+    expect(after.content).toBe('changed')
+  })
+})
+
+describe('PromptRepository — wholesale replacement keeps deletions traceable', () => {
+  it('tombstones the ids a replace-import drops', () => {
+    const repo = new PromptRepository(dataDir)
+    const keep = repo.createPrompt({ title: 'Keep', content: 'k' })
+    const gone = repo.createPrompt({ title: 'Gone', content: 'g' })
+
+    repo.import(bundle({ prompts: [structuredClone(repo.getPrompt(keep.id)!)] }), 'replace')
+
+    expect(repo.listPrompts().map((p) => p.id)).toEqual([keep.id])
+    // Without the tombstone the next sync merge sees only "the peer still has
+    // this one" and puts it straight back.
+    expect(repo.getTombstones().map((t) => t.id)).toContain(gone.id)
+  })
+
+  it('tombstones the ids a backup restore drops', () => {
+    const repo = new PromptRepository(dataDir)
+    const a = repo.createPrompt({ title: 'A', content: 'a' })
+    const b = repo.createPrompt({ title: 'B', content: 'b' })
+
+    repo.replaceAll([structuredClone(repo.getPrompt(a.id)!)], [])
+
+    expect(repo.listPrompts().map((p) => p.id)).toEqual([a.id])
+    expect(repo.getTombstones().map((t) => t.id)).toContain(b.id)
+  })
+
+  it('clears the tombstone of an id an import re-adds', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'A', content: 'a' })
+    const snapshot = structuredClone(repo.getPrompt(p.id)!)
+    repo.deletePrompt(p.id)
+    repo.purgePrompt(p.id)
+    expect(repo.getTombstones().map((t) => t.id)).toContain(p.id)
+
+    repo.import(bundle({ prompts: [snapshot] }), 'merge')
+
+    expect(repo.listPrompts().map((x) => x.id)).toContain(p.id)
+    // A live record must never also carry a tombstone, or the merge deletes it
+    // again a few seconds after the user imported it.
+    expect(repo.getTombstones().map((t) => t.id)).not.toContain(p.id)
+  })
+
+  it('invents no tombstones when a sync merge only adds items', () => {
+    const repo = new PromptRepository(dataDir)
+    const a = repo.createPrompt({ title: 'A', content: 'a' })
+
+    repo.replaceAll(
+      [structuredClone(repo.getPrompt(a.id)!), promptRecord('from-peer')],
+      [],
+      []
+    )
+
+    expect(repo.getTombstones()).toEqual([])
+    expect(repo.listPrompts()).toHaveLength(2)
+  })
+})
+
+describe('BackupManager — a snapshot it cannot read is a failed restore', () => {
+  it('refuses a snapshot that is not a PromptBox export', () => {
+    const repo = new PromptRepository(dataDir)
+    repo.createPrompt({ title: 'Precious', content: 'x' })
+    const backups = join(dataDir, 'backups')
+    mkdirSync(backups, { recursive: true })
+    writeFileSync(join(backups, 'promptbox-1.json'), JSON.stringify({ notes: [] }), 'utf-8')
+
+    const mgr = new BackupManager(repo)
+
+    // `data.prompts ?? []` reported success while wiping the library — and now
+    // that a replacement records tombstones, that wipe would sync outwards.
+    expect(mgr.restoreBackup('promptbox-1.json')).toBe(false)
+    expect(repo.listPrompts()).toHaveLength(1)
+    expect(repo.getTombstones()).toEqual([])
+  })
+
+  it('restores a real snapshot', () => {
+    const repo = new PromptRepository(dataDir)
+    repo.createPrompt({ title: 'Later', content: 'x' })
+    const mgr = new BackupManager(repo)
+    const info = mgr.createBackup(true)!
+    repo.createPrompt({ title: 'Even later', content: 'y' })
+
+    expect(mgr.restoreBackup(info.file)).toBe(true)
+    expect(repo.listPrompts().map((p) => p.title)).toEqual(['Later'])
+  })
+})
+
+describe('PromptRepository — trash (soft delete)', () => {
+  it('hides a deleted prompt from listPrompts but keeps it restorable', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'Doomed', content: 'x' })
+
+    expect(repo.deletePrompt(p.id)).toBe(true)
+    expect(repo.listPrompts().map((x) => x.id)).not.toContain(p.id)
+    expect(repo.listDeletedPrompts().map((x) => x.id)).toEqual([p.id])
+    // No tombstone yet — a soft delete must not propagate as a hard delete.
+    expect(repo.getTombstones().some((t) => t.id === p.id)).toBe(false)
+
+    const restored = repo.restoreDeletedPrompt(p.id)
+    expect(restored?.deletedAt).toBeNull()
+    expect(repo.listPrompts().map((x) => x.id)).toContain(p.id)
+    expect(repo.listDeletedPrompts()).toHaveLength(0)
+  })
+
+  it('deleting twice is a no-op and content survives the round trip', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'Keep', content: 'body {{v}}' })
+    repo.deletePrompt(p.id)
+    expect(repo.deletePrompt(p.id)).toBe(false)
+    const back = repo.restoreDeletedPrompt(p.id)
+    expect(back?.content).toBe('body {{v}}')
+    expect(back?.variables.map((v) => v.name)).toEqual(['v'])
+  })
+
+  it('purge removes the record and records a tombstone so peers follow', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'Gone', content: 'x' })
+    repo.deletePrompt(p.id)
+
+    expect(repo.purgePrompt(p.id)).toBe(true)
+    expect(repo.listDeletedPrompts()).toHaveLength(0)
+    expect(repo.getTombstones().some((t) => t.id === p.id && t.type === 'prompt')).toBe(true)
+  })
+
+  it('purgeAllDeleted clears the trash and leaves live prompts alone', () => {
+    const repo = new PromptRepository(dataDir)
+    const keep = repo.createPrompt({ title: 'Keep', content: 'x' })
+    const a = repo.createPrompt({ title: 'A', content: 'x' })
+    const b = repo.createPrompt({ title: 'B', content: 'x' })
+    repo.deletePrompt(a.id)
+    repo.deletePrompt(b.id)
+
+    expect(repo.purgeAllDeleted()).toBe(2)
+    expect(repo.listPrompts().map((p) => p.id)).toEqual([keep.id])
+    expect(repo.getTombstones()).toHaveLength(2)
+  })
+
+  it('purges trash older than the retention window on load', () => {
+    const stale = Date.now() - 31 * 24 * 60 * 60 * 1000
+    const fresh = Date.now() - 1000
+    writeFileSync(
+      join(dataDir, 'promptbox.json'),
+      JSON.stringify(
+        dataDoc({
+          prompts: [
+            { ...promptRecord('old'), deletedAt: stale },
+            { ...promptRecord('recent'), deletedAt: fresh },
+            promptRecord('live')
+          ]
+        })
+      ),
+      'utf-8'
+    )
+
+    const repo = new PromptRepository(dataDir)
+    expect(repo.listPrompts().map((p) => p.id)).toEqual(['live'])
+    expect(repo.listDeletedPrompts().map((p) => p.id)).toEqual(['recent'])
+    // The expired one leaves a tombstone so other devices drop it too.
+    expect(repo.getTombstones().some((t) => t.id === 'old' && t.type === 'prompt')).toBe(true)
+  })
+
+  it('a duplicate of a restored prompt is never itself in the trash', () => {
+    const repo = new PromptRepository(dataDir)
+    const p = repo.createPrompt({ title: 'Src', content: 'x' })
+    repo.deletePrompt(p.id)
+    repo.restoreDeletedPrompt(p.id)
+    const copy = repo.duplicatePrompt(p.id)
+    expect(copy?.deletedAt).toBeNull()
+    expect(repo.listDeletedPrompts()).toHaveLength(0)
+  })
 })
 
 describe('PromptRepository.import — merge mode', () => {

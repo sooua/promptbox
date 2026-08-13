@@ -8,8 +8,12 @@ const api: PromptBoxApi = {
     get: (id) => ipcRenderer.invoke(IPC.promptsGet, id),
     create: (input) => ipcRenderer.invoke(IPC.promptsCreate, input),
     update: (id, patch) => ipcRenderer.invoke(IPC.promptsUpdate, id, patch),
+    addTag: (id, tag) => ipcRenderer.invoke(IPC.promptsAddTag, id, tag),
     delete: (id) => ipcRenderer.invoke(IPC.promptsDelete, id),
-    add: (prompt) => ipcRenderer.invoke(IPC.promptsAdd, prompt),
+    listDeleted: () => ipcRenderer.invoke(IPC.promptsListDeleted),
+    restoreDeleted: (id) => ipcRenderer.invoke(IPC.promptsRestoreDeleted, id),
+    purge: (id) => ipcRenderer.invoke(IPC.promptsPurge, id),
+    purgeAll: () => ipcRenderer.invoke(IPC.promptsPurgeAll),
     duplicate: (id) => ipcRenderer.invoke(IPC.promptsDuplicate, id),
     toggleFavorite: (id) => ipcRenderer.invoke(IPC.promptsToggleFavorite, id),
     togglePin: (id) => ipcRenderer.invoke(IPC.promptsTogglePin, id),
@@ -18,23 +22,8 @@ const api: PromptBoxApi = {
     deleteVersion: (promptId, versionId) =>
       ipcRenderer.invoke(IPC.promptsDeleteVersion, promptId, versionId),
     recordUse: (id) => ipcRenderer.invoke(IPC.promptsRecordUse, id),
-    rememberVars: (id, values) => ipcRenderer.invoke(IPC.promptsRememberVars, id, values)
-  },
-  assets: {
-    list: (kind) => ipcRenderer.invoke(IPC.assetsList, kind),
-    get: (id) => ipcRenderer.invoke(IPC.assetsGet, id),
-    create: (input) => ipcRenderer.invoke(IPC.assetsCreate, input),
-    update: (id, patch) => ipcRenderer.invoke(IPC.assetsUpdate, id, patch),
-    delete: (id) => ipcRenderer.invoke(IPC.assetsDelete, id),
-    add: (asset) => ipcRenderer.invoke(IPC.assetsAdd, asset),
-    duplicate: (id) => ipcRenderer.invoke(IPC.assetsDuplicate, id),
-    toggleFavorite: (id) => ipcRenderer.invoke(IPC.assetsToggleFavorite, id),
-    restoreVersion: (assetId, versionId) =>
-      ipcRenderer.invoke(IPC.assetsRestoreVersion, assetId, versionId),
-    exportFile: (id) => ipcRenderer.invoke(IPC.assetsExportFile, id),
-    importFile: (kind) => ipcRenderer.invoke(IPC.assetsImportFile, kind),
-    install: (id, preset) => ipcRenderer.invoke(IPC.assetsInstall, id, preset),
-    mergeMcp: (id, preset) => ipcRenderer.invoke(IPC.assetsMergeMcp, id, preset)
+    rememberVars: (id, values) => ipcRenderer.invoke(IPC.promptsRememberVars, id, values),
+    importFiles: (categoryId) => ipcRenderer.invoke(IPC.promptsImportFiles, categoryId)
   },
   categories: {
     list: () => ipcRenderer.invoke(IPC.categoriesList),
@@ -49,8 +38,7 @@ const api: PromptBoxApi = {
     setLanguage: (language) => ipcRenderer.invoke(IPC.settingsSetLanguage, language),
     setMarket: (enabled) => ipcRenderer.invoke(IPC.settingsSetMarket, enabled),
     setProxy: (proxy) => ipcRenderer.invoke(IPC.settingsSetProxy, proxy),
-    setGithubSources: (sources) => ipcRenderer.invoke(IPC.settingsSetGithubSources, sources),
-    setMcpRegistries: (regs) => ipcRenderer.invoke(IPC.settingsSetMcpRegistries, regs),
+    setCloseAction: (action) => ipcRenderer.invoke(IPC.settingsSetCloseAction, action),
     setPromptSources: (sources) => ipcRenderer.invoke(IPC.settingsSetPromptSources, sources),
     setHotkey: (accelerator) => ipcRenderer.invoke(IPC.settingsSetHotkey, accelerator),
     chooseDataDir: () => ipcRenderer.invoke(IPC.settingsChooseDataDir),
@@ -82,11 +70,6 @@ const api: PromptBoxApi = {
   },
   quit: () => ipcRenderer.invoke(IPC.appQuit),
   market: {
-    mcpSearch: (query, cursor, registry) =>
-      ipcRenderer.invoke(IPC.registryMcpSearch, query, cursor, registry),
-    mcpImport: (item) => ipcRenderer.invoke(IPC.registryMcpImport, item),
-    githubList: (kind) => ipcRenderer.invoke(IPC.registryGithubList, kind),
-    githubImport: (item) => ipcRenderer.invoke(IPC.registryGithubImport, item),
     promptSources: () => ipcRenderer.invoke(IPC.registryPromptSources),
     promptList: (sourceId) => ipcRenderer.invoke(IPC.registryPromptList, sourceId),
     promptImport: (item) => ipcRenderer.invoke(IPC.registryPromptImport, item)

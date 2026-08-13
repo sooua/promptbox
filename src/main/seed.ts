@@ -1,7 +1,7 @@
 import type { PromptRepository } from './store/repository'
 
 /**
- * Populate a fresh data store with a few example assets so the app isn't empty
+ * Populate a fresh data store with a few example prompts so the app isn't empty
  * on first launch. Runs only when there are zero prompts.
  */
 export function seedIfEmpty(repo: PromptRepository): void {
@@ -55,53 +55,5 @@ export function seedIfEmpty(repo: PromptRepository): void {
 - 先阅读相关文件再动手
 - 保持改动最小且可维护
 - 完成后给出改动摘要`
-  })
-
-  // Example assets (Skill / Agent / MCP)
-  repo.createAsset({
-    kind: 'skill',
-    name: 'code-review',
-    description: '对改动进行结构化代码审查',
-    tags: ['review'],
-    meta: { allowedTools: 'Read, Grep, Glob' },
-    content: `# 代码审查
-
-对当前改动按以下维度审查并给出可执行建议：
-
-1. 正确性与边界情况
-2. 安全性
-3. 可维护性与命名
-4. 性能
-
-每条问题给出文件:行号与修复方案。`
-  })
-
-  repo.createAsset({
-    kind: 'agent',
-    name: 'security-auditor',
-    description: '专注安全审计的子代理',
-    tags: ['security'],
-    meta: { tools: 'Read, Grep, Glob, Bash', model: 'sonnet' },
-    content: `你是一名资深安全工程师。系统性审查代码库中的安全风险：
-
-- 注入、认证与鉴权缺陷
-- 敏感信息泄露
-- 依赖与配置风险
-
-按严重级别输出，并提供最小可行修复。`
-  })
-
-  repo.createAsset({
-    kind: 'mcp',
-    name: 'filesystem',
-    description: '本地文件系统 MCP Server',
-    tags: ['official'],
-    content: '',
-    meta: {
-      transport: 'stdio',
-      command: 'npx',
-      args: '-y\n@modelcontextprotocol/server-filesystem\n/path/to/dir',
-      env: ''
-    }
   })
 }

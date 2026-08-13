@@ -16,7 +16,21 @@ const en: Record<string, string> = {
   'PromptBox 数据文件已损坏': 'PromptBox data file is corrupt',
   '原文件已保留为「{file}」。\n{detail}': 'The original was kept as "{file}".\n{detail}',
   '已从备份「{file}」恢复数据。': 'Recovered data from backup "{file}".',
-  '未找到可用备份，已以空数据启动。': 'No usable backup found; started with empty data.'
+  '未找到可用备份，已以空数据启动。': 'No usable backup found; started with empty data.',
+  '关闭 PromptBox': 'Close PromptBox',
+  '关闭窗口后要怎么做？': 'What should closing the window do?',
+  '最小化到托盘：应用继续在后台运行，全局热键仍可随时唤起。\n直接退出：完全关闭，全局热键失效。':
+    'Minimize to tray: the app keeps running in the background and the global hotkey stays live.\nQuit: the app closes completely and the hotkey stops working.',
+  '最小化到托盘': 'Minimize to tray',
+  '直接退出': 'Quit',
+  取消: 'Cancel',
+  '记住我的选择': 'Remember my choice',
+  '这不是 PromptBox 导出文件，或文件已损坏':
+    'That file is not a PromptBox export, or it is corrupt',
+  '导入失败': 'Import failed',
+  'GitHub 接口调用已达上限（未登录每小时 60 次），约 {n} 分钟后恢复':
+    'GitHub API rate limit reached (60/hour when signed out); it resets in about {n} minutes',
+  '来源仓库不存在或已改名': 'The source repository no longer exists or was renamed'
 }
 
 let lang: Language = 'zh'

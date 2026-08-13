@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import type { Prompt } from '@shared/types'
 import { mergeCollection, mergeTombstones, mergeBundles } from './engine'
 
 // Minimal shape the merge helpers operate on: `{ id, updatedAt }`.
@@ -53,7 +54,7 @@ describe('mergeCollection — tombstone deletion semantics', () => {
 
 describe('mergeTombstones', () => {
   it('keeps the newest tombstone per id', () => {
-    // Use recent timestamps so the 90-day TTL doesn't filter them out.
+    // Use recent timestamps so the retention TTL doesn't filter them out.
     const older = Date.now() - 2000
     const newer = Date.now() - 1000
     const out = mergeTombstones([tomb('p1', older)], [tomb('p1', newer)])
@@ -61,11 +62,80 @@ describe('mergeTombstones', () => {
     expect(out[0].deletedAt).toBe(newer)
   })
 
-  it('drops tombstones older than the 90-day TTL but keeps recent ones', () => {
+  it('drops tombstones older than the one-year TTL but keeps recent ones', () => {
     const recent = Date.now() - 1000
-    const ancient = Date.now() - 200 * 24 * 60 * 60 * 1000 // ~200 days old
-    const out = mergeTombstones([tomb('recent', recent), tomb('ancient', ancient)], [])
-    expect(out.map((t) => t.id)).toEqual(['recent'])
+    // A device offline for less than a year must still see the deletion; only
+    // past that does the tombstone age out and the item resurrect.
+    const stillKept = Date.now() - 200 * 24 * 60 * 60 * 1000
+    const ancient = Date.now() - 400 * 24 * 60 * 60 * 1000
+    const out = mergeTombstones(
+      [tomb('recent', recent), tomb('stillKept', stillKept), tomb('ancient', ancient)],
+      []
+    )
+    expect(out.map((t) => t.id)).toEqual(['recent', 'stillKept'])
+  })
+})
+
+/** A prompt-shaped record, only the fields the merge actually reads. */
+const prompt = (over: Partial<Prompt> & Pick<Prompt, 'id' | 'updatedAt'>): Prompt =>
+  ({
+    title: over.id,
+    content: '',
+    tags: [],
+    favorite: false,
+    pinned: false,
+    variables: [],
+    versions: [],
+    useCount: 0,
+    lastUsedAt: null,
+    createdAt: 0,
+    ...over
+  }) as Prompt
+
+describe('mergeMeta — metadata rides its own clock', () => {
+  const merge = (local: Prompt, remote: Prompt) =>
+    mergeBundles(
+      { prompts: [local], categories: [], tombstones: [] },
+      { prompts: [remote], categories: [], tombstones: [] }
+    ).prompts[0]
+
+  it('keeps a favourite toggled on the losing side alongside the winner’s body', () => {
+    // The whole point of the split: neither change should destroy the other.
+    const local = prompt({ id: 'p1', updatedAt: 100, favorite: true, metaUpdatedAt: 500 })
+    const remote = prompt({ id: 'p1', updatedAt: 400, content: 'edited elsewhere' })
+
+    const out = merge(local, remote)
+    expect(out.content).toBe('edited elsewhere')
+    expect(out.favorite).toBe(true)
+  })
+
+  it('does not let stale metadata overwrite newer metadata', () => {
+    const local = prompt({ id: 'p1', updatedAt: 100, pinned: true, metaUpdatedAt: 100 })
+    const remote = prompt({ id: 'p1', updatedAt: 400, pinned: false, metaUpdatedAt: 400 })
+
+    expect(merge(local, remote).pinned).toBe(false)
+  })
+
+  it('carries useCount and lastUsedAt across with the rest of the metadata', () => {
+    const local = prompt({
+      id: 'p1',
+      updatedAt: 100,
+      useCount: 9,
+      lastUsedAt: 999,
+      metaUpdatedAt: 500
+    })
+    const remote = prompt({ id: 'p1', updatedAt: 400, useCount: 1, lastUsedAt: 1 })
+
+    const out = merge(local, remote)
+    expect(out.useCount).toBe(9)
+    expect(out.lastUsedAt).toBe(999)
+  })
+
+  it('treats a record with no metaUpdatedAt as oldest rather than throwing', () => {
+    const local = prompt({ id: 'p1', updatedAt: 400, favorite: false })
+    const remote = prompt({ id: 'p1', updatedAt: 100, favorite: true, metaUpdatedAt: 900 })
+
+    expect(merge(local, remote).favorite).toBe(true)
   })
 })
 
@@ -75,7 +145,6 @@ describe('mergeBundles — item-level three-way merge', () => {
     const local = {
       prompts: [item('shared', now, { title: 'local-edit' }), item('localOnly', now)],
       categories: [],
-      assets: [],
       tombstones: [tomb('removed', now)] // local deleted "removed"
     }
     const remote = {
@@ -85,7 +154,6 @@ describe('mergeBundles — item-level three-way merge', () => {
         item('remoteOnly', now)
       ],
       categories: [],
-      assets: [],
       tombstones: []
     }
     const merged = mergeBundles(local, remote)
@@ -104,7 +172,6 @@ describe('mergeBundles — item-level three-way merge', () => {
     const b = {
       prompts: [item('p1', now)],
       categories: [item('c1', now)],
-      assets: [],
       tombstones: [] as ReturnType<typeof tomb>[]
     }
     const once = mergeBundles(b, b)

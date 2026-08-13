@@ -3,6 +3,7 @@ import { Copy, CornerDownLeft, FileText, Wand2, X } from 'lucide-react'
 import { useStore } from '../store'
 import { fillTemplate, missingRequired } from '@shared/variables'
 import { VariableInput, initialValue } from './VariableInput'
+import { Modal } from './Modal'
 import { toast } from './Toast'
 import { useT } from '../i18n'
 
@@ -62,26 +63,22 @@ export function QuickFill(): React.JSX.Element | null {
     else toast.error(t('复制失败'))
   }
 
+  // Esc is handled by <Modal> at window level.
   function onKeyDown(e: React.KeyboardEvent) {
-    if (e.key === 'Escape') {
-      e.preventDefault()
-      close()
-    } else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault()
       void copyFilled()
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[10vh]"
-      onClick={close}
+    <Modal
+      onClose={close}
+      ariaLabel={t('填充变量后复制')}
+      overlayClassName="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[10vh]"
+      className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
     >
-      <div
-        className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={onKeyDown}
-      >
+      <div className="flex min-h-0 flex-1 flex-col" onKeyDown={onKeyDown}>
         <div className="flex items-center gap-2 border-b border-line px-5 py-3.5">
           <Wand2 size={16} className="text-brand" />
           <div className="min-w-0 flex-1">
@@ -142,6 +139,6 @@ export function QuickFill(): React.JSX.Element | null {
           </button>
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }

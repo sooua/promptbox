@@ -4,10 +4,6 @@
  */
 export const en: Record<string, string> = {
   // ---- Title bar / menu ----
-  '菜单': 'Menu',
-  '退出 PromptBox': 'Quit PromptBox',
-  '导入数据': 'Import data',
-  '导出数据': 'Export data',
 
   // ---- Sidebar ----
   '本地 Prompt 资产库': 'Local prompt library',
@@ -32,8 +28,6 @@ export const en: Record<string, string> = {
   '设置': 'Settings',
   '云同步': 'Cloud sync',
   '资产': 'Assets',
-  '从文件导入': 'Import from file',
-  '已导入 {count} 个资产': 'Imported {count} assets',
 
   // ---- Prompt list ----
   '快速调用 (Ctrl/⌘ + K)': 'Quick launch (Ctrl/⌘ + K)',
@@ -41,7 +35,6 @@ export const en: Record<string, string> = {
   '快速调用': 'Quick launch',
   '新建 Prompt': 'New prompt',
   '在当前列表内筛选…（Ctrl/⌘ + F）': 'Filter this list… (Ctrl/⌘ + F)',
-  '标签（同时满足）': 'Tags (match all)',
   '清除': 'Clear',
   '已选 {n} 项': '{n} selected',
   '已移动所选项': 'Moved selected items',
@@ -53,7 +46,6 @@ export const en: Record<string, string> = {
   '导出所选': 'Export selected',
   '删除所选': 'Delete selected',
   '{n} 项': '{n} items',
-  '↑↓ 选择 · Enter 复制': '↑↓ to select · Enter to copy',
   '没有匹配的 Prompt。': 'No matching prompts.',
   '点击': 'Click',
   '新建一个。': 'to create one.',
@@ -70,12 +62,6 @@ export const en: Record<string, string> = {
   '已创建 Prompt': 'Prompt created',
 
   // ---- Asset list ----
-  '已新建 {kind}': 'New {kind} created',
-  '未配置': 'Not configured',
-  '搜索 {kind}…': 'Search {kind}…',
-  '新建 {kind}': 'New {kind}',
-  '还没有 {kind}。': 'No {kind} yet.',
-  '新建，或从文件导入。': 'to create one, or import from a file.',
 
   // ---- Editor panel ----
   '选择左侧 Prompt，或新建一个开始': 'Select a prompt on the left, or create one to start',
@@ -97,9 +83,7 @@ export const en: Record<string, string> = {
   '已保存': 'Saved',
 
   // ---- Command palette ----
-  '搜索 Prompt 与 Skill / Agent / MCP…': 'Search prompts and Skills / Agents / MCP…',
   '没有匹配的结果': 'No matches',
-  '已复制 {kind} 格式文本': '{kind} formatted text copied',
   '⌘/Ctrl + Enter 打开': '⌘/Ctrl + Enter to open',
   '↑↓ 选择': '↑↓ to navigate',
   'Esc 关闭': 'Esc to close',
@@ -122,7 +106,6 @@ export const en: Record<string, string> = {
   '复制失败': 'Copy failed',
   '已复制到剪贴板': 'Copied to clipboard',
   '暂无变量。在内容里写': 'No variables yet. Write',
-  '即可。': 'in the content to add one.',
   '，或在下方新建。': ', or create one below.',
   '插入变量': 'Insert variable',
   '插入变量 {{ }}': 'Insert variable {{ }}',
@@ -164,55 +147,9 @@ export const en: Record<string, string> = {
   '{n} 字符': '{n} characters',
   '{n} 行': '{n} lines',
   '输入': 'Type',
-  '触发变量补全': 'to autocomplete variables',
 
   // ---- Asset editor ----
-  '选择左侧资产，或新建一个开始': 'Select an asset on the left, or create one to start',
-  '已复制为对应格式': 'Copied as formatted text',
-  '已导出到文件': 'Exported to file',
-  '已安装到 {path}': 'Installed to {path}',
-  '安装失败或已取消': 'Install failed or canceled',
-  '已合并 {server} → {path}': 'Merged {server} → {path}',
-  '合并失败或已取消': 'Merge failed or canceled',
-  '已删除「{name}」': 'Deleted "{name}"',
   '名称': 'Name',
-  '复制为格式文本': 'Copy as formatted text',
-  '导出到文件': 'Export to file',
-  '分发 / 安装到工具': 'Distribute / install to tools',
-  '合并到 Cursor': 'Merge into Cursor',
-  '合并到 Windsurf': 'Merge into Windsurf',
-  '合并到 Cline': 'Merge into Cline',
-  'VS Code 扩展设置': 'VS Code extension settings',
-  '合并到 VS Code 项目': 'Merge into VS Code project',
-  '项目': 'project',
-  '合并到 Claude Code 项目': 'Merge into Claude Code project',
-  '选择 mcp.json 合并…': 'Choose mcp.json to merge…',
-  '安装到 Claude（全局）': 'Install to Claude (global)',
-  '安装到 Claude 项目': 'Install to Claude project',
-  '选择目录安装…': 'Choose a folder to install…',
-  '一句话描述（会写入 description 字段）': 'One-line description (saved to the description field)',
-  'allowed-tools（可选，逗号分隔）': 'allowed-tools (optional, comma-separated)',
-  'tools（逗号分隔）': 'tools (comma-separated)',
-  'SKILL.md 正文': 'SKILL.md body',
-  '系统提示（System Prompt）': 'System prompt',
-  '使用 Markdown 编写…': 'Write in Markdown…',
-  '附带文件（随 Skill 文件夹一起导出/安装）': 'Bundled files (exported/installed with the Skill folder)',
-  '添加文件': 'Add file',
-  '暂无附带文件': 'No bundled files',
-  '相对路径，如 scripts/run.py': 'Relative path, e.g. scripts/run.py',
-  '收起': 'Collapse',
-  '文件内容…': 'File content…',
-  '传输方式': 'Transport',
-  'stdio（本地命令）': 'stdio (local command)',
-  'SSE（远程）': 'SSE (remote)',
-  'HTTP（远程）': 'HTTP (remote)',
-  '输出格式（不同工具的 JSON 键名）': 'Output format (JSON key per tool)',
-  'mcpServers（Claude / Cursor）': 'mcpServers (Claude / Cursor)',
-  'servers（VS Code）': 'servers (VS Code)',
-  'args（每行一个）': 'args (one per line)',
-  'env（每行 KEY=VALUE）': 'env (one KEY=VALUE per line)',
-  'headers（每行 KEY=VALUE，可选）': 'headers (one KEY=VALUE per line, optional)',
-  'mcp.json 预览': 'mcp.json preview',
 
   // ---- Cloud sync ----
   '待同步': 'Pending sync',
@@ -301,12 +238,9 @@ export const en: Record<string, string> = {
   '导入（合并）': 'Import (merge)',
   '导入（替换）': 'Import (replace)',
   '快捷键': 'Shortcuts',
-  '命令面板(搜索全部资产)': 'Command palette (search everything)',
-  '在当前工作区新建': 'New in current workspace',
   '复制当前条目': 'Duplicate current item',
   '立即保存': 'Save now',
   '聚焦列表搜索': 'Focus list search',
-  '切换 Prompts / Skill / Agent / MCP': 'Switch Prompts / Skill / Agent / MCP',
   '打开设置': 'Open settings',
   '编辑器撤销 / 重做': 'Editor undo / redo',
   '列表选择 / 复制': 'List select / copy',
@@ -337,26 +271,20 @@ export const en: Record<string, string> = {
   '替换导入会覆盖当前全部数据，确定继续？': 'Replace-import overwrites all current data. Continue?',
   '导入完成': 'Import complete',
   '导入失败或已取消': 'Import failed or canceled',
-  '{count} 个文件无法解析：{names}': '{count} file(s) could not be parsed: {names}',
   '开发模式下不检查更新，打包后生效': "Updates aren't checked in dev mode; they apply after packaging",
   'PromptBox · 本地 AI Prompt 资产库': 'PromptBox · local AI prompt library',
   '{prompts} 个 Prompt、{categories} 个分类': '{prompts} prompts, {categories} categories',
 
   // ---- Discover / marketplace ----
   '发现': 'Discover',
-  '搜索 MCP 服务器…': 'Search MCP servers…',
   '搜索': 'Search',
-  '来自官方 MCP 注册表': 'From the official MCP registry',
   '加载失败：{msg}': 'Failed to load: {msg}',
   '重试': 'Retry',
-  '没有找到匹配的服务器': 'No matching servers found',
   '已导入': 'Imported',
   '导入': 'Import',
-  '加载更多': 'Load more',
   '已在库中': 'Already in your library',
   '已导入「{name}」': 'Imported "{name}"',
   '联网获取市场内容已关闭': 'Network access for Discover is off',
-  '开启后可浏览并导入 MCP 服务器': 'Turn it on to browse and import MCP servers',
   '开启联网': 'Enable network',
   '允许联网获取市场内容': 'Allow Discover to fetch over the network',
   '仅在打开发现页时请求，不会后台联网': 'Only fetches when you open Discover; never in the background',
@@ -364,30 +292,96 @@ export const en: Record<string, string> = {
   '代理': 'Proxy',
   '留空跟随系统；direct 为直连；或填 http:// 、socks5:// 地址':
     'Empty follows the system; "direct" for no proxy; or enter an http:// or socks5:// address',
-  '搜索 Skill…': 'Search Skills…',
-  '搜索 Agent…': 'Search Agents…',
   '搜索提示词…': 'Search prompts…',
   '共 {n} 项': '{n} items',
   '自定义 Prompt 源': 'Custom prompt sources',
   '内置中英各一个推荐合集；可添加指向 CSV / JSON 文件的原始链接（act,prompt 列或 {act,prompt} 数组）。':
     'One built-in EN + ZH collection each; add a raw link to a CSV / JSON file (act,prompt columns or an array of {act,prompt}).',
-  '自定义 Skill / Agent 仓库': 'Custom Skill / Agent repos',
-  '共 {n} 项 · 来自社区仓库': '{n} items · from community repos',
-  '来自社区仓库': 'From community repos',
   '没有找到匹配的结果': 'No matching results',
   '仅显示前 {n} 项，搜索以缩小范围': 'Showing the first {n}; search to narrow down',
   '导入失败': 'Import failed',
   '发现来源': 'Discover sources',
-  '内置仓库为推荐来源；可添加你自己的 GitHub 仓库到 Skill / Agent 标签。':
-    'Built-in repos are recommended; add your own GitHub repos to the Skill / Agent tabs.',
-  '请输入 owner/repo 格式': 'Enter it as owner/repo',
   '该来源已存在': 'That source already exists',
   '已添加来源': 'Source added',
   '添加': 'Add',
   '来源': 'Source',
-  '官方注册表': 'Official registry',
-  '自定义 MCP 注册表': 'Custom MCP registries',
-  '官方注册表与 Smithery 已内置；可添加实现官方 /v0/servers 规范的注册表。':
-    'Official + Smithery are built in; add any registry implementing the official /v0/servers spec.',
-  '请输入有效的 URL': 'Enter a valid URL'
+  '请输入有效的 URL': 'Enter a valid URL',
+
+  // ---- Safety rails / recovery ----
+  '这里还没有 Prompt。': 'No prompts here yet.',
+  '清除筛选条件': 'Clear filters',
+  'Prompt 列表': 'Prompt list',
+  '搜索 Prompt…': 'Search prompts…',
+  '命令面板(搜索全部 Prompt)': 'Command palette (search all prompts)',
+  '开启后可浏览并导入社区提示词': 'Turn it on to browse and import community prompts',
+  '云同步：上次同步失败': 'Cloud sync: last sync failed',
+  '删除分类「{name}」？': 'Delete the category “{name}”?',
+  '删除分类「{name}」？其中 {n} 条 Prompt 会移至「未分类」（Prompt 本身不会被删除）。':
+    'Delete the category “{name}”? Its {n} prompts move to “Uncategorized” — the prompts themselves are kept.',
+  '永久删除 {date} 的历史版本？此操作不可撤销。':
+    'Permanently delete the {date} snapshot? This cannot be undone.',
+  '替换导入会删除当前全部 {n} 条 Prompt 并用文件内容取代。\n\n继续前会自动创建一次备份，可在下方「本地备份」中恢复。确定继续？':
+    'A replace import deletes all {n} current prompts and substitutes the file’s contents.\n\nA backup is taken first — you can restore it from “Snapshots” below. Continue?',
+  '导入完成，旧数据已备份': 'Imported. The previous data was backed up',
+  '恢复到 {date} 的版本？\n\n本机当前数据会被替换，并作为新版本上传到云端——其它已连接的设备也会同步到这个旧版本。':
+    'Restore the {date} version?\n\nThis machine’s data is replaced and pushed back up as the new remote head — every other connected device will sync down to this older version too.',
+  '口令只保存在本机，无法找回。忘记后云端数据将永久无法解密。':
+    'The passphrase is stored only on this machine and cannot be recovered. If you forget it, the cloud copy is permanently unreadable.',
+  '再次输入口令': 'Re-enter the passphrase',
+  '两次输入的口令不一致': 'The two passphrases do not match',
+  '立即退出': 'Quit now',
+  '无论上面选了什么，此处都会彻底关闭应用': 'Closes the app completely, whatever is set above',
+  '退出': 'Quit',
+
+  // ---- Markdown import ----
+  '从 Markdown 文件导入…': 'Import from Markdown files…',
+  '已有的 .md / .txt 提示词可直接导入，支持 YAML front-matter 的 title / description / tags。':
+    'Existing .md / .txt prompts import directly; YAML front-matter title / description / tags are honoured.',
+  '已导入 {n} 条 Prompt': 'Imported {n} prompts',
+  '{n} 个文件无法读取：{names}': '{n} files could not be read: {names}',
+  '未导入任何文件': 'Nothing was imported',
+
+  // ---- Close behaviour ----
+  '关闭窗口时': 'When the window is closed',
+  '最小化到托盘可保持全局热键可用；直接退出则完全关闭应用':
+    'Minimizing to the tray keeps the global hotkey alive; quitting closes the app completely',
+  '每次询问': 'Ask every time',
+  '最小化到托盘': 'Minimize to tray',
+  '直接退出': 'Quit',
+
+  // ---- Autosave state ----
+  '编辑中…': 'Editing…',
+  '已保存 · {when}': 'Saved · {when}',
+  '没有需要保存的改动': 'No unsaved changes',
+  '命令面板': 'Command palette',
+
+  // ---- Trash ----
+  '回收站': 'Trash',
+  '回收站是空的。': 'The trash is empty.',
+  '删除的 Prompt 会在这里保留 {days} 天，之后自动永久删除。':
+    'Deleted prompts stay here for {days} days, then are removed for good.',
+  '删除于 {date} · {n} 天后永久删除': 'Deleted {date} · purged in {n} days',
+  '清空回收站': 'Empty trash',
+  '永久删除': 'Delete permanently',
+  '永久删除「{title}」？此操作不可撤销。':
+    'Permanently delete “{title}”? This cannot be undone.',
+  '清空回收站？其中 {n} 条 Prompt 将被永久删除，不可撤销。':
+    'Empty the trash? Its {n} prompts are deleted for good and cannot be recovered.',
+  '已永久删除': 'Deleted permanently',
+  '已永久删除 {n} 条': 'Permanently deleted {n} prompts',
+  '已恢复': 'Restored',
+  '已恢复「{title}」': 'Restored “{title}”',
+  '已恢复 {n} 条': 'Restored {n} prompts',
+  '全部恢复': 'Restore all',
+  '查看': 'View',
+  '已移到回收站：「{title}」': 'Moved to trash: “{title}”',
+  '已移到回收站 · {n} 项': 'Moved {n} prompts to the trash',
+  '关闭弹窗 / 返回资产库': 'Close dialog / back to library',
+  '为当前条目创建副本': 'Duplicate the current prompt',
+
+  // ---- Sync credential recovery ----
+  '凭证无法在本机解密，请重新连接': 'Credential cannot be decrypted here — reconnect',
+  '云同步：凭证无法解密，请重新连接': 'Cloud sync: credential cannot be decrypted — reconnect',
+  '已配置云服务，但凭证无法在本机解密。请在「云服务」页重新连接。':
+    'A cloud service is configured, but its credential cannot be decrypted on this machine. Reconnect from the “Cloud services” tab.'
 }

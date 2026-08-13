@@ -10,7 +10,7 @@ import {
 } from 'fs'
 import { join } from 'path'
 import type { BackupInfo } from '@shared/types'
-import type { Repository } from './store/repository'
+import { isExportBundle, type Repository } from './store/repository'
 
 const MAX_BACKUPS = 20
 const PREFIX = 'promptbox-'
@@ -69,13 +69,15 @@ export class BackupManager {
 
   restoreBackup(file: string): boolean {
     try {
-      const data = JSON.parse(readFileSync(join(this.dir(), file), 'utf-8'))
-      this.repo.replaceAll(
-        data.prompts ?? [],
-        data.categories ?? [],
-        data.assets ?? [],
-        data.tombstones ?? []
-      )
+      const data: unknown = JSON.parse(readFileSync(join(this.dir(), file), 'utf-8'))
+      // `data.prompts ?? []` turned a truncated or foreign snapshot into a
+      // silent full wipe that still reported success — and now that a
+      // replacement records tombstones, that wipe would propagate to every
+      // synced device. A snapshot we cannot read is a failed restore.
+      if (!isExportBundle(data)) return false
+      // Passing `undefined` (not `[]`) keeps the current tombstones when the
+      // snapshot predates them; `[]` would erase every deletion record.
+      this.repo.replaceAll(data.prompts, data.categories, data.tombstones)
       return true
     } catch {
       return false

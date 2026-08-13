@@ -6,13 +6,13 @@ product
 
 ## Users
 
-Power users of Claude and other AI tools — developers, prompt engineers, and AI-heavy knowledge workers — who accumulate a large library of reusable prompts and Claude assets (Skills, Agents, MCP configs) and need a fast, private home for them.
+Power users of Claude and other AI tools — developers, prompt engineers, and AI-heavy knowledge workers — who accumulate a large library of reusable prompts and need a fast, private home for them.
 
-Their context is mid-task: they're working inside Claude Code, the Claude apps, or a terminal, and need to reach for the right prompt without breaking flow. The primary job is *retrieval and reuse* — find the asset, fill its variables, get it onto the clipboard (or deployed to a config) in as few keystrokes as possible. The global hotkey and command palette exist for exactly this moment.
+Their context is mid-task: they're working inside Claude Code, the Claude apps, or a terminal, and need to reach for the right prompt without breaking flow. The primary job is *retrieval and reuse* — find the prompt, fill its variables, get it onto the clipboard in as few keystrokes as possible. The global hotkey and command palette exist for exactly this moment.
 
 ## Product Purpose
 
-PromptBox is a local-first desktop manager for AI prompt assets. It stores prompts and Claude Skill / Agent / MCP definitions as plain JSON the user owns, organizes them by category and tags, fills `{{variable}}` templates, keeps per-item version history, and optionally syncs across devices (GitHub Gist / WebDAV / S3, end-to-end encrypted).
+PromptBox is a local-first desktop manager for AI prompts. It stores prompts as plain JSON the user owns, organizes them by category and tags, fills `{{variable}}` templates, keeps per-item version history, and optionally syncs across devices (GitHub Gist / WebDAV / S3, end-to-end encrypted).
 
 Success is the shortest path from "I need that prompt" to "it's filled in and on my clipboard" — measured in keystrokes — with an ironclad guarantee that the user never loses their words (autosave, automatic backups, corrupt-file recovery, undo).
 

@@ -56,6 +56,9 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
               </button>
               <button
                 onClick={async () => {
+                  // The only copy of that snapshot; there is no undo for it.
+                  if (!confirm(t('永久删除 {date} 的历史版本？此操作不可撤销。', { date: formatDate(v.createdAt) })))
+                    return
                   if (diffId === v.id) setDiffId(null)
                   await deleteVersion(prompt.id, v.id)
                   toast.success(t('已删除该历史版本'))

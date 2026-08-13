@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Cloud,
   CloudOff,
@@ -16,6 +16,7 @@ import { SYNC_PROVIDERS } from '@shared/types'
 import { useStore } from '../store'
 import { useT, t } from '../i18n'
 import { formatDate, relativeTime } from '../selectors'
+import { Modal } from './Modal'
 import { toast } from './Toast'
 
 const ICONS: Record<SyncProviderId, React.ReactNode> = {
@@ -52,18 +53,30 @@ export function CloudSyncModal(): React.JSX.Element {
   const restoreSyncVersion = useStore((s) => s.restoreSyncVersion)
   const t = useT()
 
+  const credentialBroken = syncState?.credentialError ?? false
+
   const [tab, setTab] = useState<Tab>('services')
   const [connectingId, setConnectingId] = useState<SyncProviderId | null>(null)
   const [history, setHistory] = useState<SyncVersion[] | null>(null)
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [encOpen, setEncOpen] = useState(false)
   const [passphrase, setPassphrase] = useState('')
+  const [passphrase2, setPassphrase2] = useState('')
+
+  // A typo here is unrecoverable: this machine keeps working with the wrong
+  // passphrase while every other device can never decrypt the remote blob.
+  const passMismatch = passphrase2.length > 0 && passphrase.trim() !== passphrase2.trim()
 
   async function applyEncryption() {
     if (!passphrase.trim()) return
+    if (passphrase.trim() !== passphrase2.trim()) {
+      toast.error(t('两次输入的口令不一致'))
+      return
+    }
     await setEncryption(true, passphrase.trim())
     setEncOpen(false)
     setPassphrase('')
+    setPassphrase2('')
     toast.success(t('已开启端到端加密，请在其它设备设置相同口令'))
   }
   async function disableEncryption() {
@@ -82,14 +95,6 @@ export function CloudSyncModal(): React.JSX.Element {
     secretAccessKey: '',
     prefix: ''
   })
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') close()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [close])
 
   function afterConnect(ok: boolean, name: string) {
     if (ok) {
@@ -113,7 +118,16 @@ export function CloudSyncModal(): React.JSX.Element {
   }
 
   async function handleRestore(v: SyncVersion) {
-    if (!confirm(t('恢复到 {date} 的版本？当前数据会被替换。', { date: formatDate(v.createdAt) }))) return
+    // Restoring also pushes the old snapshot back up as the new remote head, so
+    // every other device gets overwritten too. Say that out loud.
+    if (
+      !confirm(
+        t('恢复到 {date} 的版本？\n\n本机当前数据会被替换，并作为新版本上传到云端——其它已连接的设备也会同步到这个旧版本。', {
+          date: formatDate(v.createdAt)
+        })
+      )
+    )
+      return
     const r = await restoreSyncVersion(v.id)
     if (r.status === 'error') toast.error(r.message || t('恢复失败'))
     else {
@@ -123,11 +137,13 @@ export function CloudSyncModal(): React.JSX.Element {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[8vh]" onClick={close}>
-      <div
-        className="flex max-h-[82vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-line-strong bg-canvas shadow-[rgba(0,0,0,0.14)_0px_16px_56px]"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Modal
+      onClose={close}
+      ariaLabel={t('云同步')}
+      overlayClassName="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[8vh]"
+      className="flex max-h-[82vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-line-strong bg-canvas shadow-[rgba(0,0,0,0.14)_0px_16px_56px]"
+    >
+      <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex items-center gap-2 border-b border-line px-4 py-3">
           <div className="flex flex-1 gap-1 rounded-xl bg-surface-2 p-1">
             <TabBtn active={tab === 'services'} onClick={() => setTab('services')}>
@@ -171,14 +187,22 @@ export function CloudSyncModal(): React.JSX.Element {
                             }`}
                           />
                         </div>
-                        <div className="text-xs text-faint">
+                        <div
+                          className={`text-xs ${
+                            credentialBroken && syncState?.provider === prov.id
+                              ? 'text-error'
+                              : 'text-faint'
+                          }`}
+                        >
                           {connected
                             ? `${syncState?.account ?? t('已连接')}${
                                 syncState?.lastSyncedAt ? ' · ' + relativeTime(syncState.lastSyncedAt) : ''
                               }`
-                            : prov.available
-                              ? t('未连接')
-                              : t('即将支持')}
+                            : credentialBroken && syncState?.provider === prov.id
+                              ? t('凭证无法在本机解密，请重新连接')
+                              : prov.available
+                                ? t('未连接')
+                                : t('即将支持')}
                         </div>
                       </div>
 
@@ -251,21 +275,39 @@ export function CloudSyncModal(): React.JSX.Element {
                           />
                         </div>
                         {encOpen && !syncState?.encrypted && (
-                          <div className="mt-2 flex gap-2">
+                          <div className="mt-2 space-y-2">
+                            <p className="text-xs text-error">
+                              {t('口令只保存在本机，无法找回。忘记后云端数据将永久无法解密。')}
+                            </p>
                             <input
                               type="password"
                               value={passphrase}
                               onChange={(e) => setPassphrase(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && applyEncryption()}
                               placeholder={t('设置同步口令…')}
-                              className="flex-1 rounded-xl border border-line-strong bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-focus"
+                              className="w-full rounded-xl border border-line-strong bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-focus"
                             />
-                            <button
-                              onClick={applyEncryption}
-                              className="rounded-xl bg-brand px-3 py-2 text-sm text-on-brand transition hover:bg-brand-strong"
-                            >
-                              {t('启用')}
-                            </button>
+                            <div className="flex gap-2">
+                              <input
+                                type="password"
+                                value={passphrase2}
+                                onChange={(e) => setPassphrase2(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && applyEncryption()}
+                                placeholder={t('再次输入口令')}
+                                className={`flex-1 rounded-xl border bg-canvas px-3 py-2 text-sm text-ink outline-none ${
+                                  passMismatch ? 'border-error' : 'border-line-strong focus:border-focus'
+                                }`}
+                              />
+                              <button
+                                onClick={applyEncryption}
+                                disabled={!passphrase.trim() || passMismatch || !passphrase2}
+                                className="rounded-xl bg-brand px-3 py-2 text-sm text-on-brand transition hover:bg-brand-strong disabled:opacity-40"
+                              >
+                                {t('启用')}
+                              </button>
+                            </div>
+                            {passMismatch && (
+                              <p className="text-xs text-error">{t('两次输入的口令不一致')}</p>
+                            )}
                           </div>
                         )}
                       </div>
@@ -394,7 +436,7 @@ export function CloudSyncModal(): React.JSX.Element {
           )}
         </div>
       </div>
-    </div>
+    </Modal>
   )
 }
 
@@ -433,7 +475,13 @@ function StatusPanel(): React.JSX.Element {
   const prompts = useStore((s) => s.prompts)
   const t = useT()
   if (!syncState?.connected) {
-    return <div className="px-2 py-10 text-center text-sm text-faint">{t('尚未连接任何云服务。')}</div>
+    return (
+      <div className="px-2 py-10 text-center text-sm text-faint">
+        {syncState?.credentialError
+          ? t('已配置云服务，但凭证无法在本机解密。请在「云服务」页重新连接。')
+          : t('尚未连接任何云服务。')}
+      </div>
+    )
   }
   const status = syncState.lastStatus ?? 'idle'
   const providerName = SYNC_PROVIDERS.find((p) => p.id === syncState.provider)?.name ?? '—'

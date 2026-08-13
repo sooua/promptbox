@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import type { Prompt, PromptInput } from '@shared/types'
 import { useStore } from '../store'
+import { relativeTime } from '../selectors'
 import { MarkdownPreview } from './MarkdownPreview'
 import { HighlightedEditor } from './HighlightedEditor'
 import { VariableFiller } from './VariableFiller'
@@ -71,21 +72,30 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   // Accumulates debounced field edits so none are lost when several fields
   // change quickly or the editor unmounts (e.g. switching prompts) mid-debounce.
   const pending = useRef<Partial<PromptInput>>({})
+  // Autosave was completely silent; the user had no way to tell an edit had
+  // landed on disk. 'dirty' while a write is pending, 'saved' once it resolves.
+  const [saveState, setSaveState] = useState<'idle' | 'dirty' | 'saved'>('idle')
+  const [savedAt, setSavedAt] = useState<number | null>(null)
 
-  function commit() {
+  /** Returns whether anything was actually written. */
+  function commit(): boolean {
     if (saveTimer.current) {
       clearTimeout(saveTimer.current)
       saveTimer.current = null
     }
-    if (Object.keys(pending.current).length > 0) {
-      const patch = pending.current
-      pending.current = {}
-      void updatePrompt(prompt.id, patch)
-    }
+    if (Object.keys(pending.current).length === 0) return false
+    const patch = pending.current
+    pending.current = {}
+    void updatePrompt(prompt.id, patch).then(() => {
+      setSaveState('saved')
+      setSavedAt(Date.now())
+    })
+    return true
   }
 
   function scheduleSave(patch: Partial<PromptInput>) {
     pending.current = { ...pending.current, ...patch }
+    setSaveState('dirty')
     if (saveTimer.current) clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(commit, 500)
   }
@@ -97,13 +107,20 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
 
   // Flush any pending edits when the editor unmounts (prompt switch / close).
   useEffect(() => {
-    return () => commit()
+    return () => {
+      commit()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ⌘/Ctrl+S flushes the debounced autosave immediately.
+  // ⌘/Ctrl+S flushes the debounced autosave immediately. The toast lives here,
+  // not in the global keymap, so it reports what actually happened instead of
+  // unconditionally claiming success.
   useEffect(() => {
-    const onFlush = () => commit()
+    const onFlush = () => {
+      if (commit()) toast.success(t('已保存'))
+      else toast.info(t('没有需要保存的改动'))
+    }
     window.addEventListener('promptbox:flush-save', onFlush)
     return () => window.removeEventListener('promptbox:flush-save', onFlush)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,10 +147,10 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   }
 
   async function handleDelete() {
-    const snapshot = prompt
-    await deletePrompt(prompt.id)
-    toast.undo(t('已删除「{title}」', { title: snapshot.title }), () => {
-      void useStore.getState().restorePrompt(snapshot)
+    const { id, title } = prompt
+    await deletePrompt(id)
+    toast.undo(t('已移到回收站：「{title}」', { title }), () => {
+      void useStore.getState().restoreDeleted(id)
     })
   }
 
@@ -209,8 +226,8 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
         </div>
       </div>
 
-      {/* Description */}
-      <div className="border-b border-line px-6 py-2">
+      {/* Description + autosave state */}
+      <div className="flex items-center gap-3 border-b border-line px-6 py-2">
         <input
           value={description}
           onChange={(e) => {
@@ -218,8 +235,15 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
             scheduleSave({ description: e.target.value })
           }}
           placeholder={t('一句话描述（可选）')}
-          className="w-full bg-transparent text-xs text-muted outline-none placeholder:text-faint"
+          className="min-w-0 flex-1 bg-transparent text-xs text-muted outline-none placeholder:text-faint"
         />
+        <span className="shrink-0 text-[11px] text-faint">
+          {saveState === 'dirty'
+            ? t('编辑中…')
+            : saveState === 'saved' && savedAt
+              ? t('已保存 · {when}', { when: relativeTime(savedAt) })
+              : ''}
+        </span>
       </div>
 
       {/* Tabs */}

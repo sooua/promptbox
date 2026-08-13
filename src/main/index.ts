@@ -3,7 +3,8 @@ import { join } from 'path'
 import { IPC } from '@shared/ipc'
 import appIconPath from '../../resources/icon.png?asset'
 import { PromptRepository } from './store/repository'
-import { loadSettings } from './store/config'
+import { loadSettings, saveSettings } from './store/config'
+import type { CloseAction } from '@shared/types'
 import { registerIpc, registerBackupIpc } from './ipc'
 import { BackupManager } from './backup'
 import { seedIfEmpty } from './seed'
@@ -31,6 +32,36 @@ function overlayColors(): { color: string; symbolColor: string } {
 
 const TITLEBAR_HEIGHT = 40
 
+/**
+ * First close: explain that the window hides to the tray and let the user pick
+ * the other behaviour instead. The answer is persisted when "记住我的选择" is
+ * ticked, so this dialog is a one-time cost.
+ */
+async function askCloseAction(win: BrowserWindow): Promise<void> {
+  const { response, checkboxChecked } = await dialog.showMessageBox(win, {
+    type: 'question',
+    title: mt('关闭 PromptBox'),
+    message: mt('关闭窗口后要怎么做？'),
+    detail: mt(
+      '最小化到托盘：应用继续在后台运行，全局热键仍可随时唤起。\n直接退出：完全关闭，全局热键失效。'
+    ),
+    buttons: [mt('最小化到托盘'), mt('直接退出'), mt('取消')],
+    defaultId: 0,
+    cancelId: 2,
+    checkboxLabel: mt('记住我的选择'),
+    checkboxChecked: true
+  })
+  if (response === 2) return // cancel — keep the window open
+  const choice: CloseAction = response === 1 ? 'quit' : 'tray'
+  if (checkboxChecked) saveSettings({ ...loadSettings(), closeAction: choice })
+  if (choice === 'quit') {
+    isQuitting = true
+    app.quit()
+  } else {
+    win.hide()
+  }
+}
+
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1280,
@@ -46,6 +77,10 @@ function createWindow(): BrowserWindow {
     // (the app provides its own draggable top bars).
     titleBarStyle: 'hidden',
     titleBarOverlay: { ...overlayColors(), height: TITLEBAR_HEIGHT },
+    // macOS keeps its traffic lights even with a hidden title bar. Pin them so
+    // they sit centered in the 56px sidebar brand row instead of drifting into
+    // the logo/wordmark (the sidebar reserves the matching left inset).
+    trafficLightPosition: { x: 16, y: 21 },
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,
@@ -55,12 +90,20 @@ function createWindow(): BrowserWindow {
 
   win.on('ready-to-show', () => win.show())
 
-  // Closing the window hides it to the tray instead of quitting; the app keeps
-  // running so the global hotkey stays live. Real quit comes from the tray menu.
+  // Closing the window hides it to the tray by default so the global hotkey
+  // stays live — but that reads as "quit" to most users, so the first close
+  // asks and remembers. See AppSettings.closeAction.
   win.on('close', (e) => {
-    if (!isQuitting) {
-      e.preventDefault()
+    if (isQuitting) return
+    e.preventDefault()
+    const action = loadSettings().closeAction
+    if (action === 'quit') {
+      isQuitting = true
+      app.quit()
+    } else if (action === 'tray') {
       win.hide()
+    } else {
+      void askCloseAction(win)
     }
   })
 
@@ -184,7 +227,7 @@ app.whenReady().then(() => {
     }
   })
 
-  registerIpc(repo)
+  registerIpc(repo, backup)
   registerBackupIpc(backup)
   const syncEngine = new SyncEngine(repo)
   syncEngine.setNotifier((result) => {

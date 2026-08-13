@@ -4,9 +4,9 @@
 [![Downloads](https://img.shields.io/github/downloads/sooua/promptbox/total)](https://github.com/sooua/promptbox/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](./LICENSE)
 
-**本地优先的 AI Prompt / Skill / Agent / MCP 资产管理桌面工具。**
+**本地优先的 AI Prompt 管理桌面工具。**
 
-像管理代码片段一样管理你的 Prompt、角色设定、上下文模板，以及 Claude Skill、Agent、MCP 配置。所有数据默认以 JSON 保存在本机，不上传任何服务器；云同步可选并端到端加密。
+像管理代码片段一样管理你的 Prompt、角色设定与上下文模板。所有数据默认以 JSON 保存在本机，不上传任何服务器；云同步可选并端到端加密。
 
 基于 **Electron + React 18 + TypeScript + Tailwind CSS v4**，采用 Claude/Anthropic 暖色设计语言。
 
@@ -27,14 +27,12 @@
 
 ## 功能
 
-### 统一资产库
+### Prompt 库
 
-在一个应用里管理四类资产，各自有专属工作区，并共享分类、标签、收藏、置顶：
-
-- **Prompt** — Markdown 正文，实时预览
-- **Skill** — `SKILL.md` 正文 + 附带文件，可导出 / 导入 / 一键安装
-- **Agent** — 系统提示 + 工具 / 模型元数据
-- **MCP** — `stdio` / `sse` / `http` 配置，可一键合并到本地 MCP 配置
+- Markdown 正文，实时预览，编辑自动保存并显示保存状态
+- 分类、标签、收藏、置顶
+- 最近使用 / 最常用视图
+- **导入已有的 `.md` / `.txt` 提示词**，支持 front-matter 的 `title` / `description` / `tags`，`{{变量}}` 自动识别
 
 ### 变量模板
 
@@ -46,7 +44,7 @@
 
 ### 命令面板（Ctrl/⌘ + K）
 
-跨全部资产快速搜索调用，支持拼音全拼与首字母匹配。增量索引（预计算检索键 + 按对象身份记忆化），大库依然流畅。`Enter` 复制，`⌘/Ctrl+Enter` 打开。
+跨全部 Prompt 快速搜索调用，支持拼音全拼与首字母匹配。增量索引（预计算检索键 + 按对象身份记忆化），大库依然流畅。`Enter` 复制（含变量则先弹填充框），`⌘/Ctrl+Enter` 在编辑器中打开。
 
 ### 版本历史与批量操作
 
@@ -57,13 +55,16 @@
 ### 云同步（可选）
 
 - 支持 **GitHub Gist / WebDAV / S3 兼容存储**
-- 多设备项目级合并，删除通过墓碑（tombstone）传播
+- 多设备项目级合并，删除通过墓碑（tombstone）传播，保留一年
+- 收藏 / 置顶 / 使用计数走独立时间戳，不会覆盖另一台设备上的正文修改
+- 对端设备时间明显偏快时会在同步结果里提示（合并按修改时间取新）
 - **端到端加密**（AES-256-GCM），口令经本机 `safeStorage` 加密保存，云端只存密文
 - 自动同步带防抖与失败指数退避，状态实时可见
 
 ### 数据安全
 
-- **自动备份**：定时快照（每 5 分钟）+ 退出前快照，最多保留 20 份
+- **回收站**：删除可恢复，保留 30 天后自动清理；彻底删除需二次确认
+- **自动备份**：定时快照（每 5 分钟）+ 退出前快照，最多保留 20 份；替换导入前强制备份
 - **损坏自愈**：数据文件损坏时自动隔离为 `promptbox.corrupt-*.json` 并从最近备份恢复，绝不静默清空
 - **原子写入 + 写盘失败弹窗提示**
 - 本地 JSON 存储，数据目录可在设置中更改；支持导入 / 导出（合并 / 替换）
@@ -73,22 +74,21 @@
 - Claude/Anthropic 暖色设计语言（羊皮纸底 + 陶土橙 + 衬线标题）
 - 浅色 / 深色 / 跟随系统，一套语义化 token 切换
 - 自定义无边框标题栏，更整洁的窗口外观
-- 全局热键唤起 + 托盘常驻
+- 全局热键唤起 + 托盘常驻（关闭窗口的行为可选：最小化到托盘 / 直接退出）
 
 ## 快捷键
 
 | 快捷键 | 功能 |
 | --- | --- |
-| `Ctrl/⌘ + K` | 命令面板（搜索全部资产） |
-| `Ctrl/⌘ + N` | 在当前工作区新建 |
-| `Ctrl/⌘ + D` | 复制当前条目 |
+| `Ctrl/⌘ + K` | 命令面板（搜索全部 Prompt） |
+| `Ctrl/⌘ + N` | 新建 Prompt |
+| `Ctrl/⌘ + D` | 为当前条目创建副本 |
 | `Ctrl/⌘ + S` | 立即保存 |
 | `Ctrl/⌘ + F` | 聚焦列表搜索 |
-| `Ctrl/⌘ + 1~4` | 切换 Prompts / Skill / Agent / MCP |
 | `Ctrl/⌘ + ,` | 打开设置 |
 | `Ctrl/⌘ + Z` | 编辑器撤销 / 重做 |
 | `↑ ↓ / Enter` | 列表选择 / 复制 |
-| `Esc` | 关闭弹窗 / 返回 |
+| `Esc` | 关闭弹窗 / 从设置·发现·回收站返回资产库 |
 
 ## 开发
 
@@ -128,7 +128,7 @@ GH_TOKEN="$(gh auth token)" npm run publish   # 只产出当前主机平台
 
 ```
 src/
-  shared/          # 主进程与渲染进程共享：类型、IPC 通道、变量解析、资产格式
+  shared/          # 主进程与渲染进程共享：类型、IPC 通道、变量解析、Markdown front-matter
   main/            # Electron 主进程
     store/
       repository.ts # 持久化：Repository 接口 + JSON 实现
@@ -143,7 +143,7 @@ src/
     store.ts       # zustand 全局状态
     searchIndex.ts # 增量搜索索引（字面 + 拼音）
     selectors.ts   # 过滤 / 排序 / 命令面板排序
-    components/    # Sidebar / PromptList / EditorPanel / CommandPalette / SettingsView 等
+    components/    # Sidebar / PromptList / EditorPanel / CommandPalette / TrashView / Modal 等
 ```
 
 ### 存储层可扩展性

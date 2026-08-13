@@ -193,6 +193,28 @@ body {
  * Distinguish tokens by color only. */
 .hl-overlay {
   color: var(--color-ink);
+  /* Both layers must reserve the same scrollbar gutter. The textarea scrolls
+   * (15px of gutter); the overlay did not, so it was wider, CJK lines wrapped
+   * at different points and the two layers drifted apart by whole lines in any
+   * document long enough to scroll. Give the overlay a permanent — but
+   * invisible — scrollbar so the two content boxes stay identical. */
+  overflow-y: scroll;
+}
+.hl-overlay::-webkit-scrollbar,
+.hl-overlay::-webkit-scrollbar-thumb,
+.hl-overlay::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* The textarea's own glyphs are `color: transparent` so the colored overlay
+ * shows through. Browsers ignore that for *selected* text — they repaint it in
+ * the selection foreground colour — so selecting anything rendered every line
+ * twice: once from the overlay, once from the textarea on top of it. Keep the
+ * glyphs transparent while selected and use a translucent band so the overlay
+ * underneath stays readable. */
+.hl-input::selection {
+  color: transparent;
+  background: color-mix(in srgb, var(--color-brand) 26%, transparent);
 }
 .hl-var {
   color: var(--color-brand);
@@ -205,6 +227,22 @@ body {
 }
 .hl-heading {
   color: var(--color-brand);
+}
+
+/* PRODUCT.md commits to a prefers-reduced-motion alternative for every bit of
+ * motion we add. The UI leans on Tailwind `transition` utilities plus a spinner
+ * (`animate-spin`); honour the OS setting globally rather than per-component so
+ * new components can't silently opt out. Durations are collapsed rather than
+ * removed so transition-dependent callbacks still fire. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Highlight {{variables}} inside rendered preview and inline. */
