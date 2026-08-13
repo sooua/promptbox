@@ -325,7 +325,7 @@ export function Sidebar(): React.JSX.Element {
                   }}
                   className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] transition ${
                     tagFilters.includes(tag)
-                      ? 'bg-brand text-on-brand'
+                      ? 'bg-brand-solid text-on-brand'
                       : 'bg-surface-2 text-muted hover:text-ink'
                   }`}
                 >
@@ -348,7 +348,7 @@ export function Sidebar(): React.JSX.Element {
           onClick={() => setView('discover')}
           className={`flex flex-1 items-center justify-center gap-2 px-3 py-3.5 text-sm transition ${
             view === 'discover'
-              ? 'font-medium text-brand'
+              ? 'font-medium text-brand-text'
               : 'text-muted hover:bg-surface-2 hover:text-ink'
           }`}
         >
@@ -359,7 +359,7 @@ export function Sidebar(): React.JSX.Element {
           onClick={() => setView('settings')}
           className={`flex flex-1 items-center justify-center gap-2 px-3 py-3.5 text-sm transition ${
             view === 'settings'
-              ? 'font-medium text-brand'
+              ? 'font-medium text-brand-text'
               : 'text-muted hover:bg-surface-2 hover:text-ink'
           }`}
         >
@@ -383,7 +383,7 @@ export function Sidebar(): React.JSX.Element {
           {(syncConnected || syncNeedsAttention) && (
             <span
               className={`absolute right-2.5 top-3 h-1.5 w-1.5 rounded-full ${
-                syncFailed ? 'bg-error' : 'bg-emerald-500'
+                syncFailed ? 'bg-error' : 'bg-success'
               }`}
             />
           )}
@@ -427,7 +427,7 @@ function NavItem({
       onClick={onClick}
       className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition ${
         active
-          ? 'bg-brand/12 font-medium text-brand'
+          ? 'bg-brand/12 font-medium text-brand-text'
           : 'text-muted hover:bg-surface-2 hover:text-ink'
       }`}
     >

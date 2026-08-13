@@ -36,8 +36,8 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                 onClick={() => setDiffId(diffId === v.id ? null : v.id)}
                 className={`flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[11px] transition ${
                   diffId === v.id
-                    ? 'border-brand text-brand'
-                    : 'border-line-strong text-muted hover:border-brand hover:text-brand'
+                    ? 'border-brand text-brand-text'
+                    : 'border-line-strong text-muted hover:border-brand hover:text-brand-text'
                 }`}
               >
                 <GitCompare size={11} />
@@ -49,7 +49,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                   await restoreVersion(prompt.id, v.id)
                   toast.success(t('已恢复到该版本'))
                 }}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted transition hover:border-brand hover:text-brand"
+                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted transition hover:border-brand hover:text-brand-text"
               >
                 <RotateCcw size={11} />
                 {t('恢复')}

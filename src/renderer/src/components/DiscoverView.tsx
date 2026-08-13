@@ -14,7 +14,7 @@ export function DiscoverView(): React.JSX.Element {
     <div className="flex flex-1 flex-col bg-canvas">
       <div className="border-b border-line px-8 py-7">
         <div className="flex items-center gap-2">
-          <Compass size={22} className="text-brand" />
+          <Compass size={22} className="text-brand-text" />
           <h1 className="font-serif text-[26px] leading-none text-ink">{t('发现')}</h1>
         </div>
       </div>
@@ -167,7 +167,7 @@ function PromptDiscover(): React.JSX.Element {
                   <button
                     onClick={() => void doImport(item)}
                     disabled={importing === item.id}
-                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand disabled:opacity-50"
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text disabled:opacity-50"
                   >
                     {importing === item.id ? (
                       <Loader2 size={13} className="animate-spin" />
@@ -202,7 +202,7 @@ function Disabled({ onEnable }: { onEnable(): void }): React.JSX.Element {
       </div>
       <button
         onClick={onEnable}
-        className="rounded-xl bg-brand px-4 py-2 text-sm text-on-brand transition hover:bg-brand-strong"
+        className="rounded-xl bg-brand-solid px-4 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover"
       >
         {t('开启联网')}
       </button>

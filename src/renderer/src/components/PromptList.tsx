@@ -183,7 +183,7 @@ export function PromptList(): React.JSX.Element {
         <button
           onClick={openPalette}
           title={t('快速调用 (Ctrl/⌘ + K)')}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line-strong bg-surface text-muted transition hover:text-brand hover:shadow-[0_0_0_1px_var(--color-ring)]"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-line-strong bg-surface text-muted transition hover:text-brand-text hover:shadow-[0_0_0_1px_var(--color-ring)]"
         >
           <Command size={16} />
         </button>
@@ -202,7 +202,7 @@ export function PromptList(): React.JSX.Element {
             <button
               key={t}
               onClick={() => toggleTagFilter(t)}
-              className="flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-brand"
+              className="flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-brand-text"
             >
               #{t}
               <X size={11} />
@@ -218,8 +218,8 @@ export function PromptList(): React.JSX.Element {
 
       {selected.size > 0 ? (
         <div className="mx-3 mb-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-brand/30 bg-brand/8 px-2.5 py-2 text-[11px]">
-          <span className="font-medium text-brand">{t('已选 {n} 项', { n: selected.size })}</span>
-          <button onClick={() => bulkSetFavorite(selectedIds, true)} className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand" title={t('收藏')}>
+          <span className="font-medium text-brand-text">{t('已选 {n} 项', { n: selected.size })}</span>
+          <button onClick={() => bulkSetFavorite(selectedIds, true)} className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand-text" title={t('收藏')}>
             <Star size={12} />
           </button>
           <select
@@ -249,14 +249,14 @@ export function PromptList(): React.JSX.Element {
               const tag = window.prompt(t('为所选项添加标签：'))
               if (tag) void bulkAddTag(selectedIds, tag).then(() => toast.success(t('已添加标签')))
             }}
-            className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand"
+            className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand-text"
             title={t('添加标签')}
           >
             <Tag size={12} />
           </button>
           <button
             onClick={exportSelected}
-            className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand"
+            className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand-text"
             title={t('导出所选')}
           >
             <Download size={12} />
@@ -291,7 +291,7 @@ export function PromptList(): React.JSX.Element {
                   setSearch('')
                   clearTagFilters()
                 }}
-                className="mt-3 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand"
+                className="mt-3 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand-text"
               >
                 {t('清除筛选条件')}
               </button>
@@ -300,13 +300,13 @@ export function PromptList(): React.JSX.Element {
             <>
               {t('这里还没有 Prompt。')}
               <br />
-              {t('点击')} <span className="text-brand">＋</span> {t('新建一个。')}
+              {t('点击')} <span className="text-brand-text">＋</span> {t('新建一个。')}
               {/* Cold start: most users already have .md prompts on disk, and
                   this screen is where they are when they realise it. */}
               <div className="mt-4">
                 <button
                   onClick={handleImportFiles}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand-text"
                 >
                   <Upload size={14} />
                   {t('从 Markdown 文件导入…')}
@@ -349,7 +349,7 @@ export function PromptList(): React.JSX.Element {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
                       {p.pinned && (
-                        <Pin size={11} className="shrink-0 -rotate-45 fill-brand text-brand" />
+                        <Pin size={11} className="shrink-0 -rotate-45 fill-brand text-brand-text" />
                       )}
                       <span className="truncate text-sm font-medium text-ink">{p.title}</span>
                     </div>
@@ -366,8 +366,8 @@ export function PromptList(): React.JSX.Element {
                       title={p.pinned ? t('取消置顶') : t('置顶')}
                       className={`rounded p-0.5 ${
                         p.pinned
-                          ? 'text-brand'
-                          : 'text-faint opacity-0 transition-opacity hover:text-brand focus-visible:opacity-100 group-hover:opacity-100'
+                          ? 'text-brand-text'
+                          : 'text-faint opacity-0 transition-opacity hover:text-brand-text focus-visible:opacity-100 group-hover:opacity-100'
                       }`}
                     >
                       <Pin size={14} className="-rotate-45" fill={p.pinned ? 'currentColor' : 'none'} />
@@ -380,8 +380,8 @@ export function PromptList(): React.JSX.Element {
                       title={p.favorite ? t('取消收藏') : t('收藏')}
                       className={`rounded p-0.5 ${
                         p.favorite
-                          ? 'text-brand'
-                          : 'text-faint opacity-0 transition-opacity hover:text-brand focus-visible:opacity-100 group-hover:opacity-100'
+                          ? 'text-brand-text'
+                          : 'text-faint opacity-0 transition-opacity hover:text-brand-text focus-visible:opacity-100 group-hover:opacity-100'
                       }`}
                     >
                       <Star size={15} fill={p.favorite ? 'currentColor' : 'none'} />
@@ -433,7 +433,7 @@ export function PromptList(): React.JSX.Element {
                     void quickCopy(p.id)
                   }}
                   title={t('复制内容')}
-                  className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-brand px-2 py-1 text-[10px] text-on-brand transition hover:bg-brand-strong group-hover:flex"
+                  className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-brand-solid px-2 py-1 text-[10px] text-on-brand transition hover:bg-brand-solid-hover group-hover:flex"
                 >
                   <Copy size={11} />
                   {t('复制')}

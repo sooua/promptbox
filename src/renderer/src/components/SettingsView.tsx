@@ -101,20 +101,25 @@ export function SettingsView(): React.JSX.Element {
 
   return (
     <div className="flex-1 overflow-y-auto bg-canvas">
-      <div className="mx-auto max-w-2xl px-8 py-10">
-        <h1 className="mb-7 font-serif text-[32px] leading-tight text-ink">{t('设置')}</h1>
+      <div className="mx-auto max-w-2xl px-8 pb-16 pt-12">
+        <h1 className="mb-10 font-serif text-[32px] leading-tight text-ink">{t('设置')}</h1>
 
-        {/* Appearance */}
+        {/* Appearance.
+            Control vocabulary rule for this page: up to three short options
+            (especially with an icon) get a segmented button group; anything
+            longer gets a <select>. Theme and language qualify; the hotkey list
+            and the close-behaviour labels do not. */}
         <Section title={t('外观')}>
           <Row label={t('主题')}>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="group" aria-label={t('主题')}>
               {themes.map((th) => (
                 <button
                   key={th.value}
                   onClick={() => setTheme(th.value)}
+                  aria-pressed={settings?.theme === th.value}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
                     settings?.theme === th.value
-                      ? 'border-brand/40 bg-brand/10 text-brand'
+                      ? 'border-brand/40 bg-brand/10 text-brand-text'
                       : 'border-line-strong text-muted hover:border-ring hover:text-ink'
                   }`}
                 >
@@ -125,14 +130,15 @@ export function SettingsView(): React.JSX.Element {
             </div>
           </Row>
           <Row label={t('语言')}>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="group" aria-label={t('语言')}>
               {languages.map((lng) => (
                 <button
                   key={lng.value}
                   onClick={() => setLanguage(lng.value)}
+                  aria-pressed={(settings?.language ?? 'zh') === lng.value}
                   className={`rounded-xl border px-3 py-1.5 text-sm transition ${
                     (settings?.language ?? 'zh') === lng.value
-                      ? 'border-brand/40 bg-brand/10 text-brand'
+                      ? 'border-brand/40 bg-brand/10 text-brand-text'
                       : 'border-line-strong text-muted hover:border-ring hover:text-ink'
                   }`}
                 >
@@ -145,8 +151,13 @@ export function SettingsView(): React.JSX.Element {
 
         {/* Quick launch */}
         <Section title={t('快速调用')}>
-          <Row label={t('全局热键')} description={t('在任意应用中唤起命令面板，托盘后台运行时也生效')}>
+          <Row
+            label={t('全局热键')}
+            description={t('在任意应用中唤起命令面板，托盘后台运行时也生效')}
+            controlId="set-hotkey"
+          >
             <select
+              id="set-hotkey"
               value={settings?.globalHotkey ?? ''}
               onChange={(e) => handleHotkey(e.target.value)}
               className="rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-focus"
@@ -165,16 +176,18 @@ export function SettingsView(): React.JSX.Element {
           <Row
             label={t('代理')}
             description={t('留空跟随系统；direct 为直连；或填 http:// 、socks5:// 地址')}
+            controlId="set-proxy"
           >
-            <ProxyInput value={settings?.proxy ?? ''} onSave={(v) => void setProxy(v)} />
+            <ProxyInput id="set-proxy" value={settings?.proxy ?? ''} onSave={(v) => void setProxy(v)} />
           </Row>
           <Row
-            label={t('允许联网获取市场内容')}
+            label={t('允许联网获取发现内容')}
             description={t('仅在打开发现页时请求，不会后台联网')}
           >
             <Toggle
               checked={settings?.marketEnabled ?? true}
               onChange={(v) => void setMarket(v)}
+              label={t('允许联网获取发现内容')}
             />
           </Row>
         </Section>
@@ -183,7 +196,7 @@ export function SettingsView(): React.JSX.Element {
         <Section title={t('发现来源')}>
           <div className="mb-2 text-xs font-medium text-muted">{t('自定义 Prompt 源')}</div>
           <p className="mb-3 text-xs text-faint">
-            {t('内置中英各一个推荐合集；可添加指向 CSV / JSON 文件的原始链接（act,prompt 列或 {act,prompt} 数组）。')}
+            {t('已内置 10 个公开合集；可再添加指向 CSV / JSON 文件的原始链接（act,prompt 列或 {act,prompt} 数组）。')}
           </p>
           <PromptSources
             sources={settings?.promptSources ?? []}
@@ -223,7 +236,9 @@ export function SettingsView(): React.JSX.Element {
           </div>
           <div className="mt-3 border-t border-line pt-3">
             <p className="mb-2 text-xs text-faint">
-              {t('已有的 .md / .txt 提示词可直接导入，支持 YAML front-matter 的 title / description / tags。')}
+              {/* The parser reads `key: value` lines, not YAML — calling it YAML
+                  promised nested structures and anchors that silently fail. */}
+              {t('已有的 .md / .txt 提示词可直接导入，支持 front-matter 的 title / description / tags。')}
             </p>
             <ActionButton icon={<FileText size={15} />} onClick={handleImportFiles}>
               {t('从 Markdown 文件导入…')}
@@ -233,8 +248,10 @@ export function SettingsView(): React.JSX.Element {
 
         {/* Shortcuts */}
         <Section title={t('快捷键')}>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-            <ShortcutRow keys="⌘/Ctrl + K" label={t('命令面板(搜索全部 Prompt)')} />
+          {/* Two columns only once there is room: at the narrow end the label
+              and the key cap were colliding inside a 50% column. */}
+          <div className="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+            <ShortcutRow keys="⌘/Ctrl + K" label={t('命令面板（搜索全部 Prompt）')} />
             <ShortcutRow keys="⌘/Ctrl + N" label={t('新建 Prompt')} />
             <ShortcutRow keys="⌘/Ctrl + D" label={t('为当前条目创建副本')} />
             <ShortcutRow keys="⌘/Ctrl + S" label={t('立即保存')} />
@@ -260,8 +277,10 @@ export function SettingsView(): React.JSX.Element {
           <Row
             label={t('关闭窗口时')}
             description={t('最小化到托盘可让全局热键继续生效')}
+            controlId="set-close-action"
           >
             <select
+              id="set-close-action"
               value={settings?.closeAction ?? 'ask'}
               onChange={(e) => void setCloseAction(e.target.value as CloseAction)}
               className="rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-focus"
@@ -347,7 +366,7 @@ function UpdateRow(): React.JSX.Element {
       {st === 'downloaded' ? (
         <button
           onClick={() => void installUpdate()}
-          className="flex items-center gap-1.5 rounded-xl bg-brand px-3 py-1.5 text-sm text-on-brand transition hover:bg-brand-strong"
+          className="flex items-center gap-1.5 rounded-xl bg-brand-solid px-3 py-1.5 text-sm text-on-brand transition hover:bg-brand-solid-hover"
         >
           <Download size={15} />
           {t('重启安装')}
@@ -437,7 +456,7 @@ function BackupSection(): React.JSX.Element {
               </div>
               <button
                 onClick={() => handleRestore(b)}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand"
+                className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text"
               >
                 <RotateCcw size={12} />
                 {t('恢复')}
@@ -548,9 +567,11 @@ function PromptSources({
 
 
 function ProxyInput({
+  id,
   value,
   onSave
 }: {
+  id: string
   value: string
   onSave(v: string): void
 }): React.JSX.Element {
@@ -563,35 +584,43 @@ function ProxyInput({
   }
   return (
     <input
+      id={id}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
       onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
       placeholder={t('http://127.0.0.1:7890')}
       spellCheck={false}
-      className="w-64 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
+      // Fixed 16rem overflowed the row in a narrow window; cap instead.
+      className="w-full max-w-64 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
     />
   )
 }
 
 function Toggle({
   checked,
-  onChange
+  onChange,
+  label
 }: {
   checked: boolean
   onChange(v: boolean): void
+  /** The switch has no text of its own; without this it is announced unnamed. */
+  label: string
 }): React.JSX.Element {
   return (
     <button
       role="switch"
       aria-checked={checked}
+      aria-label={label}
       onClick={() => onChange(!checked)}
       className={`relative h-5 w-9 shrink-0 rounded-full transition ${
         checked ? 'bg-brand' : 'bg-surface-2'
       }`}
     >
+      {/* `bg-on-brand` rather than a hard-coded white: it is the token that
+          means "sits on the terracotta fill" and it holds in both themes. */}
       <span
-        className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-all ${
+        className={`absolute top-0.5 h-4 w-4 rounded-full bg-on-brand shadow-sm transition-all ${
           checked ? 'left-[18px]' : 'left-0.5'
         }`}
       />
@@ -618,26 +647,44 @@ function Section({
   children: React.ReactNode
 }): React.JSX.Element {
   return (
-    <section className="mb-7 rounded-2xl border border-line-strong bg-surface p-6">
-      <h2 className="mb-3 font-serif text-[20px] text-ink">{title}</h2>
+    // Eight identically-boxed cards in a column made the chrome the loudest
+    // thing on the page while telling the reader nothing — every section got
+    // the same border whether it held one toggle or a whole list. A hairline
+    // rule and real whitespace separate them just as clearly, and the boxes
+    // that remain (the update banner, a snapshot row, an input) now mean
+    // "this is an object you can act on" instead of "this is a section".
+    <section className="mb-10 border-t border-line-strong pt-8 first:mt-0 first:border-0 first:pt-0 last:mb-0">
+      <h2 className="mb-4 font-serif text-[20px] text-ink">{title}</h2>
       {children}
     </section>
   )
 }
 
+/**
+ * `controlId` ties the visible label to the control with a real `<label>`, so
+ * screen readers announce it and clicking the text focuses the input. Without
+ * it every select on this page was announced as a bare "combobox".
+ */
 function Row({
   label,
   description,
+  controlId,
   children
 }: {
   label: string
   description?: string
+  controlId?: string
   children: React.ReactNode
 }): React.JSX.Element {
+  const Label = controlId ? 'label' : 'div'
   return (
-    <div className="flex items-center justify-between gap-4 py-1.5">
-      <div>
-        <div className="text-sm text-ink">{label}</div>
+    // Wraps rather than overflowing: the label plus a 256px input does not fit
+    // a narrow window side by side.
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-1.5">
+      <div className="min-w-0">
+        <Label htmlFor={controlId} className="block text-sm text-ink">
+          {label}
+        </Label>
         {description && <div className="text-xs text-faint">{description}</div>}
       </div>
       {children}

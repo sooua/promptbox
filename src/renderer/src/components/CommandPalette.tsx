@@ -123,7 +123,7 @@ export function CommandPalette(): React.JSX.Element {
                     <div className="flex items-center gap-2">
                       <span className="truncate text-sm font-medium text-ink">{entry.title}</span>
                       {varCount > 0 && (
-                        <span className="flex shrink-0 items-center gap-0.5 rounded-md bg-brand/15 px-1.5 text-[10px] text-brand">
+                        <span className="flex shrink-0 items-center gap-0.5 rounded-md bg-brand/15 px-1.5 text-[10px] text-brand-text">
                           <Wand2 size={9} />
                           {varCount}
                         </span>
@@ -131,7 +131,7 @@ export function CommandPalette(): React.JSX.Element {
                     </div>
                     <div className="truncate text-xs text-faint">{subtitle}</div>
                   </div>
-                  {i === active && <CornerDownLeft size={14} className="shrink-0 text-brand" />}
+                  {i === active && <CornerDownLeft size={14} className="shrink-0 text-brand-text" />}
                 </button>
               )
             })

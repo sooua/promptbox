@@ -21,8 +21,8 @@ export function DiffView({
   return (
     <div>
       <div className="mb-1 flex items-center gap-2 text-[10px] text-faint">
-        <span className="text-emerald-600">+{stat.added}</span>
-        <span className="text-rose-500">−{stat.removed}</span>
+        <span className="text-success">+{stat.added}</span>
+        <span className="text-error">−{stat.removed}</span>
         <span>{t('相对当前内容')}</span>
       </div>
       <pre className="max-h-48 overflow-auto rounded-lg border border-line bg-canvas p-2 font-mono text-[11px] leading-relaxed">
@@ -31,9 +31,9 @@ export function DiffView({
             key={i}
             className={
               op.type === 'add'
-                ? 'bg-emerald-500/10 text-emerald-700'
+                ? 'bg-success/10 text-success'
                 : op.type === 'del'
-                  ? 'bg-rose-500/10 text-rose-600'
+                  ? 'bg-error/10 text-error'
                   : 'text-muted'
             }
           >

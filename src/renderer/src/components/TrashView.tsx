@@ -59,7 +59,7 @@ export function TrashView(): React.JSX.Element {
     <div className="flex-1 overflow-y-auto bg-canvas">
       <div className="mx-auto max-w-2xl px-8 py-10">
         <div className="mb-2 flex items-center gap-2">
-          <Trash2 size={22} className="text-brand" />
+          <Trash2 size={22} className="text-brand-text" />
           <h1 className="font-serif text-[32px] leading-tight text-ink">{t('回收站')}</h1>
         </div>
         <p className="mb-6 text-xs text-faint">
@@ -80,7 +80,7 @@ export function TrashView(): React.JSX.Element {
                     cheaper one. */}
                 <button
                   onClick={handleRestoreAll}
-                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand"
+                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text"
                 >
                   {t('全部恢复')}
                 </button>
@@ -115,7 +115,7 @@ export function TrashView(): React.JSX.Element {
                   </div>
                   <button
                     onClick={() => void handleRestore(p.id, p.title)}
-                    className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand"
+                    className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text"
                   >
                     <RotateCcw size={12} />
                     {t('恢复')}

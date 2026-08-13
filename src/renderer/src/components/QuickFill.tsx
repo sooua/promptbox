@@ -80,7 +80,7 @@ export function QuickFill(): React.JSX.Element | null {
     >
       <div className="flex min-h-0 flex-1 flex-col" onKeyDown={onKeyDown}>
         <div className="flex items-center gap-2 border-b border-line px-5 py-3.5">
-          <Wand2 size={16} className="text-brand" />
+          <Wand2 size={16} className="text-brand-text" />
           <div className="min-w-0 flex-1">
             <div className="truncate font-serif text-[17px] text-ink">{prompt.title}</div>
             <div className="text-[11px] text-faint">{t('填充变量后复制')} · {t('{n} 个变量', { n: prompt.variables.length })}</div>
@@ -131,7 +131,7 @@ export function QuickFill(): React.JSX.Element | null {
           <span className="ml-auto text-[11px] text-faint">⌘/Ctrl + Enter</span>
           <button
             onClick={copyFilled}
-            className="flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-1.5 text-sm text-on-brand transition hover:bg-brand-strong"
+            className="flex items-center gap-1.5 rounded-xl bg-brand-solid px-3.5 py-1.5 text-sm text-on-brand transition hover:bg-brand-solid-hover"
           >
             <Copy size={14} />
             {t('复制填充结果')}

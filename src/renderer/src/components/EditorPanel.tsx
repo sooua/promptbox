@@ -261,7 +261,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
         >
           {t('变量')}
           {prompt.variables.length > 0 && (
-            <span className="ml-1 rounded-full bg-brand/15 px-1.5 text-[10px] text-brand">
+            <span className="ml-1 rounded-full bg-brand/15 px-1.5 text-[10px] text-brand-text">
               {prompt.variables.length}
             </span>
           )}
@@ -325,7 +325,7 @@ function ToolbarButton({
       onClick={onClick}
       className={`rounded-lg p-2 transition ${
         active
-          ? 'text-brand'
+          ? 'text-brand-text'
           : danger
             ? 'text-faint hover:bg-error/10 hover:text-error'
             : 'text-faint hover:bg-surface-2 hover:text-ink'
@@ -352,7 +352,7 @@ function TabButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition ${
         active
-          ? 'border-brand font-medium text-brand'
+          ? 'border-brand font-medium text-brand-text'
           : 'border-transparent text-muted hover:text-ink'
       }`}
     >

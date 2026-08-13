@@ -328,7 +328,7 @@ export function HighlightedEditor({
                   }}
                   onMouseEnter={() => setSuggest({ ...suggest, active: i })}
                   className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs ${
-                    i === suggest.active ? 'bg-brand/12 text-brand' : 'text-ink hover:bg-surface-2'
+                    i === suggest.active ? 'bg-brand/12 text-brand-text' : 'text-ink hover:bg-surface-2'
                   }`}
                 >
                   <code className="var-chip">{`{{${name}}}`}</code>
@@ -347,7 +347,7 @@ export function HighlightedEditor({
         <button
           onClick={insertVariable}
           title={t('插入变量 {{ }}')}
-          className="ml-auto flex items-center gap-1 rounded-md border border-line-strong px-2 py-0.5 text-muted transition hover:border-brand hover:text-brand"
+          className="ml-auto flex items-center gap-1 rounded-md border border-line-strong px-2 py-0.5 text-muted transition hover:border-brand hover:text-brand-text"
         >
           <Braces size={12} />
           {t('插入变量')}

@@ -370,6 +370,12 @@ export const en: Record<string, string> = {
   '已永久删除': 'Deleted permanently',
   '已永久删除 {n} 条': 'Permanently deleted {n} prompts',
   '已恢复': 'Restored',
+  '允许联网获取发现内容': 'Allow network access for Discover',
+  '命令面板（搜索全部 Prompt）': 'Command palette (search all prompts)',
+  '已内置 10 个公开合集；可再添加指向 CSV / JSON 文件的原始链接（act,prompt 列或 {act,prompt} 数组）。':
+    'Ten public collections are built in; you can add raw links to CSV / JSON files (act,prompt columns or an {act,prompt} array).',
+  '已有的 .md / .txt 提示词可直接导入，支持 front-matter 的 title / description / tags。':
+    'Import existing .md / .txt prompts directly; front-matter title / description / tags are read.',
   '显示全部 {n} 份快照': 'Show all {n} snapshots',
   '收起': 'Collapse',
   '退出 PromptBox': 'Quit PromptBox',

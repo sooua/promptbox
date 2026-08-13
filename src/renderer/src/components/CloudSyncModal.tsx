@@ -183,7 +183,7 @@ export function CloudSyncModal(): React.JSX.Element {
                           <span className="font-medium text-ink">{prov.name}</span>
                           <span
                             className={`inline-block h-2 w-2 rounded-full ${
-                              connected ? 'bg-emerald-500' : 'bg-faint/50'
+                              connected ? 'bg-success' : 'bg-faint/50'
                             }`}
                           />
                         </div>
@@ -229,7 +229,7 @@ export function CloudSyncModal(): React.JSX.Element {
                       ) : prov.available ? (
                         <button
                           onClick={() => setConnectingId(isConnecting ? null : prov.id)}
-                          className="flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm text-on-brand transition hover:bg-brand-strong"
+                          className="flex items-center gap-1.5 rounded-xl bg-brand-solid px-3.5 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover"
                         >
                           <Cloud size={15} />
                           {t('连接')}
@@ -300,7 +300,7 @@ export function CloudSyncModal(): React.JSX.Element {
                               <button
                                 onClick={applyEncryption}
                                 disabled={!passphrase.trim() || passMismatch || !passphrase2}
-                                className="rounded-xl bg-brand px-3 py-2 text-sm text-on-brand transition hover:bg-brand-strong disabled:opacity-40"
+                                className="rounded-xl bg-brand-solid px-3 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover disabled:opacity-40"
                               >
                                 {t('启用')}
                               </button>
@@ -454,7 +454,7 @@ function ConnectBtn({ onClick, full }: { onClick(): void; full?: boolean }): Rea
   return (
     <button
       onClick={onClick}
-      className={`rounded-xl bg-brand px-3 py-2 text-sm text-on-brand transition hover:bg-brand-strong ${
+      className={`rounded-xl bg-brand-solid px-3 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover ${
         full ? 'w-full' : ''
       }`}
     >
@@ -464,7 +464,7 @@ function ConnectBtn({ onClick, full }: { onClick(): void; full?: boolean }): Rea
 }
 function LinkBtn({ onClick, children }: { onClick(): void; children: React.ReactNode }): React.JSX.Element {
   return (
-    <button onClick={onClick} className="mt-2 text-xs text-brand underline">
+    <button onClick={onClick} className="mt-2 text-xs text-brand-text underline">
       {children}
     </button>
   )
@@ -495,7 +495,7 @@ function StatusPanel(): React.JSX.Element {
             status === 'error'
               ? 'bg-error/12 text-error'
               : status === 'conflict'
-                ? 'bg-brand/15 text-brand'
+                ? 'bg-brand/15 text-brand-text'
                 : 'bg-surface-2 text-muted'
           }`}
         >
@@ -554,7 +554,7 @@ function HistoryPanel({
               <button
                 onClick={() => onRestore(v)}
                 disabled={busy}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand disabled:opacity-50"
+                className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text disabled:opacity-50"
               >
                 <RotateCcw size={12} />
                 {t('恢复')}
@@ -637,7 +637,7 @@ function Switch({
       }`}
     >
       <span
-        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-all ${
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-on-brand shadow-sm transition-all ${
           checked ? 'left-[22px]' : 'left-0.5'
         }`}
       />

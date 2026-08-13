@@ -46,7 +46,7 @@ export const toast = {
 }
 
 const icons = {
-  success: <CheckCircle2 size={16} className="text-brand" />,
+  success: <CheckCircle2 size={16} className="text-brand-text" />,
   error: <XCircle size={16} className="text-error" />,
   info: <Info size={16} className="text-muted" />
 }
@@ -76,7 +76,7 @@ export function ToastHost(): React.JSX.Element {
                 t.action!.onClick()
                 dismiss(t.id)
               }}
-              className="ml-1 flex items-center gap-1 rounded-md bg-brand px-2 py-0.5 text-xs text-on-brand transition hover:bg-brand-strong"
+              className="ml-1 flex items-center gap-1 rounded-md bg-brand-solid px-2 py-0.5 text-xs text-on-brand transition hover:bg-brand-solid-hover"
             >
               <Undo2 size={12} />
               {t.action.label}

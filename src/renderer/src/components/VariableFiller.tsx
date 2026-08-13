@@ -93,7 +93,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
             <button
               onClick={() => setEditing(editing === v.name ? null : v.name)}
               title={t('变量设置')}
-              className={`rounded p-0.5 ${editing === v.name ? 'text-brand' : 'text-faint hover:text-ink'}`}
+              className={`rounded p-0.5 ${editing === v.name ? 'text-brand-text' : 'text-faint hover:text-ink'}`}
             >
               <Settings2 size={13} />
             </button>
@@ -119,7 +119,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
           <span className="text-xs font-medium text-muted">{t('预览结果')}</span>
           <button
             onClick={copyResolved}
-            className="flex items-center gap-1 rounded-lg bg-brand px-2.5 py-1 text-xs text-on-brand transition hover:bg-brand-strong"
+            className="flex items-center gap-1 rounded-lg bg-brand-solid px-2.5 py-1 text-xs text-on-brand transition hover:bg-brand-solid-hover"
           >
             <Copy size={12} />
             {t('复制结果')}
@@ -150,7 +150,7 @@ function AddVariable({ onAdd }: { onAdd(name: string): boolean }): React.JSX.Ele
       />
       <button
         onClick={submit}
-        className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs text-muted transition hover:border-brand hover:text-brand"
+        className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs text-muted transition hover:border-brand hover:text-brand-text"
       >
         <Plus size={13} />
         {t('新建变量')}
