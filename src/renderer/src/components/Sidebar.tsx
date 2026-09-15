@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { Category, StageId } from '@shared/types'
 import { STAGES, STAGE_COLORS } from '@shared/types'
+import { moveStep } from '@shared/steps'
 import { useStore, type CategoryFilter } from '../store'
 import { stepsOf } from '../selectors'
 import { toast } from './Toast'
@@ -97,23 +98,15 @@ export function Sidebar(): React.JSX.Element {
    * way to move a pre-route category with all its prompts onto the route at once.
    */
   async function handleDrop(target: Category | StageId | null) {
+    const move = dragId ? moveStep(categories, dragId, target) : null
     const from = categories.find((c) => c.id === dragId)
     setDragId(null)
     setOverId(null)
-    if (!from) return
-    const stage = typeof target === 'object' && target ? (target.stage ?? null) : target
-    const ids = categories.map((c) => c.id).filter((id) => id !== from.id)
-    if (typeof target === 'object' && target) {
-      if (target.id === from.id) return
-      ids.splice(ids.indexOf(target.id), 0, from.id)
-    } else {
-      const last = stepsOf(categories, stage).filter((c) => c.id !== from.id).at(-1)
-      ids.splice(last ? ids.indexOf(last.id) + 1 : ids.length, 0, from.id)
+    if (!move || !from) return
+    if ((from.stage ?? null) !== move.stage) {
+      await updateCategory(from.id, { stage: move.stage, color: move.stage ? STAGE_COLORS[move.stage] : undefined })
     }
-    if ((from.stage ?? null) !== stage) {
-      await updateCategory(from.id, { stage, color: stage ? STAGE_COLORS[stage] : undefined })
-    }
-    await reorderCategories(ids)
+    await reorderCategories(move.ids)
   }
 
   async function handleDelete(c: Category) {
