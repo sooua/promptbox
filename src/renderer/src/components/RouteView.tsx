@@ -47,6 +47,14 @@ export function RouteView(): React.JSX.Element {
 
   const idx = cur ? steps.indexOf(cur) : -1
   const stage = cur ? STAGES.find((s) => s.id === cur.stage)! : null
+  const prompt = cur ? routePrompt(prompts, cur.id, route.track) : undefined
+  // The one input of the step lives here so the prompt pane can show it filled in.
+  const [values, setValues] = useState<Record<string, string>>({})
+  useEffect(() => {
+    const init: Record<string, string> = {}
+    for (const v of prompt?.variables ?? []) init[v.name] = initialValue(v)
+    setValues(init)
+  }, [prompt?.id])
   const isLast = idx === steps.length - 1
   const buildSteps = steps.filter((s) => s.stage === 'build')
   const loopEnd = !!stage?.loop && cur === buildSteps[buildSteps.length - 1]
@@ -120,7 +128,9 @@ export function RouteView(): React.JSX.Element {
               index={idx}
               total={steps.length}
               flow={route.flow}
-              prompt={routePrompt(prompts, cur.id, route.track)}
+              prompt={prompt}
+              values={values}
+              setValues={setValues}
               isDone={done.has(cur.id)}
               isLast={isLast}
               loopEnd={loopEnd}
@@ -128,7 +138,7 @@ export function RouteView(): React.JSX.Element {
               onFinish={finish}
               onAgain={again}
             />
-            <PromptPane prompt={routePrompt(prompts, cur.id, route.track)} />
+            <PromptPane prompt={prompt} values={values} />
             </div>
           </div>
         </div>
@@ -201,10 +211,13 @@ function StageStepper({
 }
 
 /** The prompt the copy button will put on the clipboard, always in view beside the card. */
-function PromptPane({ prompt }: { prompt: Prompt | undefined }): React.JSX.Element | null {
+function PromptPane({ prompt, values }: { prompt: Prompt | undefined; values: Record<string, string> }): React.JSX.Element | null {
   const t = useT()
   const select = useStore((s) => s.select)
   if (!prompt) return null
+  // Split around {{var}} so what the user typed is highlighted in place; an
+  // empty field keeps the placeholder so they can see where their words go.
+  const parts = prompt.content.split(/(\{\{\s*[\p{L}\p{N}_.-]+\s*(?:\|[^}]*)?\}\})/u)
   return (
     <Frame className="route-card-in md:sticky md:top-0" spacing="sm">
       <FramePanel className="flex flex-col gap-2.5">
@@ -216,7 +229,16 @@ function PromptPane({ prompt }: { prompt: Prompt | undefined }): React.JSX.Eleme
           </Button>
         </div>
         <pre className="max-h-[60vh] overflow-auto rounded-lg bg-background px-3.5 py-3 font-mono text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
-          {prompt.content}
+          {parts.map((part, i) => {
+            const m = /^\{\{\s*([\p{L}\p{N}_.-]+)/u.exec(part)
+            if (!m) return part
+            const v = values[m[1]]?.trim()
+            return (
+              <mark key={i} className={`rounded px-1 ${v ? 'bg-primary/15 text-foreground' : 'bg-muted text-muted-foreground'}`}>
+                {v || part}
+              </mark>
+            )
+          })}
         </pre>
       </FramePanel>
     </Frame>
@@ -230,6 +252,8 @@ function StepCard({
   total,
   flow,
   prompt,
+  values,
+  setValues,
   isDone,
   isLast,
   loopEnd,
@@ -243,6 +267,8 @@ function StepCard({
   total: number
   flow: Flow
   prompt: Prompt | undefined
+  values: Record<string, string>
+  setValues: React.Dispatch<React.SetStateAction<Record<string, string>>>
   isDone: boolean
   isLast: boolean
   loopEnd: boolean
@@ -254,11 +280,6 @@ function StepCard({
   const copyResolvedAndUse = useStore((s) => s.copyResolvedAndUse)
   const rememberVarValues = useStore((s) => s.rememberVarValues)
 
-  const [values, setValues] = useState<Record<string, string>>(() => {
-    const init: Record<string, string> = {}
-    for (const v of prompt?.variables ?? []) init[v.name] = initialValue(v)
-    return init
-  })
   const [showErrors, setShowErrors] = useState(false)
   // Shown on the very first step until the user has copied once: a beginner
   // has no project folder yet and doesn't know where the text goes.
