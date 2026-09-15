@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain, shell } from 'electron'
+import { BrowserWindow, dialog, ipcMain, nativeTheme, shell } from 'electron'
 import { writeFileSync, readFileSync } from 'fs'
 import { basename } from 'path'
 import { IPC } from '@shared/ipc'
@@ -97,6 +97,8 @@ export function registerIpc(repo: Repository, backup: BackupManager): void {
 
   ipcMain.handle(IPC.settingsSetTheme, (_e, theme: ThemeMode) => {
     const current = loadSettings()
+    // Drives nativeTheme so the window-control overlay recolours ('updated' fires).
+    nativeTheme.themeSource = theme
     return saveSettings({ ...current, theme, dataDir: repo.getDataDir() })
   })
 
