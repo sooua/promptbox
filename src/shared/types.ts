@@ -89,11 +89,11 @@ export interface TrackInfo {
 }
 
 export const TRACKS: TrackInfo[] = [
-  { id: 'web', name: '网站 / Web 应用', desc: '有页面、有账号、部署到服务器' },
-  { id: 'cli', name: '命令行工具', desc: '在终端里跑的小工具，发到 npm 或打成二进制' },
-  { id: 'desk', name: '桌面应用', desc: 'Windows / macOS 窗口程序，要打包和自动更新' },
-  { id: 'mobile', name: '手机 App', desc: 'iOS / Android，要上架商店' },
-  { id: 'other', name: '其他', desc: '脚本、插件、库……走通用路线' }
+  { id: 'web', name: '网站 / Web 应用', desc: '有页面，能上线' },
+  { id: 'cli', name: '命令行工具', desc: '终端里跑的工具' },
+  { id: 'desk', name: '桌面应用', desc: '装在电脑上用' },
+  { id: 'mobile', name: '手机 App', desc: '上架应用商店' },
+  { id: 'other', name: '其他', desc: '脚本、插件、库' }
 ]
 
 /**
