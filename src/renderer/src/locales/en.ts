@@ -337,7 +337,7 @@ export const en: Record<string, string> = {
   '继续上次（第 {n} 步）': 'Continue (step {n})',
   '重新开始': 'Start over',
   '开始': 'Start',
-  '网站 / Web 应用': 'Website / web app',
+  '网站、Web 应用': 'Website / web app',
   '命令行工具': 'Command-line tool',
   '桌面应用': 'Desktop app',
   '手机 App': 'Mobile app',
@@ -345,6 +345,7 @@ export const en: Record<string, string> = {
   // ---- Route ----
   '回到路线': 'Back to route',
   '上一步': 'Back',
+  '从零开发': 'From scratch',
   '第一次用？三步': 'First time? Three steps',
   '打开': 'Open',
   '关闭': 'Close',

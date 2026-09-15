@@ -78,9 +78,9 @@ function createWindow(): BrowserWindow {
     titleBarStyle: 'hidden',
     titleBarOverlay: { ...overlayColors(), height: TITLEBAR_HEIGHT },
     // macOS keeps its traffic lights even with a hidden title bar. Pin them so
-    // they sit centered in the 56px sidebar brand row instead of drifting into
+    // they sit centered in the 40px sidebar brand row instead of drifting into
     // the logo/wordmark (the sidebar reserves the matching left inset).
-    trafficLightPosition: { x: 16, y: 21 },
+    trafficLightPosition: { x: 16, y: 12 },
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       sandbox: false,

@@ -34,7 +34,7 @@ export function QuickPrefs({ inline }: { inline?: boolean }): React.JSX.Element 
         <Button
           key={value}
           variant={theme === value ? 'secondary' : 'ghost'}
-          size="icon-sm"
+          size="icon-xs"
           title={t(label)}
           aria-pressed={theme === value}
           onClick={() => void setTheme(value)}
@@ -45,7 +45,7 @@ export function QuickPrefs({ inline }: { inline?: boolean }): React.JSX.Element 
       <span className="mx-0.5 h-4 w-px bg-border" />
       <Button
         variant="ghost"
-        size="sm"
+        size="xs"
         className="px-2 text-xs"
         title={t('语言')}
         onClick={() => void setLanguage(lang === 'zh' ? 'en' : 'zh')}

@@ -88,7 +88,7 @@ export interface TrackInfo {
 }
 
 export const TRACKS: TrackInfo[] = [
-  { id: 'web', name: '网站 / Web 应用' },
+  { id: 'web', name: '网站、Web 应用' },
   { id: 'cli', name: '命令行工具' },
   { id: 'desk', name: '桌面应用' },
   { id: 'mobile', name: '手机 App' },

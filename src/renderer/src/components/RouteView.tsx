@@ -71,15 +71,16 @@ export function RouteView(): React.JSX.Element {
   return (
     <div className="flex min-w-0 flex-1 flex-col bg-background">
       <header
-        className={`app-drag flex h-14 shrink-0 items-center gap-3 border-b border-border ${
+        className={`app-drag flex h-10 shrink-0 items-center gap-3 border-b border-border ${
           isMac ? 'pl-[78px] pr-4' : 'pl-5 pr-[150px]'
         }`}
       >
-        <div className="min-w-0">
-          <div className="text-[15px] font-semibold leading-tight tracking-tight text-foreground">PromptBox</div>
-          <div className="truncate text-[11px] leading-tight text-muted-foreground">
-            {t(track.name)}，{route.flow === 'fresh' ? t('从零开始') : t('已有代码')}
-          </div>
+        <div className="flex min-w-0 items-center gap-3 text-sm">
+          <span className="font-semibold tracking-tight text-foreground">PromptBox</span>
+          <span className="h-4 w-px bg-border" aria-hidden />
+          <span className="truncate text-muted-foreground">
+            {t(track.name)}，{route.flow === 'fresh' ? t('从零开发') : t('已有代码')}
+          </span>
         </div>
         <div className="ml-auto flex items-center gap-1">
           <Button variant="ghost" size="sm" onClick={() => setView('choose')}>
@@ -107,11 +108,10 @@ export function RouteView(): React.JSX.Element {
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <div className="mx-auto w-full max-w-[720px] shrink-0 px-6 pt-8">
+          <div className="mx-auto w-full max-w-[720px] shrink-0 px-6 pt-7">
             <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
           </div>
-          {/* Stepper stays pinned at the top; only the cards centre in what's left (top-anchored scroll when they don't fit). */}
-          <div className="mx-auto my-auto flex w-full max-w-[1120px] flex-col px-6 py-8">
+          <div className="mx-auto flex w-full max-w-[1120px] flex-col px-6 pt-6 pb-8">
             <div className="grid items-start gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <StepCard
               key={cur.id + (route.track ?? '')}

@@ -8,7 +8,7 @@ const isMac = window.api.platform === 'darwin'
 export function TitleBar({ plain, children }: { plain?: boolean; children?: React.ReactNode }): React.JSX.Element {
   return (
     <div
-      className={`app-drag flex h-14 shrink-0 items-center justify-end bg-background ${isMac ? 'pr-4' : 'pr-[150px]'} ${
+      className={`app-drag flex h-10 shrink-0 items-center justify-end bg-background ${isMac ? 'pr-4' : 'pr-[150px]'} ${
         plain ? '' : 'border-b border-border'
       }`}
     >
