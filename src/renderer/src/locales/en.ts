@@ -327,7 +327,7 @@ export const en: Record<string, string> = {
   // ---- Choose (first screen) ----
   '开始之前，只问一个问题': 'Before you start, one question',
   '你要做的是什么？': 'What are you building?',
-  '选一个，后面的每一步都为它准备好了。不用再挑 Prompt。': 'Pick one. Every step after this is prepared for it — no prompt-hunting.',
+  '选一个，后面的每一步都为它准备好了。不用再挑 Prompt。': 'Pick one. Every step after this is prepared for it, no prompt-hunting.',
   '项目类型': 'Project type',
   '起点': 'Starting point',
   '从零开始': 'From scratch',

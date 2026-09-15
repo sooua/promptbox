@@ -7,7 +7,6 @@ import { Kbd } from '@/components/ui/kbd'
 import { Frame, FramePanel } from '@/components/reui/frame'
 import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert'
 import { Badge } from '@/components/reui/badge'
-import StaggeredText from '@/components/react-bits/staggered-text'
 import {
   Stepper,
   StepperIndicator,
@@ -271,15 +270,7 @@ function StepCard({
             </Badge>
             {t('第 {n} 步 / 共 {total} 步', { n: index + 1, total })}
           </div>
-          <StaggeredText
-            as="h2"
-            text={step.name}
-            segmentBy="chars"
-            delay={30}
-            duration={0.45}
-            direction="bottom"
-            className="mt-2 text-2xl font-semibold tracking-tight text-foreground"
-          />
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{step.name}</h2>
           {step.hint && <p className="mt-2 max-w-[40em] text-sm text-muted-foreground">{step.hint}</p>}
         </div>
 
@@ -374,14 +365,14 @@ function StepCard({
 
         {prompt && (
           <details className="-mb-2">
-            <summary className="cursor-pointer text-xs text-muted-foreground">
+            <summary className="cursor-pointer text-sm font-medium text-foreground">
               {t('看这条 Prompt')}
               <button
                 onClick={(e) => {
                   e.preventDefault()
                   select(prompt.id)
                 }}
-                className="ml-2 font-medium text-foreground underline-offset-4 hover:underline"
+                className="ml-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
               >
                 {t('去改')}
               </button>

@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
-import { CloseIcon, DataIcon, DocumentIcon, DownloadIcon, FolderIcon, InfoIcon, MoonIcon, RefreshIcon, SnapshotIcon, SunIcon, UploadIcon, WebIcon } from '../icons'
-import type { CloseAction, Language, ThemeMode } from '@shared/types'
+import { CloseIcon, DataIcon, DocumentIcon, DownloadIcon, FolderIcon, InfoIcon, RefreshIcon, SnapshotIcon, UploadIcon } from '../icons'
+import type { CloseAction } from '@shared/types'
 import { HOTKEY_PRESETS } from '@shared/types'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from './Toast'
 
@@ -21,8 +20,6 @@ export function SettingsView(): React.JSX.Element {
   const settings = useStore((s) => s.settings)
   const prompts = useStore((s) => s.prompts)
   const categories = useStore((s) => s.categories)
-  const setTheme = useStore((s) => s.setTheme)
-  const setLanguage = useStore((s) => s.setLanguage)
   const setProxy = useStore((s) => s.setProxy)
   const setHotkey = useStore((s) => s.setHotkey)
   const chooseDataDir = useStore((s) => s.chooseDataDir)
@@ -73,51 +70,11 @@ export function SettingsView(): React.JSX.Element {
     else toast.success(t('导入完成'))
   }
 
-  const themes: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
-    { value: 'light', label: '浅色', icon: <SunIcon className="size-4" /> },
-    { value: 'dark', label: '深色', icon: <MoonIcon className="size-4" /> },
-    { value: 'system', label: '跟随系统', icon: <WebIcon className="size-4" /> }
-  ]
-  const languages: { value: Language; label: string }[] = [
-    { value: 'zh', label: '中文' },
-    { value: 'en', label: 'English' }
-  ]
-
   return (
     <div className="flex-1 overflow-y-auto bg-background">
       <div className="mx-auto max-w-2xl px-8 pb-16 pt-12">
         <h1 className="mb-10 font-semibold tracking-tight text-[32px] leading-tight text-foreground">{t('设置')}</h1>
 
-        {/* Appearance.
-            Control vocabulary rule for this page: up to three short options
-            (especially with an icon) get a segmented button group; anything
-            longer gets a <select>. Theme and language qualify; the hotkey list
-            and the close-behaviour labels do not. */}
-        <Section title={t('外观')}>
-          <Row label={t('主题')}>
-            <Tabs value={settings?.theme ?? 'system'} onValueChange={(v) => setTheme(v as ThemeMode)}>
-              <TabsList aria-label={t('主题')}>
-                {themes.map((th) => (
-                  <TabsTrigger key={th.value} value={th.value}>
-                    {th.icon}
-                    {t(th.label)}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </Row>
-          <Row label={t('语言')}>
-            <Tabs value={settings?.language ?? 'zh'} onValueChange={(v) => setLanguage(v as Language)}>
-              <TabsList aria-label={t('语言')}>
-                {languages.map((lng) => (
-                  <TabsTrigger key={lng.value} value={lng.value}>
-                    {lng.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </Row>
-        </Section>
 
         {/* Quick launch */}
         <Section title={t('快速调用')}>

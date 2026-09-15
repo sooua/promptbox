@@ -62,7 +62,7 @@ export function ChooseView(): React.JSX.Element {
           delay={35}
           duration={0.5}
           direction="bottom"
-          className="mt-3 text-3xl font-semibold tracking-tight text-foreground"
+          className="mt-3 justify-center text-3xl font-semibold tracking-tight text-foreground"
         />
         <p className="mx-auto mt-3 max-w-[34em] text-sm text-muted-foreground">
           {t('选一个，后面的每一步都为它准备好了。不用再挑 Prompt。')}
@@ -99,14 +99,14 @@ export function ChooseView(): React.JSX.Element {
         })}
       </div>
 
-      <div className="route-card-in" style={{ animationDelay: '260ms' }}>
-        <Tabs value={flow} onValueChange={(v) => setFlow(v as Flow)}>
+      <div className="route-card-in flex flex-col items-center" style={{ animationDelay: '260ms' }}>
+        <Tabs value={flow} onValueChange={(v) => setFlow(v as Flow)} className="items-center">
           <TabsList aria-label={t('起点')}>
             <TabsTrigger value="fresh">{t('从零开始')}</TabsTrigger>
             <TabsTrigger value="existing">{t('我有现成代码')}</TabsTrigger>
           </TabsList>
         </Tabs>
-        <div className="mt-2.5 text-xs text-muted-foreground">
+        <div className="mt-2.5 text-center text-xs text-muted-foreground">
           {flow === 'fresh' ? t('从想法开始，一步一步到上线。') : t('跳过想法和搭建，先读懂代码，然后一个功能一个功能做。')}
         </div>
       </div>

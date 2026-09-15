@@ -26,8 +26,8 @@ const AUTO_BACKUP_INTERVAL_MS = 5 * 60 * 1000
 /** Window-control overlay colors, matched to the warm light/dark canvas. */
 function overlayColors(): { color: string; symbolColor: string } {
   return nativeTheme.shouldUseDarkColors
-    ? { color: '#141413', symbolColor: '#b0aea5' }
-    : { color: '#f5f4ed', symbolColor: '#5e5d59' }
+    ? { color: '#0a0a0a', symbolColor: '#a3a3a3' }
+    : { color: '#ffffff', symbolColor: '#525252' }
 }
 
 const TITLEBAR_HEIGHT = 40

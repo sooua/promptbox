@@ -11,6 +11,7 @@ import { CommandPalette } from './components/CommandPalette'
 import { QuickFill } from './components/QuickFill'
 import { CloudSyncModal } from './components/CloudSyncModal'
 import { TitleBar } from './components/TitleBar'
+import { QuickPrefs } from './components/QuickPrefs'
 import { ToastHost, toast } from './components/Toast'
 import { t, useT } from './i18n'
 
@@ -165,7 +166,7 @@ export default function App(): React.JSX.Element {
         <RouteView />
       ) : view === 'route' || view === 'choose' ? (
         <div className="flex min-w-0 flex-1 flex-col">
-          <TitleBar />
+          <TitleBar plain />
           <ChooseView />
         </div>
       ) : (
@@ -191,6 +192,7 @@ export default function App(): React.JSX.Element {
       {paletteOpen && <CommandPalette />}
       {cloudOpen && <CloudSyncModal />}
       <QuickFill />
+      <QuickPrefs />
       <ToastHost />
     </div>
   )
