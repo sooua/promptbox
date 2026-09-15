@@ -374,7 +374,7 @@ function StepCard({
 
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
           {onBack && (
-            <Button variant="ghost" size="sm" onClick={onBack}>
+            <Button variant="outline" onClick={onBack}>
               {t('上一步')}
             </Button>
           )}
