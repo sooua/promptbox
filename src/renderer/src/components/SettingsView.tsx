@@ -98,7 +98,6 @@ export function SettingsView(): React.JSX.Element {
           </Row>
         </Section>
 
-        {/* Network: the proxy serves sync and updates. */}
         <Section title={t('云同步')}>
           <Row
             label={t('多设备同步')}
