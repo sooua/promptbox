@@ -173,7 +173,9 @@ export default function App(): React.JSX.Element {
       <>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <TitleBar />
+        <TitleBar>
+          <QuickPrefs inline />
+        </TitleBar>
         <div className="flex min-h-0 flex-1">
           {view === 'settings' ? (
             <SettingsView />
@@ -192,7 +194,7 @@ export default function App(): React.JSX.Element {
       {paletteOpen && <CommandPalette />}
       {cloudOpen && <CloudSyncModal />}
       <QuickFill />
-      <QuickPrefs />
+      {(view === 'route' || view === 'choose') && <QuickPrefs />}
       <ToastHost />
     </div>
   )

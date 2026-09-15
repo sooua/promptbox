@@ -94,8 +94,9 @@ export function RouteView(): React.JSX.Element {
             <SettingsIcon />
             {t('设置')}
           </Button>
-          <Button variant="ghost" size="icon-sm" onClick={openCloud} title={t('云同步')}>
+          <Button variant="ghost" size="sm" onClick={openCloud}>
             <CloudIcon />
+            {t('云同步')}
           </Button>
         </div>
       </header>
@@ -289,7 +290,14 @@ function StepCard({
 
   return (
     <Frame className="route-card-in" spacing="lg">
-      <FramePanel className="flex flex-col gap-5">
+      <FramePanel className="relative flex flex-col gap-5 overflow-hidden">
+        {/* Thin progress line along the top edge: how far along the whole route. */}
+        <span className="absolute inset-x-0 top-0 h-0.5 bg-muted" aria-hidden>
+          <span
+            className="block h-full bg-primary transition-[width] duration-500 ease-out"
+            style={{ width: `${Math.round(((index + (isDone ? 1 : 0)) / total) * 100)}%` }}
+          />
+        </span>
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Badge size="sm" variant="primary-light">

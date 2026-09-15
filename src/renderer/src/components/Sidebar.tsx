@@ -214,7 +214,7 @@ export function Sidebar(): React.JSX.Element {
   const legacySteps = stepsOf(categories, null)
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-background">
+    <aside className="flex w-60 shrink-0 flex-col bg-background">
       {/* macOS draws its traffic lights over the top-left of the window, exactly
           where the logo square would sit. There we drop the square and indent
           past the buttons (see trafficLightPosition in main), keeping only the
@@ -224,13 +224,10 @@ export function Sidebar(): React.JSX.Element {
           isMac ? 'pl-[78px] pr-4' : 'px-5'
         }`}
       >
-        <div className="min-w-0">
-          <div className="text-[15px] font-semibold leading-tight tracking-tight text-foreground">PromptBox</div>
-          <div className="truncate text-[11px] leading-tight text-muted-foreground">{t('全部 Prompt')}</div>
-        </div>
+        <div className="text-[15px] font-semibold leading-tight tracking-tight text-foreground">PromptBox</div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-2.5 pt-3 pb-2">
+      <nav className="flex-1 overflow-y-auto border-r border-border px-2.5 pt-3 pb-2">
         <Button variant="outline" className="mb-3 w-full justify-start" onClick={() => setView('route')}>
           <RouteIcon />
           {t('回到路线')}
@@ -335,19 +332,18 @@ export function Sidebar(): React.JSX.Element {
         />
       </nav>
 
-      <div className="flex border-t border-border">
-        <button
+      <div className="flex flex-col gap-0.5 border-t border-r border-border p-2">
+        <Button
+          variant={view === 'settings' ? 'secondary' : 'ghost'}
+          className="w-full justify-start"
           onClick={() => setView('settings')}
-          className={`flex flex-1 items-center justify-center gap-2 px-3 py-3.5 text-sm transition ${
-            view === 'settings'
-              ? 'font-medium text-foreground'
-              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-          }`}
         >
-          <SettingsIcon className="size-4" />
+          <SettingsIcon />
           {t('设置')}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
           onClick={openCloud}
           // A green dot for "connected" hid the case that matters most: connected
           // but the last sync failed. Colour the dot by outcome, not by config.
@@ -358,17 +354,13 @@ export function Sidebar(): React.JSX.Element {
                 ? t('云同步：上次同步失败')
                 : t('云同步')
           }
-          className="relative flex items-center px-4 text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
-          <CloudIcon className="size-4" />
+          <CloudIcon />
+          {t('云同步')}
           {(syncConnected || syncNeedsAttention) && (
-            <span
-              className={`absolute right-2.5 top-3 h-1.5 w-1.5 rounded-full ${
-                syncFailed ? 'bg-destructive' : 'bg-success'
-              }`}
-            />
+            <span className={`ml-auto h-1.5 w-1.5 rounded-full ${syncFailed ? 'bg-destructive' : 'bg-success'}`} />
           )}
-        </button>
+        </Button>
       </div>
     </aside>
   )
@@ -406,7 +398,7 @@ function NavItem({
     >
       {icon && <span className="flex w-4 justify-center text-muted-foreground">{icon}</span>}
       <span className="flex-1 truncate text-left">{label}</span>
-      {count !== undefined && <span className="text-[11px] text-muted-foreground">{count}</span>}
+      {count !== undefined && <span className="text-[11px] text-muted-foreground group-hover:invisible">{count}</span>}
     </button>
   )
 }

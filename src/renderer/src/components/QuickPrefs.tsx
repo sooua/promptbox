@@ -14,7 +14,7 @@ const THEMES: { value: ThemeMode; label: string; Icon: React.ComponentType<{ cla
  * Theme and language, pinned to the bottom-right of every screen so they are
  * reachable without opening settings.
  */
-export function QuickPrefs(): React.JSX.Element {
+export function QuickPrefs({ inline }: { inline?: boolean }): React.JSX.Element {
   const t = useT()
   const settings = useStore((s) => s.settings)
   const setTheme = useStore((s) => s.setTheme)
@@ -23,7 +23,13 @@ export function QuickPrefs(): React.JSX.Element {
   const lang: Language = settings?.language ?? 'zh'
 
   return (
-    <div className="fixed right-4 bottom-4 z-40 flex items-center gap-0.5 rounded-lg border border-border bg-popover/90 p-0.5 shadow-sm backdrop-blur">
+    <div
+      className={
+        inline
+          ? 'flex items-center gap-0.5'
+          : 'fixed right-4 bottom-4 z-40 flex items-center gap-0.5 rounded-lg border border-border bg-popover/90 p-0.5 shadow-sm backdrop-blur'
+      }
+    >
       {THEMES.map(({ value, label, Icon }) => (
         <Button
           key={value}
