@@ -107,11 +107,11 @@ export function RouteView(): React.JSX.Element {
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {/* my-auto centres the block when it fits, and degrades to a normal top-anchored scroll when it doesn't. */}
-          <div className="mx-auto my-auto flex w-full max-w-[1120px] flex-col gap-8 px-6 py-8">
-            <div className="mx-auto w-full max-w-[720px]">
-              <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
-            </div>
+          <div className="mx-auto w-full max-w-[720px] shrink-0 px-6 pt-8">
+            <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
+          </div>
+          {/* Stepper stays pinned at the top; only the cards centre in what's left (top-anchored scroll when they don't fit). */}
+          <div className="mx-auto my-auto flex w-full max-w-[1120px] flex-col px-6 py-8">
             <div className="grid items-start gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <StepCard
               key={cur.id + (route.track ?? '')}
