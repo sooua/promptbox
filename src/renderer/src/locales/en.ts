@@ -338,14 +338,9 @@ export const en: Record<string, string> = {
   '重新开始': 'Start over',
   '开始': 'Start',
   '网站 / Web 应用': 'Website / web app',
-  '有页面，能上线': 'Pages, goes live',
   '命令行工具': 'Command-line tool',
-  '终端里跑的工具': 'Runs in the terminal',
   '桌面应用': 'Desktop app',
-  '装在电脑上用': 'Installed on a computer',
   '手机 App': 'Mobile app',
-  '上架应用商店': 'Ships to app stores',
-  '脚本、插件、库': 'Scripts, plugins, libraries',
 
   // ---- Route ----
   '回到路线': 'Back to route',
@@ -375,7 +370,7 @@ export const en: Record<string, string> = {
   '完成，下一步': 'Done, next step',
   '这一步的产物': 'What this step leaves behind',
   '下一步会读它': 'The next step reads it',
-  '看这条 Prompt': 'View this prompt',
+  '这条 Prompt': 'This prompt',
   '去改': 'Edit',
   '这一步还没有 Prompt。在「全部 Prompt」里给它加一条。': 'This step has no prompt yet. Add one under “All prompts”.',
   '还没有任何步骤。去「全部 Prompt」里给某个阶段新建一个步骤。': 'No steps yet. Create one for a stage under “All prompts”.',

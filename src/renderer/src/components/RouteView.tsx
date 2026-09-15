@@ -16,7 +16,7 @@ import {
   StepperTitle,
   StepperTrigger
 } from '@/components/reui/stepper'
-import { BookIcon, CheckIcon, CloudIcon, CopyIcon, CopySuccessIcon, RefreshIcon, SettingsIcon } from '../icons'
+import { BookIcon, CheckIcon, CloudIcon, CopyIcon, CopySuccessIcon, PencilIcon, RefreshIcon, SettingsIcon } from '../icons'
 import { useStore } from '../store'
 import { routePrompt, routeSteps } from '../selectors'
 import { VariableInput, initialValue } from './VariableInput'
@@ -106,8 +106,11 @@ export function RouteView(): React.JSX.Element {
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-[720px] flex-col gap-8 px-6 pb-10 pt-8">
-            <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
+          <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-6 pb-10 pt-8">
+            <div className="mx-auto w-full max-w-[720px]">
+              <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
+            </div>
+            <div className="grid items-start gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <StepCard
               key={cur.id + (route.track ?? '')}
               step={cur}
@@ -123,6 +126,8 @@ export function RouteView(): React.JSX.Element {
               onFinish={finish}
               onAgain={again}
             />
+            <PromptPane prompt={routePrompt(prompts, cur.id, route.track)} />
+            </div>
           </div>
         </div>
       )}
@@ -193,6 +198,29 @@ function StageStepper({
   )
 }
 
+/** The prompt the copy button will put on the clipboard, always in view beside the card. */
+function PromptPane({ prompt }: { prompt: Prompt | undefined }): React.JSX.Element | null {
+  const t = useT()
+  const select = useStore((s) => s.select)
+  if (!prompt) return null
+  return (
+    <Frame className="route-card-in md:sticky md:top-0" spacing="sm">
+      <FramePanel className="flex flex-col gap-2.5">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-foreground">{t('这条 Prompt')}</span>
+          <Button variant="ghost" size="sm" onClick={() => select(prompt.id)}>
+            <PencilIcon />
+            {t('去改')}
+          </Button>
+        </div>
+        <pre className="max-h-[60vh] overflow-auto rounded-lg bg-background px-3.5 py-3 font-mono text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
+          {prompt.content}
+        </pre>
+      </FramePanel>
+    </Frame>
+  )
+}
+
 function StepCard({
   step,
   stage,
@@ -223,7 +251,6 @@ function StepCard({
   const t = useT()
   const copyResolvedAndUse = useStore((s) => s.copyResolvedAndUse)
   const rememberVarValues = useStore((s) => s.rememberVarValues)
-  const select = useStore((s) => s.select)
 
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {}
@@ -363,25 +390,6 @@ function StepCard({
           </Button>
         </div>
 
-        {prompt && (
-          <details className="-mb-2">
-            <summary className="cursor-pointer text-sm font-medium text-foreground">
-              {t('看这条 Prompt')}
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  select(prompt.id)
-                }}
-                className="ml-2 text-sm font-medium text-primary underline-offset-4 hover:underline"
-              >
-                {t('去改')}
-              </button>
-            </summary>
-            <pre className="mt-2.5 max-h-64 overflow-auto rounded-lg border border-border bg-background px-4 py-3.5 font-mono text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
-              {prompt.content}
-            </pre>
-          </details>
-        )}
       </FramePanel>
     </Frame>
   )

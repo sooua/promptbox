@@ -7,6 +7,7 @@ import { useStore, type CategoryFilter } from '../store'
 import { stepsOf } from '../selectors'
 import { toast } from './Toast'
 import { useT } from '../i18n'
+import { Button } from '@/components/ui/button'
 
 const isMac = window.api.platform === 'darwin'
 
@@ -230,8 +231,10 @@ export function Sidebar(): React.JSX.Element {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2.5 pt-3 pb-2">
-        <NavItem icon={<RouteIcon className="size-4" />} label={t('回到路线')} active={false} onClick={() => setView('route')} />
-        <div className="my-2 border-t border-border" />
+        <Button variant="outline" className="mb-3 w-full justify-start" onClick={() => setView('route')}>
+          <RouteIcon />
+          {t('回到路线')}
+        </Button>
         {STAGES.map((stage, i) => {
           const filter = `stage:${stage.id}`
           const active = view === 'library' && categoryFilter === filter

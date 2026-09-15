@@ -81,7 +81,7 @@ export function ChooseView(): React.JSX.Element {
               aria-checked={on}
               onClick={() => setTrack(x.id)}
               style={{ animationDelay: `${60 + i * 40}ms` }}
-              className={`route-card-in flex flex-col gap-3 rounded-xl border bg-card p-4 text-left transition-all outline-none hover:-translate-y-px hover:shadow-sm focus-visible:ring-3 focus-visible:ring-ring/50 ${
+              className={`route-card-in flex flex-col items-center gap-3 rounded-xl border bg-card p-4 text-center transition-all outline-none hover:-translate-y-px hover:shadow-sm focus-visible:ring-3 focus-visible:ring-ring/50 ${
                 on ? 'border-primary bg-accent/40 ring-1 ring-primary' : 'border-border hover:border-ring'
               }`}
             >
@@ -93,7 +93,6 @@ export function ChooseView(): React.JSX.Element {
                 <Icon className="size-5" />
               </span>
               <span className="text-[15px] font-medium text-foreground">{t(x.name)}</span>
-              <span className="text-xs leading-snug text-muted-foreground">{t(x.desc)}</span>
             </button>
           )
         })}

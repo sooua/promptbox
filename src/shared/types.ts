@@ -85,15 +85,14 @@ export type TrackId = 'web' | 'cli' | 'desk' | 'mobile' | 'other'
 export interface TrackInfo {
   id: TrackId
   name: string
-  desc: string
 }
 
 export const TRACKS: TrackInfo[] = [
-  { id: 'web', name: '网站 / Web 应用', desc: '有页面，能上线' },
-  { id: 'cli', name: '命令行工具', desc: '终端里跑的工具' },
-  { id: 'desk', name: '桌面应用', desc: '装在电脑上用' },
-  { id: 'mobile', name: '手机 App', desc: '上架应用商店' },
-  { id: 'other', name: '其他', desc: '脚本、插件、库' }
+  { id: 'web', name: '网站 / Web 应用' },
+  { id: 'cli', name: '命令行工具' },
+  { id: 'desk', name: '桌面应用' },
+  { id: 'mobile', name: '手机 App' },
+  { id: 'other', name: '其他' }
 ]
 
 /**
