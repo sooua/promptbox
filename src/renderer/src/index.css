@@ -330,11 +330,6 @@ body {
 }
 .route-card-in { animation: route-card-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .route-pop { animation: route-pop 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-@keyframes route-pulse {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 1; }
-}
-.route-pulse { animation: route-pulse 1.6s ease-in-out infinite; }
 
 /* Highlight {{variables}} inside rendered preview and inline. */
 .var-chip {
