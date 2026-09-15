@@ -30,8 +30,11 @@ export default defineConfig({
     // Bind the dev server to IPv4 explicitly. On Windows, Vite otherwise listens
     // on IPv6 [::1] while Electron loads http://localhost (which resolves to
     // 127.0.0.1 first), causing a permanent ERR_CONNECTION_REFUSED on startup.
+    // 5173 falls inside a Windows reserved port range (Hyper-V/WSL); pick one outside.
     server: {
-      host: '127.0.0.1'
+      host: '127.0.0.1',
+      port: 5678,
+      strictPort: true
     },
     plugins: [react(), tailwindcss()]
   }
