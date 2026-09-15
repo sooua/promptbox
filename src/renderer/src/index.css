@@ -284,6 +284,21 @@ body {
   }
 }
 
+/* Route: the step card slides up as the step changes; the tick on the copy
+ * button and the current stage dot pop once. Collapsed by the reduced-motion
+ * rule above. */
+@keyframes route-card-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes route-pop {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.route-card-in { animation: route-card-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.route-pop { animation: route-pop 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
 /* Highlight {{variables}} inside rendered preview and inline. */
 .var-chip {
   background: color-mix(in srgb, var(--color-brand) 16%, transparent);
