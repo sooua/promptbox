@@ -21,6 +21,7 @@ import { useStore } from '../store'
 import { routePrompt, routeSteps } from '../selectors'
 import { VariableInput, initialValue } from './VariableInput'
 import { toast } from './Toast'
+import { Logo } from './Logo'
 import { useT } from '../i18n'
 
 const isMac = window.api.platform === 'darwin'
@@ -83,6 +84,7 @@ export function RouteView(): React.JSX.Element {
         }`}
       >
         <div className="flex min-w-0 items-center gap-3 text-sm">
+          <Logo className="size-5 text-primary" />
           <span className="font-semibold tracking-tight text-foreground">PBox</span>
           <span className="h-4 w-px bg-border" aria-hidden />
           <span className="truncate text-muted-foreground">

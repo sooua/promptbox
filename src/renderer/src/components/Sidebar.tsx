@@ -6,6 +6,7 @@ import { moveStep } from '@shared/steps'
 import { useStore, type CategoryFilter } from '../store'
 import { stepsOf } from '../selectors'
 import { toast } from './Toast'
+import { Logo } from './Logo'
 import { useT } from '../i18n'
 import { Button } from '@/components/ui/button'
 
@@ -234,6 +235,7 @@ export function Sidebar(): React.JSX.Element {
           isMac ? 'pl-[78px] pr-4' : 'px-5'
         }`}
       >
+        <Logo className="mr-2 size-5 text-primary" />
         <div className="text-sm font-semibold tracking-tight text-foreground">PBox</div>
       </div>
 
