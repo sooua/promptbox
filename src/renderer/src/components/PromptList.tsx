@@ -241,7 +241,7 @@ export function PromptList(): React.JSX.Element {
                     <span className="flex items-center gap-1 truncate">
                       <span
                         className="inline-block h-2 w-2 shrink-0 rounded-full"
-                        style={{ background: step.color ?? 'var(--color-brand)' }}
+                        style={{ background: step.color ?? 'var(--primary)' }}
                       />
                       {stage ? `${STAGES.indexOf(stage) + 1} ` : ''}
                       {step.name}

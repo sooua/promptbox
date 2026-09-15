@@ -8,7 +8,7 @@
 
 不是把所有 Prompt 堆在一起让你挑。打开只问一个问题——你要做的是网站、命令行工具、桌面应用、手机 App 还是其他——然后就是一条路：**想清楚 → 定方案 → 搭骨架 → 做功能（每个功能一轮）→ 上线**，一次只看当前这一步。内置 13 步、49 条中文 Prompt（多数步骤按项目类型各有版本），每步最多输入一句话，产物写成 `docs/` 里的文件，下一步自动读上一步。所有数据以 JSON 保存在本机；云同步可选并端到端加密。
 
-基于 **Electron + React 18 + TypeScript + Tailwind CSS v4**，采用 Claude/Anthropic 暖色设计语言。
+基于 **Electron + React 18 + TypeScript + Tailwind CSS v4 + shadcn (base-nova) + ReUI**，中性黑白配色。
 
 ## 下载安装
 

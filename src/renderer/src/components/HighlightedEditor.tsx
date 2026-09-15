@@ -274,7 +274,7 @@ export function HighlightedEditor({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-card focus-within:border-ring">
+      <div className="relative flex-1 overflow-hidden rounded-xl border border-border bg-card focus-within:border-ring">
         <pre
           ref={preRef}
           aria-hidden
@@ -311,7 +311,7 @@ export function HighlightedEditor({
           placeholder={placeholder}
           spellCheck={false}
           className={`hl-input absolute inset-0 h-full w-full resize-none bg-transparent outline-none placeholder:text-muted-foreground ${SHARED}`}
-          style={{ color: 'transparent', caretColor: 'var(--color-ink)' }}
+          style={{ color: 'transparent', caretColor: 'var(--foreground)' }}
         />
 
         {suggest && (

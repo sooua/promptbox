@@ -289,7 +289,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           />
         )}
         {tab === 'preview' && (
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-[rgba(0,0,0,0.05)_0px_4px_24px]">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-[rgba(0,0,0,0.05)_0px_4px_24px]">
             <MarkdownPreview content={content} />
           </div>
         )}

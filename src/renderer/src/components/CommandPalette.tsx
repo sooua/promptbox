@@ -6,6 +6,7 @@ import { categoryById, rankCommand } from '../selectors'
 import { requestCopy } from '../copy'
 import { Modal } from './Modal'
 import { useT } from '../i18n'
+import { Kbd } from '@/components/ui/kbd'
 
 const MAX_RESULTS = 50
 
@@ -77,7 +78,7 @@ export function CommandPalette(): React.JSX.Element {
     <Modal
       onClose={closePalette}
       ariaLabel={t('命令面板')}
-      className="w-full max-w-xl overflow-hidden rounded-3xl border border-border bg-card shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
+      className="w-full max-w-xl overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl"
     >
       <div onKeyDown={onKeyDown}>
         <div className="flex items-center gap-2 border-b border-border px-5">
@@ -92,7 +93,7 @@ export function CommandPalette(): React.JSX.Element {
             aria-controls="command-results"
             aria-activedescendant={results[active] ? `cmd-${results[active].id}` : undefined}
             aria-autocomplete="list"
-            className="w-full bg-transparent py-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            className="h-12 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
         </div>
 
@@ -115,8 +116,8 @@ export function CommandPalette(): React.JSX.Element {
                   }}
                   onMouseEnter={() => setActive(i)}
                   onClick={() => copy(entry)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
-                    i === active ? 'bg-accent' : 'hover:bg-muted'
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition ${
+                    i === active ? 'bg-accent text-accent-foreground' : 'hover:bg-muted'
                   }`}
                 >
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
@@ -126,8 +127,8 @@ export function CommandPalette(): React.JSX.Element {
                     <div className="flex items-center gap-2">
                       <span className="truncate text-sm font-medium text-foreground">{entry.title}</span>
                       {varCount > 0 && (
-                        <span className="flex shrink-0 items-center gap-0.5 rounded-md bg-primary/15 px-1.5 text-[10px] text-foreground">
-                          <CodeIcon className="size-4" />
+                        <span className="flex shrink-0 items-center gap-0.5 rounded-md bg-muted px-1.5 text-[10px] text-muted-foreground">
+                          <CodeIcon className="size-3" />
                           {varCount}
                         </span>
                       )}
@@ -142,10 +143,9 @@ export function CommandPalette(): React.JSX.Element {
         </div>
 
         <div className="flex items-center gap-4 border-t border-border px-5 py-2.5 text-[11px] text-muted-foreground">
-          <Hint icon={<CheckIcon className="size-3" />}>{t('复制')}</Hint>
-          <Hint icon={<PencilIcon className="size-3" />}>{t('⌘/Ctrl + Enter 打开')}</Hint>
-          <Hint icon={<SearchIcon className="size-3" />}>{t('↑↓ 选择')}</Hint>
-          <span className="ml-auto">{t('Esc 关闭')}</span>
+          <Hint icon={<Kbd>Enter</Kbd>}>{t('复制')}</Hint>
+          <Hint icon={<Kbd>Ctrl Enter</Kbd>}>{t('打开')}</Hint>
+          <Hint icon={<Kbd>Esc</Kbd>}>{t('关闭')}</Hint>
         </div>
       </div>
     </Modal>

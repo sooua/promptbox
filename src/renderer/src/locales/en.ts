@@ -350,6 +350,8 @@ export const en: Record<string, string> = {
   // ---- Route ----
   '回到路线': 'Back to route',
   '上一步': 'Back',
+  '打开': 'Open',
+  '关闭': 'Close',
   '阶段': 'Stages',
   '换项目类型': 'Change project type',
   '全部 Prompt': 'All prompts',

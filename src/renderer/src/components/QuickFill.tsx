@@ -76,7 +76,7 @@ export function QuickFill(): React.JSX.Element | null {
       onClose={close}
       ariaLabel={t('填充变量后复制')}
       overlayClassName="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[10vh]"
-      className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
+      className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-border bg-card shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
     >
       <div className="flex min-h-0 flex-1 flex-col" onKeyDown={onKeyDown}>
         <div className="flex items-center gap-2 border-b border-border px-5 py-3.5">

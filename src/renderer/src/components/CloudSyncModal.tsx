@@ -129,7 +129,7 @@ export function CloudSyncModal(): React.JSX.Element {
       onClose={close}
       ariaLabel={t('云同步')}
       overlayClassName="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[8vh]"
-      className="flex max-h-[82vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-[rgba(0,0,0,0.14)_0px_16px_56px]"
+      className="flex max-h-[82vh] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-border bg-background shadow-[rgba(0,0,0,0.14)_0px_16px_56px]"
     >
       <div className="flex min-h-0 flex-1 flex-col">
         <div className="flex items-center gap-2 border-b border-border px-4 py-3">
@@ -161,7 +161,7 @@ export function CloudSyncModal(): React.JSX.Element {
                 const connected = syncState?.provider === prov.id && syncState.connected
                 const isConnecting = connectingId === prov.id
                 return (
-                  <div key={prov.id} className="rounded-2xl border border-border bg-card p-4">
+                  <div key={prov.id} className="rounded-xl border border-border bg-card p-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-foreground">
                         {ICONS[prov.id]}

@@ -20,7 +20,7 @@ Success is a beginner getting from "I have an idea" to "other people can use it"
 
 ## Brand Personality
 
-Warm, precise, unobtrusive. The voice is calm and expert: plain, specific Chinese-first copy with no marketing gloss. It should feel like a quiet, trustworthy workspace — the confident restraint of a well-made writing tool, not a product demanding attention. Emotionally: focus and trust. The interface recedes so the prompt is the hero.
+Neutral, precise, unobtrusive. The voice is calm and expert: plain, specific Chinese-first copy with no marketing gloss. Visually it is the shadcn / ReUI neutral system — black on white, one grey ramp, one face — so the interface recedes and the current step is the only thing with weight. Emotionally: focus and trust.
 
 ## Anti-references
 
@@ -34,10 +34,10 @@ Warm, precise, unobtrusive. The voice is calm and expert: plain, specific Chines
 2. **Never lose the user's words.** Autosave, version history, periodic + on-quit backups, corrupt-file quarantine/recovery, and undo are non-negotiable. Trust is earned by never dropping data.
 3. **Calm over clever.** Warm, quiet surfaces; restrained motion; strong-but-soft hierarchy. The content (the prompt) is the hero and chrome stays out of the way.
 4. **Local-first and user-owned.** Data lives in plain files the user controls. Sync and encryption are opt-in, transparent, and reversible — never a lock-in.
-5. **Refine, don't reinvent.** Extend the established warm-editorial language through craft — hierarchy, spacing, contrast, motion, micro-interactions — rather than bolting on new gimmicks. Identity comes from precision, not novelty.
+5. **Refine, don't reinvent.** Use what shadcn and ReUI already provide — variants, Stepper, Frame, Motion Icons — and spend effort on hierarchy, spacing and copy rather than custom chrome. Identity comes from precision, not novelty.
 
 ## Accessibility & Inclusion
 
-Target WCAG 2.1 AA. The app ships warm-light and warm-dark themes through semantic CSS tokens and honors `prefers-color-scheme`. Navigation is keyboard-first, with ARIA roles on the command palette (combobox/listbox), lists, and live-region toasts.
+Target WCAG 2.1 AA. The app ships light and dark themes through the shadcn CSS tokens and honors `prefers-color-scheme`. Navigation is keyboard-first, with ARIA roles on the command palette (combobox/listbox), lists, and live-region toasts.
 
-Known watch-items: the muted/faint gray text ramp on the parchment canvas runs close to the 4.5:1 floor for body copy and should be contrast-audited; any added motion must provide a `prefers-reduced-motion` alternative.
+Known watch-items: `muted-foreground` on `muted` backgrounds should be contrast-checked whenever a new pairing is introduced; any added motion must provide a `prefers-reduced-motion` alternative.

@@ -15,7 +15,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
 
   if (prompt.versions.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+      <div className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
         {t('暂无历史版本。修改后自动留存上一版。')}
       </div>
     )

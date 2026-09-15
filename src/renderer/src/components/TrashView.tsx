@@ -68,7 +68,7 @@ export function TrashView(): React.JSX.Element {
         </p>
 
         {deleted.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+          <div className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
             {t('回收站是空的。')}
           </div>
         ) : (

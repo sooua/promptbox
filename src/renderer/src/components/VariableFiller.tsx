@@ -71,7 +71,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
   if (prompt.variables.length === 0) {
     return (
       <div className="space-y-3">
-        <div className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
           {t('暂无变量。在内容里写')} <code className="var-chip">{'{{变量名}}'}</code>{' '}
           {t('，或在下方新建。')}
         </div>
