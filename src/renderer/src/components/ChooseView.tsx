@@ -100,9 +100,13 @@ export function ChooseView(): React.JSX.Element {
 
       <div className="route-card-in flex flex-col items-center" style={{ animationDelay: '260ms' }}>
         <Tabs value={flow} onValueChange={(v) => setFlow(v as Flow)} className="items-center">
-          <TabsList aria-label={t('起点')}>
-            <TabsTrigger value="fresh">{t('从零开始')}</TabsTrigger>
-            <TabsTrigger value="existing">{t('我有现成代码')}</TabsTrigger>
+          <TabsList aria-label={t('起点')} className="grid w-72 grid-cols-2">
+            <TabsTrigger value="fresh" className="justify-center">
+              {t('从零开始')}
+            </TabsTrigger>
+            <TabsTrigger value="existing" className="justify-center">
+              {t('我有现成代码')}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
         <div className="mt-2.5 text-center text-xs text-muted-foreground">
