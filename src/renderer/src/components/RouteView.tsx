@@ -186,6 +186,17 @@ function StageStepper({
                     <span className="block text-[10px] font-normal text-muted-foreground">{t('第 {n} 个功能', { n: feature })}</span>
                   ) : null}
                 </StepperTitle>
+                {/* One segment per step inside the stage: done, current, upcoming. */}
+                <span className="flex w-16 gap-0.5" aria-hidden>
+                  {mine.map((s) => (
+                    <span
+                      key={s.id}
+                      className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
+                        done.has(s.id) ? 'bg-primary' : s.id === cur.id ? 'bg-primary/40 route-pulse' : 'bg-muted'
+                      }`}
+                    />
+                  ))}
+                </span>
               </StepperTrigger>
               {i < stages.length - 1 && (
                 <StepperSeparator className="mb-6 group-data-[state=completed]/step:bg-primary" />
