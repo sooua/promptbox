@@ -83,7 +83,7 @@ export function QuickFill(): React.JSX.Element | null {
           <CodeIcon className="size-4 text-foreground" />
           <div className="min-w-0 flex-1">
             <div className="truncate font-semibold tracking-tight text-[17px] text-foreground">{prompt.title}</div>
-            <div className="text-[11px] text-muted-foreground">{t('填充变量后复制')} · {t('{n} 个变量', { n: prompt.variables.length })}</div>
+            <div className="text-[11px] text-muted-foreground">{t('填充变量后复制')}，{t('{n} 个变量', { n: prompt.variables.length })}</div>
           </div>
           <button onClick={close} className="rounded-lg p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground">
             <CloseIcon className="size-4" />

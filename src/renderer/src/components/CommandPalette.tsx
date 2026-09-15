@@ -102,7 +102,7 @@ export function CommandPalette(): React.JSX.Element {
           ) : (
             results.map((entry, i) => {
               const cat = categoryById(categories, entry.categoryId)
-              const subtitle = `${cat ? cat.name + ' · ' : ''}${entry.description || entry.content.slice(0, 60) || t('空内容')}`
+              const subtitle = `${cat ? cat.name + '，' : ''}${entry.description || entry.content.slice(0, 60) || t('空内容')}`
               const varCount = entry.variables.length
               return (
                 <button

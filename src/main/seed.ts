@@ -374,7 +374,7 @@ const STEPS: SeedStep[] = [
   },
   {
     stage: 'build',
-    name: '描述功能 → 拆任务',
+    name: '拆任务',
     question: '这次做哪个功能？',
     hint: '一次只做一个功能。你用一句话说，AI 先写清楚做完什么样，再拆成小任务。',
     output: 'docs/tasks/<功能>.md',

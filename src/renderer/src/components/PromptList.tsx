@@ -7,6 +7,7 @@ import { requestCopy } from '../copy'
 import { VirtualList } from './VirtualList'
 import { toast } from './Toast'
 import { useT } from '../i18n'
+import { Button } from '@/components/ui/button'
 
 export function PromptList(): React.JSX.Element {
   const t = useT()
@@ -38,7 +39,7 @@ export function PromptList(): React.JSX.Element {
     const stageId = stageOf(categoryFilter)
     if (stageId) {
       const s = STAGES.find((x) => x.id === stageId)!
-      return { title: `${STAGES.indexOf(s) + 1} · ${t(s.name)}`, hint: t(s.hint) }
+      return { title: `${STAGES.indexOf(s) + 1} ${t(s.name)}`, hint: t(s.hint) }
     }
     if (isCategoryId(categoryFilter)) {
       const step = categoryById(categories, categoryFilter)
@@ -47,7 +48,7 @@ export function PromptList(): React.JSX.Element {
       const idx = stepsOf(categories, step.stage ?? null).indexOf(step) + 1
       return {
         title: step.name,
-        hint: stage ? `${t(stage.name)} · ${t('第 {n} 步', { n: idx })}` : t('其他')
+        hint: stage ? `${t(stage.name)}，${t('第 {n} 步', { n: idx })}` : t('其他')
       }
     }
     return null
@@ -130,16 +131,12 @@ export function PromptList(): React.JSX.Element {
               }
             }}
             placeholder={t('筛选…（Ctrl/⌘ + F）')}
-            className="w-full rounded-xl border border-border bg-card py-2 pl-8 pr-3 text-sm text-foreground outline-none transition focus:border-ring"
+            className="w-full rounded-lg border border-input bg-background py-2 pl-8 pr-3 text-sm text-foreground shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </div>
-        <button
-          onClick={handleNew}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-primary/80"
-          title={t('新建 Prompt')}
-        >
-          <PlusIcon className="size-4.5" />
-        </button>
+        <Button size="icon" onClick={handleNew} title={t('新建 Prompt')}>
+          <PlusIcon />
+        </Button>
       </div>
 
       {filtered.length === 0 ? (
@@ -246,7 +243,7 @@ export function PromptList(): React.JSX.Element {
                         className="inline-block h-2 w-2 shrink-0 rounded-full"
                         style={{ background: step.color ?? 'var(--color-brand)' }}
                       />
-                      {stage ? `${STAGES.indexOf(stage) + 1} · ` : ''}
+                      {stage ? `${STAGES.indexOf(stage) + 1} ` : ''}
                       {step.name}
                     </span>
                   )}

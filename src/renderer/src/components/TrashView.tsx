@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { formatDate } from '../selectors'
 import { toast } from './Toast'
 import { useT } from '../i18n'
+import { Button } from '@/components/ui/button'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -78,18 +79,12 @@ export function TrashView(): React.JSX.Element {
                 {/* Recovering a mis-fired bulk delete was 20 individual clicks,
                     while wiping all 20 was one — the destructive path was the
                     cheaper one. */}
-                <button
-                  onClick={handleRestoreAll}
-                  className="rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground"
-                >
+                <Button variant="outline" size="sm" onClick={handleRestoreAll}>
                   {t('全部恢复')}
-                </button>
-                <button
-                  onClick={handlePurgeAll}
-                  className="rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:border-destructive hover:text-destructive"
-                >
+                </Button>
+                <Button variant="destructive" size="sm" onClick={handlePurgeAll}>
                   {t('清空回收站')}
-                </button>
+                </Button>
               </div>
             </div>
             <div className="space-y-2">
@@ -107,26 +102,19 @@ export function TrashView(): React.JSX.Element {
                       {p.description || p.content.slice(0, 80) || t('空内容')}
                     </div>
                     <div className="mt-1 text-[10px] text-muted-foreground">
-                      {t('删除于 {date} · {n} 天后永久删除', {
+                      {t('删除于 {date}，{n} 天后永久删除', {
                         date: formatDate(p.deletedAt ?? 0),
                         n: daysLeft(p.deletedAt ?? 0)
                       })}
                     </div>
                   </div>
-                  <button
-                    onClick={() => void handleRestore(p.id, p.title)}
-                    className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground"
-                  >
-                    <HistoryIcon className="size-3" />
+                  <Button variant="outline" size="sm" onClick={() => void handleRestore(p.id, p.title)}>
+                    <HistoryIcon />
                     {t('恢复')}
-                  </button>
-                  <button
-                    onClick={() => void handlePurge(p.id, p.title)}
-                    title={t('永久删除')}
-                    className="shrink-0 rounded-lg border border-border p-1.5 text-muted-foreground transition hover:border-destructive hover:text-destructive"
-                  >
-                    <TrashIcon className="size-3.5" />
-                  </button>
+                  </Button>
+                  <Button variant="destructive" size="icon-sm" title={t('永久删除')} onClick={() => void handlePurge(p.id, p.title)}>
+                    <TrashIcon />
+                  </Button>
                 </div>
               ))}
             </div>

@@ -10,6 +10,8 @@ import { VariableFiller } from './VariableFiller'
 import { VersionHistory } from './VersionHistory'
 import { toast } from './Toast'
 import { useT } from '../i18n'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Tab = 'edit' | 'preview' | 'variables' | 'history'
 
@@ -24,7 +26,7 @@ export function EditorPanel(): React.JSX.Element {
         <DocumentIcon className="size-4 mb-3 opacity-40" />
         <p className="font-semibold tracking-tight text-base">{t('选择左侧 Prompt，或新建一个开始')}</p>
         <p className="mt-2 text-xs text-muted-foreground">
-          <kbd className="rounded border border-border px-1">Ctrl/⌘ + N</kbd> {t('新建')} ·{' '}
+          <kbd className="rounded border border-border px-1">Ctrl/⌘ + N</kbd> {t('新建')}{' '}
           <kbd className="rounded border border-border px-1">Ctrl/⌘ + K</kbd> {t('快速调用')}
         </p>
       </div>
@@ -171,45 +173,55 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           recommendation line shown in the list, so it asks for the situation,
           not a summary of the body. */}
       <div className="flex items-center gap-3 border-b border-border px-6 py-2">
-        <select
+        <Select
           value={prompt.categoryId ?? ''}
-          onChange={(e) => flushSave({ categoryId: e.target.value || null })}
-          title={t('所属步骤')}
-          className="max-w-[40%] shrink-0 truncate rounded-md border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-ring"
+          onValueChange={(v) => flushSave({ categoryId: (v as string) || null })}
+          items={[{ value: '', label: t('未归入步骤') }, ...categories.map((c) => ({ value: c.id, label: c.name }))]}
         >
-          <option value="">{t('未归入步骤')}</option>
-          {STAGES.map((stage, i) => (
-            <optgroup key={stage.id} label={`${i + 1} · ${t(stage.name)}`}>
-              {stepsOf(categories, stage.id).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-          {stepsOf(categories, null).length > 0 && (
-            <optgroup label={t('其他')}>
-              {stepsOf(categories, null).map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </optgroup>
-          )}
-        </select>
-        <select
+          <SelectTrigger size="sm" title={t('所属步骤')} className="max-w-[40%] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">{t('未归入步骤')}</SelectItem>
+            {STAGES.map((stage, i) => (
+              <SelectGroup key={stage.id}>
+                <SelectLabel>{`${i + 1} ${t(stage.name)}`}</SelectLabel>
+                {stepsOf(categories, stage.id).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ))}
+            {stepsOf(categories, null).length > 0 && (
+              <SelectGroup>
+                <SelectLabel>{t('其他')}</SelectLabel>
+                {stepsOf(categories, null).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            )}
+          </SelectContent>
+        </Select>
+        <Select
           value={prompt.track ?? ''}
-          onChange={(e) => flushSave({ track: (e.target.value || null) as Prompt['track'] })}
-          title={t('适用的项目类型')}
-          className="shrink-0 rounded-md border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-ring"
+          onValueChange={(v) => flushSave({ track: ((v as string) || null) as Prompt['track'] })}
+          items={[{ value: '', label: t('所有类型') }, ...TRACKS.map((x) => ({ value: x.id, label: t(x.name) }))]}
         >
-          <option value="">{t('所有类型')}</option>
-          {TRACKS.map((x) => (
-            <option key={x.id} value={x.id}>
-              {t(x.name)}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger size="sm" title={t('适用的项目类型')} className="text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">{t('所有类型')}</SelectItem>
+            {TRACKS.map((x) => (
+              <SelectItem key={x.id} value={x.id}>
+                {t(x.name)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <input
           value={description}
           onChange={(e) => {
@@ -223,7 +235,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           {saveState === 'dirty'
             ? t('编辑中…')
             : saveState === 'saved' && savedAt
-              ? t('已保存 · {when}', { when: relativeTime(savedAt) })
+              ? t('已保存，{when}', { when: relativeTime(savedAt) })
               : ''}
         </span>
       </div>
@@ -292,7 +304,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
         >
           <span className="text-muted-foreground">{t('下一步')}</span>
           <span className="font-medium text-foreground">
-            {STAGES.indexOf(next.stage) + 1} · {t(next.stage.name)} / {next.step.name}
+            {STAGES.indexOf(next.stage) + 1} {t(next.stage.name)}，{next.step.name}
           </span>
           <CheckIcon className="size-3.5 ml-auto text-muted-foreground" />
         </button>
@@ -313,17 +325,15 @@ function ToolbarButton({
   danger?: boolean
 }): React.JSX.Element {
   return (
-    <button
+    <Button
+      variant="ghost"
+      size="icon-sm"
       title={title}
       onClick={onClick}
-      className={`rounded-lg p-2 transition ${
-        danger
-          ? 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-      }`}
+      className={danger ? 'hover:bg-destructive/10 hover:text-destructive' : undefined}
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
@@ -341,10 +351,10 @@ function TabButton({
   return (
     <button
       onClick={onClick}
+      aria-selected={active}
+      role="tab"
       className={`flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition ${
-        active
-          ? 'border-primary font-medium text-foreground'
-          : 'border-transparent text-muted-foreground hover:text-foreground'
+        active ? 'border-primary font-medium text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
       }`}
     >
       {icon}

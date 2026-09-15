@@ -151,7 +151,7 @@ export const en: Record<string, string> = {
   '启用': 'Enable',
   'GitHub Personal Access Token（需勾选': 'GitHub personal access token (requires the',
   '权限）': 'scope)',
-  '前往 GitHub 创建 Token →': 'Create a token on GitHub →',
+  '前往 GitHub 创建 Token': 'Create a token on GitHub →',
   'WebDAV 地址（指向一个目录，如坚果云 https://dav.jianguoyun.com/dav/PromptBox/）':
     'WebDAV URL (point to a directory, e.g. https://dav.jianguoyun.com/dav/PromptBox/)',
   '用户名': 'Username',
@@ -222,7 +222,6 @@ export const en: Record<string, string> = {
     'That hotkey is taken by the system or another app; pick another',
   '导入完成': 'Import complete',
   '开发模式下不检查更新，打包后生效': "Updates aren't checked in dev mode; they apply after packaging",
-  'PromptBox · 本地 AI Prompt 资产库': 'PromptBox · local AI prompt library',
 
   // ---- Network ----
   '发现': 'Discover',
@@ -269,7 +268,7 @@ export const en: Record<string, string> = {
 
   // ---- Autosave state ----
   '编辑中…': 'Editing…',
-  '已保存 · {when}': 'Saved · {when}',
+  '已保存，{when}': 'Saved · {when}',
   '没有需要保存的改动': 'No unsaved changes',
   '命令面板': 'Command palette',
 
@@ -278,7 +277,7 @@ export const en: Record<string, string> = {
   '回收站是空的。': 'The trash is empty.',
   '删除的 Prompt 会在这里保留 {days} 天，之后自动永久删除。':
     'Deleted prompts stay here for {days} days, then are removed for good.',
-  '删除于 {date} · {n} 天后永久删除': 'Deleted {date} · purged in {n} days',
+  '删除于 {date}，{n} 天后永久删除': 'Deleted {date} · purged in {n} days',
   '清空回收站': 'Empty trash',
   '永久删除': 'Delete permanently',
   '永久删除「{title}」？此操作不可撤销。':
@@ -335,9 +334,9 @@ export const en: Record<string, string> = {
   '我有现成代码': 'I have existing code',
   '从想法开始，一步一步到上线。': 'From an idea, step by step, to launch.',
   '跳过想法和搭建，先读懂代码，然后一个功能一个功能做。': 'Skip the idea and setup; read the code first, then build one feature at a time.',
-  '继续上次（第 {n} 步）→': 'Continue (step {n}) →',
+  '继续上次（第 {n} 步）': 'Continue (step {n})',
   '重新开始': 'Start over',
-  '开始 →': 'Start →',
+  '开始': 'Start',
   '网站 / Web 应用': 'Website / web app',
   '有页面、有账号、部署到服务器': 'Pages, accounts, deployed to a server',
   '命令行工具': 'Command-line tool',
@@ -353,7 +352,7 @@ export const en: Record<string, string> = {
   '上一步': 'Back',
   '阶段': 'Stages',
   '换项目类型': 'Change project type',
-  '高级 · 全部 Prompt': 'Advanced · all prompts',
+  '全部 Prompt': 'All prompts',
   '已有代码': 'Existing code',
   '第 {n} 步 / 共 {total} 步': 'Step {n} of {total}',
   '第 {n} 个': '#{n}',

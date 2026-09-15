@@ -4,6 +4,10 @@ import type { CloseAction, Language, ThemeMode } from '@shared/types'
 import { HOTKEY_PRESETS } from '@shared/types'
 import { useStore } from '../store'
 import { useT } from '../i18n'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from './Toast'
 
 const CLOSE_ACTIONS: { value: CloseAction; label: string }[] = [
@@ -91,41 +95,27 @@ export function SettingsView(): React.JSX.Element {
             and the close-behaviour labels do not. */}
         <Section title={t('外观')}>
           <Row label={t('主题')}>
-            <div className="flex gap-2" role="group" aria-label={t('主题')}>
-              {themes.map((th) => (
-                <button
-                  key={th.value}
-                  onClick={() => setTheme(th.value)}
-                  aria-pressed={settings?.theme === th.value}
-                  className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
-                    settings?.theme === th.value
-                      ? 'border-primary/40 bg-accent text-foreground'
-                      : 'border-border text-muted-foreground hover:border-ring hover:text-foreground'
-                  }`}
-                >
-                  {th.icon}
-                  {t(th.label)}
-                </button>
-              ))}
-            </div>
+            <Tabs value={settings?.theme ?? 'system'} onValueChange={(v) => setTheme(v as ThemeMode)}>
+              <TabsList aria-label={t('主题')}>
+                {themes.map((th) => (
+                  <TabsTrigger key={th.value} value={th.value}>
+                    {th.icon}
+                    {t(th.label)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </Row>
           <Row label={t('语言')}>
-            <div className="flex gap-2" role="group" aria-label={t('语言')}>
-              {languages.map((lng) => (
-                <button
-                  key={lng.value}
-                  onClick={() => setLanguage(lng.value)}
-                  aria-pressed={(settings?.language ?? 'zh') === lng.value}
-                  className={`rounded-xl border px-3 py-1.5 text-sm transition ${
-                    (settings?.language ?? 'zh') === lng.value
-                      ? 'border-primary/40 bg-accent text-foreground'
-                      : 'border-border text-muted-foreground hover:border-ring hover:text-foreground'
-                  }`}
-                >
-                  {lng.label}
-                </button>
-              ))}
-            </div>
+            <Tabs value={settings?.language ?? 'zh'} onValueChange={(v) => setLanguage(v as Language)}>
+              <TabsList aria-label={t('语言')}>
+                {languages.map((lng) => (
+                  <TabsTrigger key={lng.value} value={lng.value}>
+                    {lng.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </Row>
         </Section>
 
@@ -136,18 +126,18 @@ export function SettingsView(): React.JSX.Element {
             description={t('在任意应用中唤起命令面板，托盘后台运行时也生效')}
             controlId="set-hotkey"
           >
-            <select
-              id="set-hotkey"
-              value={settings?.globalHotkey ?? ''}
-              onChange={(e) => handleHotkey(e.target.value)}
-              className="rounded-xl border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-ring"
-            >
-              {HOTKEY_PRESETS.map((h) => (
-                <option key={h.value} value={h.value}>
-                  {h.label}
-                </option>
-              ))}
-            </select>
+            <Select value={settings?.globalHotkey ?? ''} onValueChange={(v) => handleHotkey(v as string)} items={HOTKEY_PRESETS}>
+              <SelectTrigger id="set-hotkey" className="w-56">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {HOTKEY_PRESETS.map((h) => (
+                  <SelectItem key={h.value} value={h.value}>
+                    {h.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Row>
         </Section>
 
@@ -220,18 +210,22 @@ export function SettingsView(): React.JSX.Element {
             description={t('最小化到托盘可让全局热键继续生效')}
             controlId="set-close-action"
           >
-            <select
-              id="set-close-action"
+            <Select
               value={settings?.closeAction ?? 'ask'}
-              onChange={(e) => void setCloseAction(e.target.value as CloseAction)}
-              className="rounded-xl border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-ring"
+              onValueChange={(v) => void setCloseAction(v as CloseAction)}
+              items={CLOSE_ACTIONS.map((c) => ({ value: c.value, label: t(c.label) }))}
             >
-              {CLOSE_ACTIONS.map((c) => (
-                <option key={c.value} value={c.value}>
-                  {t(c.label)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id="set-close-action" className="w-56">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CLOSE_ACTIONS.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {t(c.label)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Row>
           {/* Not a fourth close-behaviour option — an escape hatch. With the
               setting on "tray", Alt+F4 also just hides, leaving the tray menu as
@@ -245,7 +239,7 @@ export function SettingsView(): React.JSX.Element {
           <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
             <InfoIcon className="size-3.5 shrink-0" />
             <p>
-              {t('PromptBox · 本地 AI Prompt 资产库')} ·{' '}
+              {t('PromptBox')}{' '}
               {t('{prompts} 个 Prompt、{categories} 个步骤', {
                 prompts: prompts.length,
                 categories: categories.length
@@ -305,22 +299,15 @@ function UpdateRow(): React.JSX.Element {
         {statusText && <div className="mt-0.5 text-xs text-muted-foreground">{statusText}</div>}
       </div>
       {st === 'downloaded' ? (
-        <button
-          onClick={() => void installUpdate()}
-          className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm text-primary-foreground transition hover:bg-primary/80"
-        >
-          <DownloadIcon className="size-4" />
+        <Button onClick={() => void installUpdate()}>
+          <DownloadIcon />
           {t('重启安装')}
-        </button>
+        </Button>
       ) : (
-        <button
-          onClick={handleCheck}
-          disabled={busy}
-          className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition hover:border-ring hover:text-foreground disabled:opacity-50"
-        >
-          <RefreshIcon className={"size-4 " + busy ? 'animate-spin' : ''} />
+        <Button variant="outline" onClick={handleCheck} disabled={busy}>
+          <RefreshIcon className={busy ? 'animate-spin' : undefined} />
           {t('检查更新')}
-        </button>
+        </Button>
       )}
     </div>
   )
@@ -371,7 +358,7 @@ function ProxyInput({
     if (v !== value) onSave(v)
   }
   return (
-    <input
+    <Input
       id={id}
       value={draft}
       onChange={(e) => setDraft(e.target.value)}
@@ -380,7 +367,7 @@ function ProxyInput({
       placeholder={t('http://127.0.0.1:7890')}
       spellCheck={false}
       // Fixed 16rem overflowed the row in a narrow window; cap instead.
-      className="w-full max-w-64 rounded-xl border border-border bg-card px-2.5 py-1.5 font-mono text-xs text-foreground outline-none focus:border-ring"
+      className="w-full max-w-64 font-mono text-xs"
     />
   )
 }
@@ -450,16 +437,9 @@ function ActionButton({
   danger?: boolean
 }): React.JSX.Element {
   return (
-    <button
-      onClick={onClick}
-      className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
-        danger
-          ? 'border-destructive/30 text-destructive hover:bg-destructive/10'
-          : 'border-border text-muted-foreground hover:border-ring hover:bg-muted hover:text-foreground'
-      }`}
-    >
+    <Button variant={danger ? 'destructive' : 'outline'} onClick={onClick}>
       {icon}
       {children}
-    </button>
+    </Button>
   )
 }

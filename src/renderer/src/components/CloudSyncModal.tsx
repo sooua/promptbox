@@ -184,7 +184,7 @@ export function CloudSyncModal(): React.JSX.Element {
                         >
                           {connected
                             ? `${syncState?.account ?? t('已连接')}${
-                                syncState?.lastSyncedAt ? ' · ' + relativeTime(syncState.lastSyncedAt) : ''
+                                syncState?.lastSyncedAt ? '，' + relativeTime(syncState.lastSyncedAt) : ''
                               }`
                             : credentialBroken && syncState?.provider === prov.id
                               ? t('凭证无法在本机解密，请重新连接')
@@ -195,7 +195,7 @@ export function CloudSyncModal(): React.JSX.Element {
                       {connected ? (
                         <div className="flex items-center gap-1 text-sm">
                           <CardAction
-                            icon={<RefreshIcon className={"size-4 " + syncBusy ? 'animate-spin' : ''} />}
+                            icon={<RefreshIcon className={syncBusy ? 'size-4 animate-spin' : 'size-4'} />}
                             label={t('同步')}
                             onClick={handleSync}
                             disabled={syncBusy}
@@ -320,7 +320,7 @@ export function CloudSyncModal(): React.JSX.Element {
                             window.open('https://github.com/settings/tokens/new?scopes=gist&description=PromptBox')
                           }
                         >
-                          {t('前往 GitHub 创建 Token →')}
+                          {t('前往 GitHub 创建 Token')}
                         </LinkBtn>
                       </ConnectForm>
                     )}
@@ -532,7 +532,7 @@ function HistoryPanel({
                 <div className="text-sm text-foreground">{formatDate(v.createdAt)}</div>
                 <div className="font-mono text-[10px] text-muted-foreground">
                   {v.id.slice(0, 18)}
-                  {v.label ? ` · ${v.label}` : ''}
+                  {v.label ? `，${v.label}` : ''}
                 </div>
               </div>
               <button

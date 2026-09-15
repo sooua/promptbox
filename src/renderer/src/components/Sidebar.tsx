@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CloudIcon, DragIcon, LayersIcon, OtherIcon, PencilIcon, PlusIcon, RouteIcon, SettingsIcon, StarIcon, TrashIcon } from '../icons'
+import { CloudIcon, DragIcon, LayersIcon, PencilIcon, PlusIcon, RouteIcon, SettingsIcon, StarIcon, TrashIcon } from '../icons'
 import type { Category, StageId } from '@shared/types'
 import { STAGES, STAGE_COLORS } from '@shared/types'
 import { moveStep } from '@shared/steps'
@@ -223,14 +223,9 @@ export function Sidebar(): React.JSX.Element {
           isMac ? 'pl-[78px] pr-4' : 'px-5'
         }`}
       >
-        {!isMac && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-primary text-primary-foreground">
-            <OtherIcon className="size-4.5" />
-          </div>
-        )}
         <div className="min-w-0">
-          <div className="font-semibold tracking-tight text-[16px] leading-tight text-foreground">PromptBox</div>
-          <div className="truncate text-[11px] leading-tight text-muted-foreground">{t('高级 · 全部 Prompt')}</div>
+          <div className="text-[15px] font-semibold leading-tight tracking-tight text-foreground">PromptBox</div>
+          <div className="truncate text-[11px] leading-tight text-muted-foreground">{t('全部 Prompt')}</div>
         </div>
       </div>
 
