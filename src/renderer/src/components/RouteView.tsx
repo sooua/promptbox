@@ -195,7 +195,7 @@ function StageStepper({
                 </StepperTitle>
               </StepperTrigger>
               {i < stages.length - 1 && (
-                <StepperSeparator className="mb-6 group-data-[state=completed]/step:bg-primary" />
+                <StepperSeparator className="mb-6" />
               )}
             </StepperItem>
           )

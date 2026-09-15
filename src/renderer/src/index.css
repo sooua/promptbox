@@ -331,6 +331,18 @@ body {
 .route-card-in { animation: route-card-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .route-pop { animation: route-pop 320ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 
+/* Stage connector: when a stage completes, the blue sweeps in from the left
+ * instead of snapping. Collapsed by the reduced-motion rule above. */
+[data-slot='stepper-separator'] {
+  background-image: linear-gradient(var(--primary), var(--primary));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  transition: background-size 600ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+[data-slot='stepper-separator'][data-state='completed'] {
+  background-size: 100% 100%;
+}
+
 /* Highlight {{variables}} inside rendered preview and inline. */
 .var-chip {
   background: color-mix(in srgb, var(--primary) 16%, transparent);
