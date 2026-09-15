@@ -24,6 +24,18 @@
       "headers": {
         "Authorization": "Bearer ${REUI_LICENSE_KEY}"
       }
+    },
+    "@reactbits-starter": {
+      "url": "https://proxy.collectui.pro/api/r/reactbits/starter/{name}.json",
+      "headers": {
+        "Authorization": "Bearer ${REACTBITS_LICENSE_KEY}"
+      }
+    },
+    "@reactbits-pro": {
+      "url": "https://proxy.collectui.pro/api/r/reactbits/pro/{name}.json",
+      "headers": {
+        "Authorization": "Bearer ${REACTBITS_LICENSE_KEY}"
+      }
     }
   }
 }

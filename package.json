@@ -26,6 +26,7 @@
     "cmdk": "^1.1.1",
     "cn": "^0.3.0",
     "electron-updater": "^6.3.9",
+    "motion": "^13.3.0",
     "pinyin-pro": "^3.28.1"
   },
   "devDependencies": {

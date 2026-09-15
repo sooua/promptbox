@@ -49,7 +49,8 @@ Flat by default. Cards are a 1px `border-border` on `bg-card`; the ReUI `Frame` 
 - **Buttons**: shadcn `Button`. `default` for the one primary action, `outline` for secondary, `ghost` for toolbar / nav, `destructive` for danger. Icons inside buttons need no size class.
 - **Icons**: ReUI Motion Icons, outline style only, imported from `src/renderer/src/icons.ts`. No lucide, no other set.
 - **Inputs**: `Input`, `Textarea`, `Select` (base-ui; pass `items` so the trigger shows labels), `Switch`, `Tabs` as a segmented control for 2–3 options.
-- **Route**: ReUI `Stepper` for the five stages, `Frame` for the step card, `Kbd` for shortcuts.
+- **Route**: ReUI `Stepper` for the five stages, `Frame` for the step card, `Kbd` for shortcuts. Headlines on the choose screen and the step card use React Bits `StaggeredText` (`components/react-bits`), chars, ≤ 0.5 s, reduced-motion aware.
+- **React Bits**: only Starter components that need no WebGL. The Pro blocks (wizard, onboarding, app-shell) are SaaS forms and do not fit; do not install them.
 - **Overlays**: the app's `Modal` shell (focus trap + Esc) with `bg-popover` panels; toasts bottom-centre.
 
 ## 6. Do's and Don'ts

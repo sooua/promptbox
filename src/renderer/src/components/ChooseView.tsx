@@ -3,6 +3,7 @@ import type { Flow, TrackId } from '@shared/types'
 import { TRACKS } from '@shared/types'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import StaggeredText from '@/components/react-bits/staggered-text'
 import { CliIcon, DeskIcon, MobileIcon, OtherIcon, WebIcon } from '../icons'
 import { useStore } from '../store'
 import { routeSteps } from '../selectors'
@@ -54,7 +55,15 @@ export function ChooseView(): React.JSX.Element {
     <div className="flex flex-1 flex-col items-center justify-center gap-8 overflow-y-auto bg-background px-6 py-12 text-center">
       <div className="route-card-in">
         <div className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{t('开始之前，只问一个问题')}</div>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{t('你要做的是什么？')}</h1>
+        <StaggeredText
+          as="h1"
+          text={t('你要做的是什么？')}
+          segmentBy="chars"
+          delay={35}
+          duration={0.5}
+          direction="bottom"
+          className="mt-3 text-3xl font-semibold tracking-tight text-foreground"
+        />
         <p className="mx-auto mt-3 max-w-[34em] text-sm text-muted-foreground">
           {t('选一个，后面的每一步都为它准备好了。不用再挑 Prompt。')}
         </p>
