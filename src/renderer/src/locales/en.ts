@@ -350,6 +350,7 @@ export const en: Record<string, string> = {
   // ---- Route ----
   '回到路线': 'Back to route',
   '上一步': 'Back',
+  '第一次用？三步': 'First time? Three steps',
   '打开': 'Open',
   '关闭': 'Close',
   '阶段': 'Stages',

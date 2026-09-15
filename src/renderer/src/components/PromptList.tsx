@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useRef } from 'react'
 import { CopyIcon, PlusIcon, SearchIcon, StarIcon, TrashIcon, UploadIcon } from '../icons'
-import { STAGES, TRACKS } from '@shared/types'
+import { STAGES, TRACKS, TRACK_COLORS } from '@shared/types'
 import { useStore, isCategoryId, stageOf } from '../store'
 import { categoryById, filterPrompts, stepsOf } from '../selectors'
 import { requestCopy } from '../copy'
@@ -8,6 +8,7 @@ import { VirtualList } from './VirtualList'
 import { toast } from './Toast'
 import { useT } from '../i18n'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/reui/badge'
 
 export function PromptList(): React.JSX.Element {
   const t = useT()
@@ -248,14 +249,14 @@ export function PromptList(): React.JSX.Element {
                     </span>
                   )}
                   {p.track && (
-                    <span className="rounded border border-border px-1">
+                    <Badge size="xs" variant="outline" className="border-transparent" style={{ background: `color-mix(in srgb, ${TRACK_COLORS[p.track]} 12%, transparent)`, color: TRACK_COLORS[p.track] }}>
                       {t(TRACKS.find((x) => x.id === p.track)?.name ?? p.track)}
-                    </span>
+                    </Badge>
                   )}
                   {p.variables.length > 0 && (
-                    <span className="rounded bg-muted px-1.5">
+                    <Badge size="xs" variant="secondary">
                       {t('{n} 个变量', { n: p.variables.length })}
-                    </span>
+                    </Badge>
                   )}
                 </div>
 

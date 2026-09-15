@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Category, Flow, Prompt, StageInfo } from '@shared/types'
-import { STAGES, TRACKS } from '@shared/types'
+import { STAGES, STAGE_COLORS, TRACKS } from '@shared/types'
 import { fillTemplate, missingRequired } from '@shared/variables'
 import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
 import { Frame, FramePanel } from '@/components/reui/frame'
+import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert'
+import { Badge } from '@/components/reui/badge'
 import {
   Stepper,
   StepperIndicator,
@@ -163,9 +165,17 @@ function StageStepper({
           const mine = steps.filter((s) => s.stage === st.id)
           const finished = mine.every((s) => done.has(s.id))
           return (
-            <StepperItem key={st.id} step={i + 1} completed={finished} disabled={i > curIdx && !finished}>
+            <StepperItem
+              key={st.id}
+              step={i + 1}
+              completed={finished}
+              disabled={i > curIdx && !finished}
+              style={{ '--stage': STAGE_COLORS[st.id] } as React.CSSProperties}
+            >
               <StepperTrigger className="flex flex-col items-center gap-2 px-1 text-center">
-                <StepperIndicator className="size-7 text-xs font-medium">{i + 1}</StepperIndicator>
+                <StepperIndicator className="size-7 text-xs font-medium data-[state=active]:bg-[var(--stage)] data-[state=active]:text-white data-[state=active]:ring-4 data-[state=active]:ring-[color-mix(in_srgb,var(--stage)_22%,transparent)] data-[state=completed]:bg-[var(--stage)] data-[state=completed]:text-white">
+                  {i + 1}
+                </StepperIndicator>
                 <StepperTitle className="text-xs font-medium text-muted-foreground group-data-[state=active]/step:text-foreground">
                   {t(st.name)}
                   {st.loop && i === curIdx && feature > 1 ? (
@@ -173,7 +183,9 @@ function StageStepper({
                   ) : null}
                 </StepperTitle>
               </StepperTrigger>
-              {i < stages.length - 1 && <StepperSeparator className="mb-6 group-data-[state=completed]/step:bg-primary" />}
+              {i < stages.length - 1 && (
+                <StepperSeparator className="mb-6 group-data-[state=completed]/step:bg-[var(--stage)]" />
+              )}
             </StepperItem>
           )
         })}
@@ -253,19 +265,32 @@ function StepCard({
     <Frame className="route-card-in" spacing="lg">
       <FramePanel className="flex flex-col gap-5">
         <div>
-          <div className="text-xs text-muted-foreground">
-            {t(stage.name)}，{t('第 {n} 步 / 共 {total} 步', { n: index + 1, total })}
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Badge
+              size="sm"
+              variant="outline"
+              className="gap-1.5 border-transparent"
+              style={{ background: `color-mix(in srgb, ${STAGE_COLORS[stage.id]} 12%, transparent)`, color: STAGE_COLORS[stage.id] }}
+            >
+              {t(stage.name)}
+            </Badge>
+            {t('第 {n} 步 / 共 {total} 步', { n: index + 1, total })}
           </div>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{step.name}</h2>
           {step.hint && <p className="mt-2 max-w-[40em] text-sm text-muted-foreground">{step.hint}</p>}
         </div>
 
         {index === 0 && !copiedOnce && (
-          <ol className="list-decimal space-y-1 rounded-lg bg-muted/60 px-4 py-3 pl-8 text-xs text-muted-foreground">
-            <li>{flow === 'fresh' ? t('新建一个空文件夹，作为这个项目的家') : t('找到你的项目文件夹')}</li>
-            <li>{t('在这个文件夹里打开 Claude Code（或 Cursor）')}</li>
-            <li>{t('把下面复制的内容粘贴进去，按回车')}</li>
-          </ol>
+          <Alert variant="info">
+            <AlertTitle>{t('第一次用？三步')}</AlertTitle>
+            <AlertDescription>
+              <ol className="list-decimal space-y-0.5 pl-4">
+                <li>{flow === 'fresh' ? t('新建一个空文件夹，作为这个项目的家') : t('找到你的项目文件夹')}</li>
+                <li>{t('在这个文件夹里打开 Claude Code（或 Cursor）')}</li>
+                <li>{t('把下面复制的内容粘贴进去，按回车')}</li>
+              </ol>
+            </AlertDescription>
+          </Alert>
         )}
 
         {!prompt ? (

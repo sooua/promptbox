@@ -257,9 +257,8 @@ export function Sidebar(): React.JSX.Element {
                   }`}
                 >
                   <span
-                    className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[10px] font-medium ${
-                      active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-                    }`}
+                    className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[10px] font-medium text-white"
+                    style={{ background: STAGE_COLORS[stage.id], opacity: active ? 1 : 0.85 }}
                   >
                     {i + 1}
                   </span>

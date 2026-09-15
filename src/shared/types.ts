@@ -123,11 +123,20 @@ export const STAGES: StageInfo[] = [
 
 /** One hue per stage; steps inherit it. */
 export const STAGE_COLORS: Record<StageId, string> = {
-  think: '#c96442',
-  plan: '#b08968',
-  scaffold: '#7a8b6f',
-  build: '#8a7355',
-  ship: '#6b7a8f'
+  think: '#8b5cf6',
+  plan: '#3b82f6',
+  scaffold: '#10b981',
+  build: '#f59e0b',
+  ship: '#f43f5e'
+}
+
+/** One hue per project type, for the choose cards and list tags. */
+export const TRACK_COLORS: Record<TrackId, string> = {
+  web: '#3b82f6',
+  cli: '#10b981',
+  desk: '#8b5cf6',
+  mobile: '#f43f5e',
+  other: '#f59e0b'
 }
 
 /** Which starting point a step belongs to; undefined = both. */
