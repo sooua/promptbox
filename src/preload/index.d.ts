@@ -54,7 +54,6 @@ export interface PromptBoxApi {
     get(): Promise<AppSettings>
     setTheme(theme: ThemeMode): Promise<AppSettings>
     setLanguage(language: Language): Promise<AppSettings>
-    setProxy(proxy: string): Promise<AppSettings>
     setCloseAction(action: CloseAction): Promise<AppSettings>
     setHotkey(accelerator: string): Promise<{ ok: boolean; settings: AppSettings }>
     chooseDataDir(): Promise<AppSettings | null>

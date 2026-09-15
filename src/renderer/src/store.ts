@@ -164,7 +164,6 @@ interface State {
   // settings
   setTheme(theme: ThemeMode): Promise<void>
   setLanguage(language: Language): Promise<void>
-  setProxy(proxy: string): Promise<void>
   setCloseAction(action: CloseAction): Promise<void>
   setHotkey(accelerator: string): Promise<boolean>
 
@@ -500,11 +499,6 @@ export const useStore = create<State>((set, get) => ({
 
   async setLanguage(language) {
     const settings = await api.settings.setLanguage(language)
-    set({ settings })
-  },
-
-  async setProxy(proxy) {
-    const settings = await api.settings.setProxy(proxy)
     set({ settings })
   },
 

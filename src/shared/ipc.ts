@@ -26,7 +26,6 @@ export const IPC = {
   settingsGet: 'settings:get',
   settingsSetTheme: 'settings:setTheme',
   settingsSetLanguage: 'settings:setLanguage',
-  settingsSetProxy: 'settings:setProxy',
   settingsSetCloseAction: 'settings:setCloseAction',
   settingsSetHotkey: 'settings:setHotkey',
 

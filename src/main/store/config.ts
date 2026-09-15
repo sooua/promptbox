@@ -25,7 +25,6 @@ export function loadSettings(): AppSettings {
     dataDir: defaultDataDir(),
     theme: 'system',
     language: 'zh',
-    proxy: '',
     globalHotkey: DEFAULT_HOTKEY,
     closeAction: 'ask'
   }
@@ -36,7 +35,6 @@ export function loadSettings(): AppSettings {
       dataDir: parsed.dataDir || fallback.dataDir,
       theme: (parsed.theme as ThemeMode) || fallback.theme,
       language: (parsed.language as Language) || fallback.language,
-      proxy: parsed.proxy ?? fallback.proxy,
       globalHotkey: parsed.globalHotkey || fallback.globalHotkey,
       closeAction: CLOSE_ACTIONS.includes(parsed.closeAction as CloseAction)
         ? (parsed.closeAction as CloseAction)

@@ -34,7 +34,6 @@ const api: PromptBoxApi = {
     get: () => ipcRenderer.invoke(IPC.settingsGet),
     setTheme: (theme) => ipcRenderer.invoke(IPC.settingsSetTheme, theme),
     setLanguage: (language) => ipcRenderer.invoke(IPC.settingsSetLanguage, language),
-    setProxy: (proxy) => ipcRenderer.invoke(IPC.settingsSetProxy, proxy),
     setCloseAction: (action) => ipcRenderer.invoke(IPC.settingsSetCloseAction, action),
     setHotkey: (accelerator) => ipcRenderer.invoke(IPC.settingsSetHotkey, accelerator),
     chooseDataDir: () => ipcRenderer.invoke(IPC.settingsChooseDataDir),

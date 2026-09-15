@@ -176,12 +176,6 @@ export interface AppSettings {
   theme: ThemeMode
   /** UI language */
   language: Language
-  /**
-   * Network proxy for all outbound requests (sync, updates).
-   * '' = follow system; 'direct' = no proxy; else proxy rules, e.g.
-   * 'http://127.0.0.1:7890' or 'socks5://127.0.0.1:7891'.
-   */
-  proxy: string
   /** Electron accelerator string for the global quick-launch hotkey */
   globalHotkey: string
   /**

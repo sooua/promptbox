@@ -16,7 +16,6 @@ import type { Repository } from './store/repository'
 import { loadSettings, saveSettings } from './store/config'
 import { updateHotkey } from './system'
 import { mt, setMainLanguage } from './i18n'
-import { applyProxy } from './net'
 import type { BackupManager } from './backup'
 
 export function registerIpc(repo: Repository, backup: BackupManager): void {
@@ -105,13 +104,6 @@ export function registerIpc(repo: Repository, backup: BackupManager): void {
     const current = loadSettings()
     const settings = saveSettings({ ...current, language, dataDir: repo.getDataDir() })
     setMainLanguage(language)
-    return settings
-  })
-
-  ipcMain.handle(IPC.settingsSetProxy, (_e, proxy: string) => {
-    const current = loadSettings()
-    const settings = saveSettings({ ...current, proxy, dataDir: repo.getDataDir() })
-    applyProxy(proxy)
     return settings
   })
 

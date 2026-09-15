@@ -5,7 +5,6 @@ import { HOTKEY_PRESETS, SYNC_PROVIDERS } from '@shared/types'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from './Toast'
 
@@ -20,7 +19,6 @@ export function SettingsView(): React.JSX.Element {
   const settings = useStore((s) => s.settings)
   const prompts = useStore((s) => s.prompts)
   const categories = useStore((s) => s.categories)
-  const setProxy = useStore((s) => s.setProxy)
   const setHotkey = useStore((s) => s.setHotkey)
   const chooseDataDir = useStore((s) => s.chooseDataDir)
   const openDataDir = useStore((s) => s.openDataDir)
@@ -115,13 +113,6 @@ export function SettingsView(): React.JSX.Element {
             <ActionButton icon={<CloudIcon className="size-4" />} onClick={openCloud}>
               {syncState?.connected ? t('管理') : t('连接')}
             </ActionButton>
-          </Row>
-          <Row
-            label={t('代理')}
-            description={t('云同步和检查更新用。留空跟随系统，direct 直连，或填 http:// 、socks5:// 地址')}
-            controlId="set-proxy"
-          >
-            <ProxyInput id="set-proxy" value={settings?.proxy ?? ''} onSave={(v) => void setProxy(v)} />
           </Row>
         </Section>
 
@@ -311,37 +302,6 @@ function BackupSection(): React.JSX.Element {
         </ActionButton>
       </div>
     </div>
-  )
-}
-
-function ProxyInput({
-  id,
-  value,
-  onSave
-}: {
-  id: string
-  value: string
-  onSave(v: string): void
-}): React.JSX.Element {
-  const t = useT()
-  const [draft, setDraft] = useState(value)
-  useEffect(() => setDraft(value), [value])
-  const commit = () => {
-    const v = draft.trim()
-    if (v !== value) onSave(v)
-  }
-  return (
-    <Input
-      id={id}
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
-      placeholder={t('http://127.0.0.1:7890')}
-      spellCheck={false}
-      // Fixed 16rem overflowed the row in a narrow window; cap instead.
-      className="w-full max-w-64 font-mono text-xs"
-    />
   )
 }
 

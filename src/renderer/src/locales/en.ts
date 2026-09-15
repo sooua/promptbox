@@ -229,9 +229,6 @@ export const en: Record<string, string> = {
   '已导入': 'Imported',
   '导入': 'Import',
   '网络': 'Network',
-  '代理': 'Proxy',
-  '云同步和检查更新用。留空跟随系统，direct 直连，或填 http:// 、socks5:// 地址':
-    'Used by cloud sync and update checks. Empty follows the system, "direct" for no proxy, or an http:// or socks5:// address',
   '添加': 'Add',
 
   // ---- Safety rails / recovery ----
