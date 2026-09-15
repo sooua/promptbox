@@ -7,12 +7,13 @@ import {
   History as HistoryIcon,
   Pencil,
   Trash2,
-  Wand2,
-  X
+  ArrowRight,
+  Wand2
 } from 'lucide-react'
 import type { Prompt, PromptInput } from '@shared/types'
+import { STAGES, TRACKS } from '@shared/types'
 import { useStore } from '../store'
-import { relativeTime } from '../selectors'
+import { nextStep, relativeTime, stepsOf } from '../selectors'
 import { MarkdownPreview } from './MarkdownPreview'
 import { HighlightedEditor } from './HighlightedEditor'
 import { VariableFiller } from './VariableFiller'
@@ -45,6 +46,8 @@ export function EditorPanel(): React.JSX.Element {
 
 function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.Element {
   const allPrompts = useStore((s) => s.prompts)
+  const categories = useStore((s) => s.categories)
+  const setCategoryFilter = useStore((s) => s.setCategoryFilter)
   const updatePrompt = useStore((s) => s.updatePrompt)
   const deletePrompt = useStore((s) => s.deletePrompt)
   const duplicatePrompt = useStore((s) => s.duplicatePrompt)
@@ -62,7 +65,6 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   const [title, setTitle] = useState(prompt.title)
   const [description, setDescription] = useState(prompt.description ?? '')
   const [content, setContent] = useState(prompt.content)
-  const [tagDraft, setTagDraft] = useState('')
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Accumulates debounced field edits so none are lost when several fields
@@ -131,19 +133,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
     else toast.error(t('复制失败'))
   }
 
-  function addTag(raw: string) {
-    const tag = raw.trim().replace(/^#/, '')
-    if (!tag || prompt.tags.includes(tag)) {
-      setTagDraft('')
-      return
-    }
-    flushSave({ tags: [...prompt.tags, tag] })
-    setTagDraft('')
-  }
-
-  function removeTag(tag: string) {
-    flushSave({ tags: prompt.tags.filter((t) => t !== tag) })
-  }
+  const next = useMemo(() => nextStep(categories, prompt.categoryId), [categories, prompt.categoryId])
 
   async function handleDelete() {
     const { id, title } = prompt
@@ -187,47 +177,56 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
         </ToolbarButton>
       </div>
 
-      {/* Meta row */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-line px-6 py-2.5">
-        <div className="flex flex-wrap items-center gap-1">
-          {prompt.tags.map((t) => (
-            <span
-              key={t}
-              className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-[11px] text-muted"
-            >
-              #{t}
-              <button onClick={() => removeTag(t)} className="hover:text-error">
-                <X size={10} />
-              </button>
-            </span>
-          ))}
-          <input
-            value={tagDraft}
-            onChange={(e) => setTagDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault()
-                addTag(tagDraft)
-              }
-              if (e.key === 'Backspace' && !tagDraft && prompt.tags.length) {
-                removeTag(prompt.tags[prompt.tags.length - 1])
-              }
-            }}
-            placeholder={t('添加标签…')}
-            className="w-24 bg-transparent text-[11px] text-ink outline-none placeholder:text-faint"
-          />
-        </div>
-      </div>
-
-      {/* Description + autosave state */}
+      {/* Step + "when to use" + autosave state. The description doubles as the
+          recommendation line shown in the list, so it asks for the situation,
+          not a summary of the body. */}
       <div className="flex items-center gap-3 border-b border-line px-6 py-2">
+        <select
+          value={prompt.categoryId ?? ''}
+          onChange={(e) => flushSave({ categoryId: e.target.value || null })}
+          title={t('所属步骤')}
+          className="max-w-[40%] shrink-0 truncate rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted outline-none focus:border-focus"
+        >
+          <option value="">{t('未归入步骤')}</option>
+          {STAGES.map((stage, i) => (
+            <optgroup key={stage.id} label={`${i + 1} · ${t(stage.name)}`}>
+              {stepsOf(categories, stage.id).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+          {stepsOf(categories, null).length > 0 && (
+            <optgroup label={t('其他')}>
+              {stepsOf(categories, null).map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+        <select
+          value={prompt.track ?? ''}
+          onChange={(e) => flushSave({ track: (e.target.value || null) as Prompt['track'] })}
+          title={t('适用的项目类型')}
+          className="shrink-0 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted outline-none focus:border-focus"
+        >
+          <option value="">{t('所有类型')}</option>
+          {TRACKS.map((x) => (
+            <option key={x.id} value={x.id}>
+              {t(x.name)}
+            </option>
+          ))}
+        </select>
         <input
           value={description}
           onChange={(e) => {
             setDescription(e.target.value)
             scheduleSave({ description: e.target.value })
           }}
-          placeholder={t('一句话描述（可选）')}
+          placeholder={t('什么情况下用这条？一句话')}
           className="min-w-0 flex-1 bg-transparent text-xs text-muted outline-none placeholder:text-faint"
         />
         <span className="shrink-0 text-[11px] text-faint">
@@ -295,6 +294,19 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
         {tab === 'variables' && <VariableFiller prompt={prompt} />}
         {tab === 'history' && <VersionHistory prompt={prompt} />}
       </div>
+
+      {next && (
+        <button
+          onClick={() => setCategoryFilter(next.step.id)}
+          className="flex items-center gap-2 border-t border-line px-6 py-2.5 text-left text-xs text-muted transition hover:bg-surface-2 hover:text-ink"
+        >
+          <span className="text-faint">{t('下一步')}</span>
+          <span className="font-medium text-ink">
+            {STAGES.indexOf(next.stage) + 1} · {t(next.stage.name)} / {next.step.name}
+          </span>
+          <ArrowRight size={13} className="ml-auto text-faint" />
+        </button>
+      )}
     </div>
   )
 }

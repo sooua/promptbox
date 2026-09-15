@@ -113,7 +113,7 @@ function createWindow(): BrowserWindow {
 
   win.webContents.setWindowOpenHandler((details) => {
     // Only hand http(s)/mailto links to the OS. Markdown from prompts and the
-    // marketplace is untrusted, so we never let it open file:// or custom
+    // imported files are untrusted, so we never let it open file:// or custom
     // protocol handlers (which could launch local apps).
     try {
       const { protocol } = new URL(details.url)

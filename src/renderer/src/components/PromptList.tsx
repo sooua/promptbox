@@ -1,7 +1,8 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { Copy, Download, Pin, Plus, Search, Star, Tag, Trash2, Upload, X } from 'lucide-react'
-import { useStore, isCategoryId } from '../store'
-import { categoryById, filterPrompts, relativeTime } from '../selectors'
+import { useDeferredValue, useMemo, useRef } from 'react'
+import { Copy, Plus, Search, Star, Trash2, Upload } from 'lucide-react'
+import { STAGES, TRACKS } from '@shared/types'
+import { useStore, isCategoryId, stageOf } from '../store'
+import { categoryById, filterPrompts, stepsOf } from '../selectors'
 import { requestCopy } from '../copy'
 import { VirtualList } from './VirtualList'
 import { toast } from './Toast'
@@ -13,124 +14,68 @@ export function PromptList(): React.JSX.Element {
   const categories = useStore((s) => s.categories)
   const selectedId = useStore((s) => s.selectedId)
   const categoryFilter = useStore((s) => s.categoryFilter)
-  const tagFilters = useStore((s) => s.tagFilters)
   const search = useStore((s) => s.search)
   const setSearch = useStore((s) => s.setSearch)
-  const toggleTagFilter = useStore((s) => s.toggleTagFilter)
-  const clearTagFilters = useStore((s) => s.clearTagFilters)
   const select = useStore((s) => s.select)
   const createPrompt = useStore((s) => s.createPrompt)
   const toggleFavorite = useStore((s) => s.toggleFavorite)
-  const togglePin = useStore((s) => s.togglePin)
   const deletePrompt = useStore((s) => s.deletePrompt)
-  const bulkDeletePrompts = useStore((s) => s.bulkDeletePrompts)
-  const bulkRestoreDeleted = useStore((s) => s.bulkRestoreDeleted)
-  const bulkSetCategory = useStore((s) => s.bulkSetCategory)
-  const bulkSetFavorite = useStore((s) => s.bulkSetFavorite)
-  const bulkAddTag = useStore((s) => s.bulkAddTag)
   const importPromptFiles = useStore((s) => s.importPromptFiles)
 
   // Defer the search term so typing stays responsive on large libraries —
   // filtering runs against the latest keystroke without blocking input.
   const deferredSearch = useDeferredValue(search)
   const filtered = useMemo(
-    () => filterPrompts(prompts, { categoryFilter, tagFilters, search: deferredSearch }),
-    [prompts, categoryFilter, tagFilters, deferredSearch]
+    () => filterPrompts(prompts, categories, { categoryFilter, search: deferredSearch }),
+    [prompts, categories, categoryFilter, deferredSearch]
   )
 
   const listRef = useRef<HTMLDivElement | null>(null)
 
-  // Multi-select for batch actions (Ctrl/⌘+click toggles, Shift+click ranges).
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [anchor, setAnchor] = useState<string | null>(null)
-  // Drop selection when the visible set changes so we never act on hidden rows.
-  useEffect(() => setSelected(new Set()), [categoryFilter, tagFilters, deferredSearch])
-
-  function onRowClick(e: React.MouseEvent, id: string) {
-    if (e.shiftKey && anchor) {
-      const from = filtered.findIndex((p) => p.id === anchor)
-      const to = filtered.findIndex((p) => p.id === id)
-      if (from !== -1 && to !== -1) {
-        const [lo, hi] = from < to ? [from, to] : [to, from]
-        setSelected(new Set(filtered.slice(lo, hi + 1).map((p) => p.id)))
-        return
+  // Heading for the pane: the stage (with its "when you're here" line) or the
+  // step, so the user always knows where in the walkthrough they are.
+  const heading = useMemo(() => {
+    const stageId = stageOf(categoryFilter)
+    if (stageId) {
+      const s = STAGES.find((x) => x.id === stageId)!
+      return { title: `${STAGES.indexOf(s) + 1} · ${t(s.name)}`, hint: t(s.hint) }
+    }
+    if (isCategoryId(categoryFilter)) {
+      const step = categoryById(categories, categoryFilter)
+      if (!step) return null
+      const stage = STAGES.find((x) => x.id === step.stage)
+      const idx = stepsOf(categories, step.stage ?? null).indexOf(step) + 1
+      return {
+        title: step.name,
+        hint: stage ? `${t(stage.name)} · ${t('第 {n} 步', { n: idx })}` : t('其他')
       }
     }
-    if (e.ctrlKey || e.metaKey) {
-      setSelected((s) => {
-        const next = new Set(s)
-        next.has(id) ? next.delete(id) : next.add(id)
-        return next
-      })
-      setAnchor(id)
-      return
-    }
-    setSelected(new Set())
-    setAnchor(id)
-    select(id)
-  }
+    return null
+  }, [categoryFilter, categories, t])
 
-  const selectedIds = useMemo(() => [...selected], [selected])
-
-  async function batchDelete() {
-    const ids = selectedIds
-    await bulkDeletePrompts(ids)
-    setSelected(new Set())
-    toast.undo(t('已移到回收站 · {n} 项', { n: ids.length }), () => void bulkRestoreDeleted(ids))
-  }
-
-  function exportSelected() {
-    const chosen = prompts.filter((p) => selected.has(p.id))
-    const usedCats = new Set(chosen.map((p) => p.categoryId).filter(Boolean))
-    const bundle = {
-      app: 'promptbox' as const,
-      version: 1,
-      exportedAt: Date.now(),
-      prompts: chosen,
-      categories: categories.filter((c) => usedCats.has(c.id))
-    }
-    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `promptbox-export-${chosen.length}.json`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success(t('已导出 {n} 项', { n: chosen.length }))
+  // Whatever is being looked at is where a new prompt lands: the step itself,
+  // or the first step of the stage.
+  function targetStep(): string | null {
+    if (isCategoryId(categoryFilter)) return categoryFilter
+    const stageId = stageOf(categoryFilter)
+    return stageId ? (stepsOf(categories, stageId)[0]?.id ?? null) : null
   }
 
   async function handleNew() {
-    // A new prompt matches neither the search box nor any tag filter, so it
-    // would be created *and immediately hidden*. Clear both first so the user
-    // actually sees what they just made.
+    // A new prompt matches no search term, so it would be created *and
+    // immediately hidden*. Clear it first so the user sees what they just made.
     setSearch('')
-    clearTagFilters()
-    await createPrompt({
-      title: t('未命名 Prompt'),
-      content: '',
-      categoryId: isCategoryId(categoryFilter) ? (categoryFilter as string) : null
-    })
+    await createPrompt({ title: t('未命名 Prompt'), content: '', categoryId: targetStep() })
     toast.success(t('已创建 Prompt'))
   }
 
-  const hasFilters = search.trim().length > 0 || tagFilters.length > 0
-
   async function handleImportFiles() {
-    // Same trap as handleNew: imports that don't match the active filter would
-    // land invisibly.
     setSearch('')
-    clearTagFilters()
-    const res = await importPromptFiles(
-      isCategoryId(categoryFilter) ? (categoryFilter as string) : null
-    )
+    const res = await importPromptFiles(targetStep())
     if (res.count > 0) toast.success(t('已导入 {n} 条 Prompt', { n: res.count }))
     if (res.failed.length > 0)
       toast.error(t('{n} 个文件无法读取：{names}', { n: res.failed.length, names: res.failed.join('、') }))
     else if (res.count === 0) toast.info(t('未导入任何文件'))
-  }
-
-  async function quickCopy(id: string) {
-    await requestCopy(id)
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
@@ -146,12 +91,21 @@ export function PromptList(): React.JSX.Element {
       select(prev.id)
     } else if (e.key === 'Enter' && selectedId) {
       e.preventDefault()
-      void quickCopy(selectedId)
+      void requestCopy(selectedId)
     }
   }
 
+  const hasSearch = search.trim().length > 0
+
   return (
     <section className="flex w-80 shrink-0 flex-col border-r border-line bg-canvas">
+      {heading && (
+        <div className="border-b border-line px-4 pb-3 pt-4">
+          <div className="font-serif text-[17px] leading-tight text-ink">{heading.title}</div>
+          <div className="mt-1 text-xs text-faint">{heading.hint}</div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 p-3">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" />
@@ -168,20 +122,17 @@ export function PromptList(): React.JSX.Element {
                 // Never act on a prompt the current filter hides.
                 const visibleSelection = filtered.some((p) => p.id === selectedId)
                 if (e.key === 'Enter') {
-                  void quickCopy(visibleSelection ? selectedId! : filtered[0].id)
+                  void requestCopy(visibleSelection ? selectedId! : filtered[0].id)
                   return
                 }
                 if (!visibleSelection) select(filtered[0].id)
                 listRef.current?.focus()
               }
             }}
-            placeholder={t('在当前列表内筛选…（Ctrl/⌘ + F）')}
+            placeholder={t('筛选…（Ctrl/⌘ + F）')}
             className="w-full rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-3 text-sm text-ink outline-none transition focus:border-focus"
           />
         </div>
-        {/* No palette button here: it sat 8px from a search box and opened
-            another search box. ⌘K reaches it from anywhere, the empty editor
-            advertises it, and the shortcut list documents it. */}
         <button
           onClick={handleNew}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-brand-strong"
@@ -191,101 +142,16 @@ export function PromptList(): React.JSX.Element {
         </button>
       </div>
 
-      {tagFilters.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-3 pb-2 text-xs text-muted">
-          {tagFilters.map((t) => (
-            <button
-              key={t}
-              onClick={() => toggleTagFilter(t)}
-              className="flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-brand-text"
-            >
-              #{t}
-              <X size={11} />
-            </button>
-          ))}
-          {tagFilters.length > 1 && (
-            <button onClick={clearTagFilters} className="text-faint underline hover:text-ink">
-              {t('清除')}
-            </button>
-          )}
-        </div>
-      )}
-
-      {selected.size > 0 ? (
-        <div className="mx-3 mb-2 flex flex-wrap items-center gap-1.5 rounded-xl border border-brand/30 bg-brand/8 px-2.5 py-2 text-[11px]">
-          <span className="font-medium text-brand-text">{t('已选 {n} 项', { n: selected.size })}</span>
-          <button onClick={() => bulkSetFavorite(selectedIds, true)} className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand-text" title={t('收藏')}>
-            <Star size={12} />
-          </button>
-          <select
-            value="__placeholder"
-            onChange={(e) => {
-              if (e.target.value === '__placeholder') return
-              void bulkSetCategory(selectedIds, e.target.value || null)
-              toast.success(t('已移动所选项'))
-            }}
-            className="rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted outline-none"
-            title={t('移动到分类')}
-          >
-            {/* Sentinel value: an empty-string placeholder would collide with the
-                "未分类" option and render as if that were already selected. */}
-            <option value="__placeholder" disabled>
-              {t('移动到…')}
-            </option>
-            <option value="">{t('未分类')}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={() => {
-              const tag = window.prompt(t('为所选项添加标签：'))
-              if (tag) void bulkAddTag(selectedIds, tag).then(() => toast.success(t('已添加标签')))
-            }}
-            className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand-text"
-            title={t('添加标签')}
-          >
-            <Tag size={12} />
-          </button>
-          <button
-            onClick={exportSelected}
-            className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-brand-text"
-            title={t('导出所选')}
-          >
-            <Download size={12} />
-          </button>
-          <button
-            onClick={batchDelete}
-            className="flex items-center gap-1 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-muted hover:text-error"
-            title={t('删除所选')}
-          >
-            <Trash2 size={12} />
-          </button>
-          <button onClick={() => setSelected(new Set())} className="ml-auto text-faint underline hover:text-ink">
-            {t('清除')}
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center px-4 pb-1 text-[11px] text-faint">
-          <span>{t('{n} 项', { n: filtered.length })}</span>
-        </div>
-      )}
-
       {filtered.length === 0 ? (
-        // Two different empty states: "your filters hide everything" needs a way
-        // back, "your library is empty" needs a way forward.
+        // Two different empty states: "your search hides everything" needs a way
+        // back, "nothing here yet" needs a way forward.
         <div className="flex-1 px-4 pt-16 text-center text-sm text-faint">
-          {hasFilters ? (
+          {hasSearch ? (
             <>
               {t('没有匹配的 Prompt。')}
               <br />
               <button
-                onClick={() => {
-                  setSearch('')
-                  clearTagFilters()
-                }}
+                onClick={() => setSearch('')}
                 className="mt-3 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand-text"
               >
                 {t('清除筛选条件')}
@@ -296,8 +162,6 @@ export function PromptList(): React.JSX.Element {
               {t('这里还没有 Prompt。')}
               <br />
               {t('点击')} <span className="text-brand-text">＋</span> {t('新建一个。')}
-              {/* Cold start: most users already have .md prompts on disk, and
-                  this screen is where they are when they realise it. */}
               <div className="mt-4">
                 <button
                   onClick={handleImportFiles}
@@ -313,7 +177,7 @@ export function PromptList(): React.JSX.Element {
       ) : (
         <VirtualList
           items={filtered}
-          rowHeight={108}
+          rowHeight={84}
           tabIndex={0}
           innerRef={listRef}
           role="listbox"
@@ -323,50 +187,27 @@ export function PromptList(): React.JSX.Element {
           scrollToIndex={filtered.findIndex((p) => p.id === selectedId)}
           className="flex-1 px-2.5 pb-3 outline-none"
           renderItem={(p) => {
-            const cat = categoryById(categories, p.categoryId)
+            const step = categoryById(categories, p.categoryId)
+            const stage = STAGES.find((s) => s.id === step?.stage)
             const isSel = selectedId === p.id
-            const isMulti = selected.has(p.id)
             return (
               <div
                 id={`prompt-row-${p.id}`}
                 role="option"
                 aria-selected={isSel}
-                onClick={(e) => onRowClick(e, p.id)}
-                className={`group relative mb-1 w-full cursor-pointer rounded-xl border px-3 py-2.5 text-left transition ${
-                  isMulti
-                    ? 'border-brand/50 bg-brand/12'
-                    : isSel
-                      ? 'border-brand/30 bg-brand/8'
-                      : 'border-transparent hover:bg-surface'
+                onClick={() => select(p.id)}
+                className={`group relative mb-1 w-full cursor-pointer rounded-xl border px-3 py-2 text-left transition ${
+                  isSel ? 'border-brand/30 bg-brand/8' : 'border-transparent hover:bg-surface'
                 }`}
               >
                 <div className="flex items-start gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      {p.pinned && (
-                        <Pin size={11} className="shrink-0 -rotate-45 fill-brand text-brand-text" />
-                      )}
-                      <span className="truncate text-sm font-medium text-ink">{p.title}</span>
-                    </div>
-                    <div className="mt-0.5 line-clamp-2 text-xs text-faint">
+                    <div className="truncate text-sm font-medium text-ink">{p.title}</div>
+                    <div className="mt-0.5 truncate text-xs text-faint">
                       {p.description || p.content.slice(0, 80) || t('空内容')}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-0.5">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        void togglePin(p.id)
-                      }}
-                      title={p.pinned ? t('取消置顶') : t('置顶')}
-                      className={`rounded p-0.5 ${
-                        p.pinned
-                          ? 'text-brand-text'
-                          : 'text-faint opacity-0 transition-opacity hover:text-brand-text focus-visible:opacity-100 group-hover:opacity-100'
-                      }`}
-                    >
-                      <Pin size={14} className="-rotate-45" fill={p.pinned ? 'currentColor' : 'none'} />
-                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -398,34 +239,33 @@ export function PromptList(): React.JSX.Element {
                     </button>
                   </div>
                 </div>
-                <div className="mt-1.5 flex items-center gap-2 text-[10px] text-faint">
-                  {cat && (
-                    <span className="flex items-center gap-1">
+                <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
+                  {step && (
+                    <span className="flex items-center gap-1 truncate">
                       <span
-                        className="inline-block h-2 w-2 rounded-full"
-                        style={{ background: cat.color ?? 'var(--color-brand)' }}
+                        className="inline-block h-2 w-2 shrink-0 rounded-full"
+                        style={{ background: step.color ?? 'var(--color-brand)' }}
                       />
-                      {cat.name}
+                      {stage ? `${STAGES.indexOf(stage) + 1} · ` : ''}
+                      {step.name}
                     </span>
                   )}
-                  {p.tags.slice(0, 2).map((t) => (
-                    <span key={t} className="rounded bg-surface-2 px-1.5">
-                      #{t}
-                    </span>
-                  ))}
-                  {(p.useCount ?? 0) > 0 && (
-                    <span className="flex items-center gap-0.5" title={t('使用次数')}>
-                      <Copy size={9} />
-                      {p.useCount}
+                  {p.track && (
+                    <span className="rounded border border-line-strong px-1">
+                      {t(TRACKS.find((x) => x.id === p.track)?.name ?? p.track)}
                     </span>
                   )}
-                  <span className="ml-auto">{relativeTime(p.updatedAt)}</span>
+                  {p.variables.length > 0 && (
+                    <span className="rounded bg-surface-2 px-1.5">
+                      {t('{n} 个变量', { n: p.variables.length })}
+                    </span>
+                  )}
                 </div>
 
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
-                    void quickCopy(p.id)
+                    void requestCopy(p.id)
                   }}
                   title={t('复制内容')}
                   className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-brand-solid px-2 py-1 text-[10px] text-on-brand transition hover:bg-brand-solid-hover group-hover:flex"

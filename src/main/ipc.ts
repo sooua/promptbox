@@ -6,10 +6,10 @@ import { parseMarkdownPrompt } from '@shared/markdown'
 import type {
   CloseAction,
   ExportBundle,
-  PromptSourceConfig,
   ImportMode,
   Language,
   PromptInput,
+  CategoryPatch,
   ThemeMode
 } from '@shared/types'
 import type { Repository } from './store/repository'
@@ -17,7 +17,6 @@ import { loadSettings, saveSettings } from './store/config'
 import { updateHotkey } from './system'
 import { mt, setMainLanguage } from './i18n'
 import { applyProxy } from './net'
-import { listPrompts, importPrompt, promptSources } from './registry/prompts'
 import type { BackupManager } from './backup'
 
 export function registerIpc(repo: Repository, backup: BackupManager): void {
@@ -28,7 +27,6 @@ export function registerIpc(repo: Repository, backup: BackupManager): void {
   ipcMain.handle(IPC.promptsUpdate, (_e, id: string, patch: Partial<PromptInput>) =>
     repo.updatePrompt(id, patch)
   )
-  ipcMain.handle(IPC.promptsAddTag, (_e, id: string, tag: string) => repo.addTag(id, tag))
   ipcMain.handle(IPC.promptsDelete, (_e, id: string) => repo.deletePrompt(id))
   ipcMain.handle(IPC.promptsListDeleted, () => repo.listDeletedPrompts())
   ipcMain.handle(IPC.promptsRestoreDeleted, (_e, id: string) => repo.restoreDeletedPrompt(id))
@@ -36,7 +34,6 @@ export function registerIpc(repo: Repository, backup: BackupManager): void {
   ipcMain.handle(IPC.promptsPurgeAll, () => repo.purgeAllDeleted())
   ipcMain.handle(IPC.promptsDuplicate, (_e, id: string) => repo.duplicatePrompt(id))
   ipcMain.handle(IPC.promptsToggleFavorite, (_e, id: string) => repo.toggleFavorite(id))
-  ipcMain.handle(IPC.promptsTogglePin, (_e, id: string) => repo.togglePin(id))
   ipcMain.handle(IPC.promptsRestoreVersion, (_e, promptId: string, versionId: string) =>
     repo.restoreVersion(promptId, versionId)
   )
@@ -86,10 +83,8 @@ export function registerIpc(repo: Repository, backup: BackupManager): void {
 
   // ---- Categories ----
   ipcMain.handle(IPC.categoriesList, () => repo.listCategories())
-  ipcMain.handle(IPC.categoriesCreate, (_e, name: string, color?: string) =>
-    repo.createCategory(name, color)
-  )
-  ipcMain.handle(IPC.categoriesUpdate, (_e, id: string, patch: { name?: string; color?: string }) =>
+  ipcMain.handle(IPC.categoriesCreate, (_e, input: CategoryPatch) => repo.createCategory(input))
+  ipcMain.handle(IPC.categoriesUpdate, (_e, id: string, patch: CategoryPatch) =>
     repo.updateCategory(id, patch)
   )
   ipcMain.handle(IPC.categoriesDelete, (_e, id: string) => repo.deleteCategory(id))
@@ -113,11 +108,6 @@ export function registerIpc(repo: Repository, backup: BackupManager): void {
     return settings
   })
 
-  ipcMain.handle(IPC.settingsSetMarket, (_e, marketEnabled: boolean) => {
-    const current = loadSettings()
-    return saveSettings({ ...current, marketEnabled, dataDir: repo.getDataDir() })
-  })
-
   ipcMain.handle(IPC.settingsSetProxy, (_e, proxy: string) => {
     const current = loadSettings()
     const settings = saveSettings({ ...current, proxy, dataDir: repo.getDataDir() })
@@ -129,18 +119,6 @@ export function registerIpc(repo: Repository, backup: BackupManager): void {
     const current = loadSettings()
     return saveSettings({ ...current, closeAction, dataDir: repo.getDataDir() })
   })
-
-  ipcMain.handle(IPC.settingsSetPromptSources, (_e, promptSrcs: PromptSourceConfig[]) => {
-    const current = loadSettings()
-    return saveSettings({ ...current, promptSources: promptSrcs, dataDir: repo.getDataDir() })
-  })
-
-  // ---- Discover / marketplace ----
-  ipcMain.handle(IPC.registryPromptSources, () => promptSources())
-  ipcMain.handle(IPC.registryPromptList, (_e, sourceId: string) => listPrompts(repo, sourceId))
-  ipcMain.handle(IPC.registryPromptImport, (_e, item: Parameters<typeof importPrompt>[1]) =>
-    importPrompt(repo, item)
-  )
 
   ipcMain.handle(IPC.settingsSetHotkey, (_e, accelerator: string) => {
     const ok = updateHotkey(accelerator)

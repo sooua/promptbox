@@ -396,5 +396,34 @@ export const en: Record<string, string> = {
   '凭证无法在本机解密，请重新连接': 'Credential cannot be decrypted here — reconnect',
   '云同步：凭证无法解密，请重新连接': 'Cloud sync: credential cannot be decrypted — reconnect',
   '已配置云服务，但凭证无法在本机解密。请在「云服务」页重新连接。':
-    'A cloud service is configured, but its credential cannot be decrypted on this machine. Reconnect from the “Cloud services” tab.'
+    'A cloud service is configured, but its credential cannot be decrypted on this machine. Reconnect from the “Cloud services” tab.',
+
+  // ---- Stages / steps ----
+  '需求与构想': 'Ideation',
+  '架构设计': 'Architecture',
+  '基础设施': 'Infrastructure',
+  '开发与审计': 'Build & audit',
+  '刚拿到需求、源码，或有一个 MVP 想法': 'You just got a brief, a codebase, or an MVP idea',
+  '开始构建，做架构与数据层决策': 'Starting to build: architecture and data decisions',
+  '搭项目骨架、认证、CI/CD 和环境': 'Scaffolding, auth, CI/CD and environments',
+  '理解代码、写功能、测试、代码与安全审计': 'Understand code, build features, test, review and security audit',
+  '按开发阶段取用 Prompt': 'Prompts by development stage',
+  '其他': 'Other',
+  '新建步骤': 'New step',
+  '重命名步骤': 'Rename step',
+  '删除步骤': 'Delete step',
+  '步骤名称…': 'Step name…',
+  '已存在同名步骤': 'A step with this name already exists',
+  '删除步骤「{name}」？': 'Delete the step “{name}”?',
+  '删除步骤「{name}」？其中 {n} 条 Prompt 会移至「其他」（Prompt 本身不会被删除）。':
+    'Delete the step “{name}”? Its {n} prompts move to “Other” (the prompts themselves are kept).',
+  '第 {n} 步': 'Step {n}',
+  '所属步骤': 'Step',
+  '未归入步骤': 'No step',
+  '什么情况下用这条？一句话': 'When do you reach for this? One line',
+  '下一步': 'Next',
+  '筛选…（Ctrl/⌘ + F）': 'Filter… (Ctrl/⌘ + F)',
+  '{prompts} 个 Prompt、{categories} 个步骤': '{prompts} prompts, {categories} steps',
+  '自动保存快照，最多保留 20 份。要回滚时，把快照文件用「导入（替换）」导入即可。':
+    'Snapshots are saved automatically (20 kept). To roll back, import a snapshot file with “Import (replace)”.',
 }

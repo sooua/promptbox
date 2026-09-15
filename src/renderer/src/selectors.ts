@@ -1,53 +1,90 @@
-import type { Category, Prompt } from '@shared/types'
-import type { CategoryFilter } from './store'
+import type { Category, Flow, Prompt, StageId, StageInfo, TrackId } from '@shared/types'
+import { STAGES } from '@shared/types'
+import { isCategoryId, stageOf, type CategoryFilter } from './store'
 import { t } from './i18n'
 import { pinyinMatch } from './pinyin'
 import { promptMatches, promptSearchKey } from './searchIndex'
 
-const SPECIAL = ['all', 'favorites', 'uncategorized', 'recent']
-
 export function filterPrompts(
   prompts: Prompt[],
-  opts: { categoryFilter: CategoryFilter; tagFilters: string[]; search: string }
+  categories: Category[],
+  opts: { categoryFilter: CategoryFilter; search: string }
 ): Prompt[] {
   const q = opts.search.trim().toLowerCase()
   const f = opts.categoryFilter
+  const stage = stageOf(f)
+  const stageSteps = stage ? new Set(categories.filter((c) => c.stage === stage).map((c) => c.id)) : null
 
   const matched = prompts.filter((p) => {
     if (f === 'favorites' && !p.favorite) return false
-    if (f === 'uncategorized' && p.categoryId) return false
-    if (f === 'recent' && !p.lastUsedAt) return false
-    if (!SPECIAL.includes(f) && p.categoryId !== f) return false
-    // every active tag must be present (AND combination)
-    if (opts.tagFilters.length && !opts.tagFilters.every((t) => p.tags.includes(t))) {
-      return false
-    }
+    if (stageSteps && !stageSteps.has(p.categoryId ?? '')) return false
+    if (isCategoryId(f) && p.categoryId !== f) return false
     // indexed match: precomputed literal + pinyin blob, scanned once per item
     if (q && !promptMatches(p, q)) return false
     return true
   })
 
-  return sortPrompts(matched, f)
+  return sortPrompts(matched, categories, f)
 }
 
 /**
- * Pinned prompts always float to the top. Within each group, "最近使用" orders by
- * when it was last copied; everything else sorts by last edit.
- *
- * There used to be a second "最常用" rail sorting the same set by useCount.
- * `recordUse` is the only writer of both fields and always writes them
- * together, so its membership was identical to "最近使用" by construction —
- * two rails, always the same count, differing only in sort order.
+ * Stage and step views are a walkthrough, so they keep the step order first and
+ * creation order inside a step (the built-ins were seeded in the order you use
+ * them). "全部" and "收藏" are a working set and sort by last edit.
  */
-function sortPrompts(prompts: Prompt[], f: CategoryFilter): Prompt[] {
-  const within = (a: Prompt, b: Prompt): number => {
-    if (f === 'recent') return (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0)
-    return b.updatedAt - a.updatedAt
+function sortPrompts(prompts: Prompt[], categories: Category[], f: CategoryFilter): Prompt[] {
+  if (f === 'all' || f === 'favorites') return [...prompts].sort((a, b) => b.updatedAt - a.updatedAt)
+  const rank = new Map(categories.map((c, i) => [c.id, i]))
+  const stepOf = (p: Prompt) => rank.get(p.categoryId ?? '') ?? Infinity
+  return [...prompts].sort((a, b) => stepOf(a) - stepOf(b) || a.createdAt - b.createdAt)
+}
+
+/**
+ * The steps that make up the route for one starting point, in stage order then
+ * rail order. "从零开始" skips the steps only an existing codebase needs, and
+ * vice versa; steps without a `flow` are on both routes.
+ */
+export function routeSteps(categories: Category[], flow: Flow): Category[] {
+  const rank = new Map(STAGES.map((s, i) => [s.id, i]))
+  return categories
+    .filter((c) => c.stage && (!c.flow || c.flow === flow))
+    .sort((a, b) => rank.get(a.stage!)! - rank.get(b.stage!)! || a.order - b.order)
+}
+
+/**
+ * The prompt to show for a step on the route: the variant written for this
+ * project type if there is one, else the one that applies to every type.
+ * Earliest wins when a step holds several — the built-ins come first.
+ */
+export function routePrompt(prompts: Prompt[], stepId: string, track: TrackId | null): Prompt | undefined {
+  const mine = prompts.filter((p) => p.categoryId === stepId).sort((a, b) => a.createdAt - b.createdAt)
+  return mine.find((p) => p.track === track) ?? mine.find((p) => !p.track)
+}
+
+/** Steps of one stage in rail order; `null` stage = steps the user made without one. */
+export function stepsOf(categories: Category[], stage: StageId | null): Category[] {
+  return categories.filter((c) => (c.stage ?? null) === stage)
+}
+
+/**
+ * Where to go after this prompt: the next step in its stage, or the first step
+ * of the next stage. Null at the very end (or for prompts outside any stage).
+ */
+export function nextStep(
+  categories: Category[],
+  categoryId: string | null | undefined
+): { stage: StageInfo; step: Category } | null {
+  const cur = categories.find((c) => c.id === categoryId)
+  if (!cur?.stage) return null
+  const stageIdx = STAGES.findIndex((s) => s.id === cur.stage)
+  const siblings = stepsOf(categories, cur.stage)
+  const next = siblings[siblings.indexOf(cur) + 1]
+  if (next) return { stage: STAGES[stageIdx], step: next }
+  for (let i = stageIdx + 1; i < STAGES.length; i++) {
+    const first = stepsOf(categories, STAGES[i].id)[0]
+    if (first) return { stage: STAGES[i], step: first }
   }
-  return [...prompts].sort((a, b) => {
-    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
-    return within(a, b)
-  })
+  return null
 }
 
 /**
@@ -98,16 +135,6 @@ function usageBoost(useCount = 0, lastUsedAt?: number | null): number {
 
 function recencyBoost(ts?: number | null): number {
   return ts ? Math.max(0, 10 - (Date.now() - ts) / 86_400_000) : 0
-}
-
-export function collectTags(prompts: Prompt[]): { tag: string; count: number }[] {
-  const counts = new Map<string, number>()
-  for (const p of prompts) {
-    for (const t of p.tags) counts.set(t, (counts.get(t) ?? 0) + 1)
-  }
-  return [...counts.entries()]
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag))
 }
 
 export function categoryById(categories: Category[], id?: string | null): Category | undefined {

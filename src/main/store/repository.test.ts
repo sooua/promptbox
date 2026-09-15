@@ -94,33 +94,15 @@ describe('PromptRepository — tag rules live in one place', () => {
     expect(updated.tags).toEqual(['one', 'two'])
   })
 
-  it('appends a tag without reading it back through the caller', () => {
-    const repo = new PromptRepository(dataDir)
-    const p = repo.createPrompt({ title: 'A', content: 'a', tags: ['keep'] })
-
-    repo.addTag(p.id, '#added')
-    // Re-adding is a no-op, so a repeated click or retry cannot duplicate it.
-    repo.addTag(p.id, 'added')
-
-    expect(repo.getPrompt(p.id)!.tags).toEqual(['keep', 'added'])
-  })
-
-  it('ignores a tag that normalises to nothing', () => {
-    const repo = new PromptRepository(dataDir)
-    const p = repo.createPrompt({ title: 'A', content: 'a' })
-    repo.addTag(p.id, '  #  ')
-    expect(repo.getPrompt(p.id)!.tags).toEqual([])
-  })
 })
 
 describe('PromptRepository — edits and metadata use separate clocks', () => {
-  it('does not treat favourite, pin or use as an edit', () => {
+  it('does not treat favourite or use as an edit', () => {
     const repo = new PromptRepository(dataDir)
     const p = repo.createPrompt({ title: 'A', content: 'a' })
     const editedAt = repo.getPrompt(p.id)!.updatedAt
 
     repo.toggleFavorite(p.id)
-    repo.togglePin(p.id)
     repo.recordUse(p.id)
 
     const after = repo.getPrompt(p.id)!
@@ -129,7 +111,6 @@ describe('PromptRepository — edits and metadata use separate clocks', () => {
     expect(after.updatedAt).toBe(editedAt)
     expect(after.metaUpdatedAt).toBeGreaterThanOrEqual(editedAt)
     expect(after.favorite).toBe(true)
-    expect(after.pinned).toBe(true)
     expect(after.useCount).toBe(1)
   })
 
@@ -370,7 +351,7 @@ describe('PromptRepository.import — merge mode', () => {
 
   it('does not duplicate a category that already exists by id', () => {
     const repo = new PromptRepository(dataDir)
-    const cat = repo.createCategory('Work')
+    const cat = repo.createCategory({ name: 'Work' })
 
     const result = repo.import(bundle({ categories: [cat] }), 'merge')
 

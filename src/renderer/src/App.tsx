@@ -5,10 +5,11 @@ import { PromptList } from './components/PromptList'
 import { EditorPanel } from './components/EditorPanel'
 import { SettingsView } from './components/SettingsView'
 import { TrashView } from './components/TrashView'
+import { RouteView } from './components/RouteView'
+import { ChooseView } from './components/ChooseView'
 import { CommandPalette } from './components/CommandPalette'
 import { QuickFill } from './components/QuickFill'
 import { CloudSyncModal } from './components/CloudSyncModal'
-import { DiscoverView } from './components/DiscoverView'
 import { TitleBar } from './components/TitleBar'
 import { ToastHost, toast } from './components/Toast'
 import { t, useT } from './i18n'
@@ -41,7 +42,7 @@ function useGlobalKeys(): void {
       const modalOpen = s.paletteOpen || s.cloudOpen || s.quickFillPromptId !== null
 
       if (e.key === 'Escape') {
-        if (!modalOpen && s.view !== 'library') s.setView('library')
+        if (!modalOpen && s.view !== 'route') s.setView('route')
         return
       }
 
@@ -93,6 +94,7 @@ export default function App(): React.JSX.Element {
   const view = useStore((s) => s.view)
   const paletteOpen = useStore((s) => s.paletteOpen)
   const cloudOpen = useStore((s) => s.cloudOpen)
+  const hasTrack = useStore((s) => s.route.track !== null)
 
   const openPalette = useStore((s) => s.openPalette)
   const t = useT()
@@ -159,14 +161,21 @@ export default function App(): React.JSX.Element {
 
   return (
     <div className="flex h-full bg-canvas text-ink">
+      {view === 'route' && hasTrack ? (
+        <RouteView />
+      ) : view === 'route' || view === 'choose' ? (
+        <div className="flex min-w-0 flex-1 flex-col">
+          <TitleBar />
+          <ChooseView />
+        </div>
+      ) : (
+      <>
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TitleBar />
         <div className="flex min-h-0 flex-1">
           {view === 'settings' ? (
             <SettingsView />
-          ) : view === 'discover' ? (
-            <DiscoverView />
           ) : view === 'trash' ? (
             <TrashView />
           ) : (
@@ -177,6 +186,8 @@ export default function App(): React.JSX.Element {
           )}
         </div>
       </div>
+      </>
+      )}
       {paletteOpen && <CommandPalette />}
       {cloudOpen && <CloudSyncModal />}
       <QuickFill />

@@ -8,7 +8,6 @@ const api: PromptBoxApi = {
     get: (id) => ipcRenderer.invoke(IPC.promptsGet, id),
     create: (input) => ipcRenderer.invoke(IPC.promptsCreate, input),
     update: (id, patch) => ipcRenderer.invoke(IPC.promptsUpdate, id, patch),
-    addTag: (id, tag) => ipcRenderer.invoke(IPC.promptsAddTag, id, tag),
     delete: (id) => ipcRenderer.invoke(IPC.promptsDelete, id),
     listDeleted: () => ipcRenderer.invoke(IPC.promptsListDeleted),
     restoreDeleted: (id) => ipcRenderer.invoke(IPC.promptsRestoreDeleted, id),
@@ -16,7 +15,6 @@ const api: PromptBoxApi = {
     purgeAll: () => ipcRenderer.invoke(IPC.promptsPurgeAll),
     duplicate: (id) => ipcRenderer.invoke(IPC.promptsDuplicate, id),
     toggleFavorite: (id) => ipcRenderer.invoke(IPC.promptsToggleFavorite, id),
-    togglePin: (id) => ipcRenderer.invoke(IPC.promptsTogglePin, id),
     restoreVersion: (promptId, versionId) =>
       ipcRenderer.invoke(IPC.promptsRestoreVersion, promptId, versionId),
     deleteVersion: (promptId, versionId) =>
@@ -27,7 +25,7 @@ const api: PromptBoxApi = {
   },
   categories: {
     list: () => ipcRenderer.invoke(IPC.categoriesList),
-    create: (name, color) => ipcRenderer.invoke(IPC.categoriesCreate, name, color),
+    create: (input) => ipcRenderer.invoke(IPC.categoriesCreate, input),
     update: (id, patch) => ipcRenderer.invoke(IPC.categoriesUpdate, id, patch),
     delete: (id) => ipcRenderer.invoke(IPC.categoriesDelete, id),
     reorder: (ids) => ipcRenderer.invoke(IPC.categoriesReorder, ids)
@@ -36,10 +34,8 @@ const api: PromptBoxApi = {
     get: () => ipcRenderer.invoke(IPC.settingsGet),
     setTheme: (theme) => ipcRenderer.invoke(IPC.settingsSetTheme, theme),
     setLanguage: (language) => ipcRenderer.invoke(IPC.settingsSetLanguage, language),
-    setMarket: (enabled) => ipcRenderer.invoke(IPC.settingsSetMarket, enabled),
     setProxy: (proxy) => ipcRenderer.invoke(IPC.settingsSetProxy, proxy),
     setCloseAction: (action) => ipcRenderer.invoke(IPC.settingsSetCloseAction, action),
-    setPromptSources: (sources) => ipcRenderer.invoke(IPC.settingsSetPromptSources, sources),
     setHotkey: (accelerator) => ipcRenderer.invoke(IPC.settingsSetHotkey, accelerator),
     chooseDataDir: () => ipcRenderer.invoke(IPC.settingsChooseDataDir),
     openDataDir: () => ipcRenderer.invoke(IPC.settingsOpenDataDir)
@@ -69,11 +65,6 @@ const api: PromptBoxApi = {
     restoreVersion: (id) => ipcRenderer.invoke(IPC.syncRestoreVersion, id)
   },
   quit: () => ipcRenderer.invoke(IPC.appQuit),
-  market: {
-    promptSources: () => ipcRenderer.invoke(IPC.registryPromptSources),
-    promptList: (sourceId) => ipcRenderer.invoke(IPC.registryPromptList, sourceId),
-    promptImport: (item) => ipcRenderer.invoke(IPC.registryPromptImport, item)
-  },
   update: {
     check: () => ipcRenderer.invoke(IPC.updateCheck),
     install: () => ipcRenderer.invoke(IPC.updateInstall),

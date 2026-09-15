@@ -5,10 +5,7 @@ import type {
   Category,
   ImportMode,
   ImportResult,
-  PromptDiscoverItem,
-  PromptDiscoverResult,
-  PromptSource,
-  PromptSourceConfig,
+  CategoryPatch,
   Prompt,
   PromptInput,
   S3ConfigInput,
@@ -28,7 +25,6 @@ export interface PromptBoxApi {
     create(input: PromptInput): Promise<Prompt>
     update(id: string, patch: Partial<PromptInput>): Promise<Prompt | undefined>
     /** Append one tag. Normalised and deduped in the main process. */
-    addTag(id: string, tag: string): Promise<Prompt | undefined>
     /** Soft delete — the prompt moves to the trash and stays restorable. */
     delete(id: string): Promise<boolean>
     listDeleted(): Promise<Prompt[]>
@@ -38,7 +34,6 @@ export interface PromptBoxApi {
     purgeAll(): Promise<number>
     duplicate(id: string): Promise<Prompt | undefined>
     toggleFavorite(id: string): Promise<Prompt | undefined>
-    togglePin(id: string): Promise<Prompt | undefined>
     restoreVersion(promptId: string, versionId: string): Promise<Prompt | undefined>
     deleteVersion(promptId: string, versionId: string): Promise<Prompt | undefined>
     recordUse(id: string): Promise<Prompt | undefined>
@@ -50,8 +45,8 @@ export interface PromptBoxApi {
   }
   categories: {
     list(): Promise<Category[]>
-    create(name: string, color?: string): Promise<Category>
-    update(id: string, patch: { name?: string; color?: string }): Promise<Category | undefined>
+    create(input: CategoryPatch): Promise<Category>
+    update(id: string, patch: CategoryPatch): Promise<Category | undefined>
     delete(id: string): Promise<boolean>
     reorder(ids: string[]): Promise<Category[]>
   }
@@ -59,10 +54,8 @@ export interface PromptBoxApi {
     get(): Promise<AppSettings>
     setTheme(theme: ThemeMode): Promise<AppSettings>
     setLanguage(language: Language): Promise<AppSettings>
-    setMarket(enabled: boolean): Promise<AppSettings>
     setProxy(proxy: string): Promise<AppSettings>
     setCloseAction(action: CloseAction): Promise<AppSettings>
-    setPromptSources(sources: PromptSourceConfig[]): Promise<AppSettings>
     setHotkey(accelerator: string): Promise<{ ok: boolean; settings: AppSettings }>
     chooseDataDir(): Promise<AppSettings | null>
     openDataDir(): Promise<void>
@@ -99,11 +92,6 @@ export interface PromptBoxApi {
   }
   /** Quit the app entirely (the window close button only hides to tray). */
   quit(): Promise<void>
-  market: {
-    promptSources(): Promise<PromptSource[]>
-    promptList(sourceId: string): Promise<PromptDiscoverResult>
-    promptImport(item: PromptDiscoverItem): Promise<{ id: string; duplicate: boolean }>
-  }
   update: {
     check(): Promise<UpdateStatus>
     install(): Promise<void>

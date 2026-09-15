@@ -3,6 +3,7 @@ import { join } from 'path'
 import { nanoid } from 'nanoid'
 import type {
   Category,
+  CategoryPatch,
   ExportBundle,
   ImportMode,
   ImportResult,
@@ -26,7 +27,7 @@ function now(): number {
 }
 
 /** Fields whose change counts as an *edit* and therefore orders the sync merge. */
-const EDIT_FIELDS = ['title', 'content', 'description', 'categoryId', 'tags', 'variables'] as const
+const EDIT_FIELDS = ['title', 'content', 'description', 'categoryId', 'track', 'tags', 'variables'] as const
 
 /**
  * A file the user picked is untrusted input. Without this check `bundle.prompts
@@ -87,7 +88,6 @@ export interface Repository {
   getPrompt(id: string): Prompt | undefined
   createPrompt(input: PromptInput): Prompt
   updatePrompt(id: string, patch: Partial<PromptInput>): Prompt | undefined
-  addTag(id: string, tag: string): Prompt | undefined
   /** Soft delete — recoverable from the trash for TRASH_TTL_MS. */
   deletePrompt(id: string): boolean
   restoreDeletedPrompt(id: string): Prompt | undefined
@@ -96,16 +96,15 @@ export interface Repository {
   purgeAllDeleted(): number
   duplicatePrompt(id: string): Prompt | undefined
   toggleFavorite(id: string): Prompt | undefined
-  togglePin(id: string): Prompt | undefined
   recordUse(id: string): Prompt | undefined
   rememberVariableValues(promptId: string, values: Record<string, string>): Prompt | undefined
   restoreVersion(promptId: string, versionId: string): Prompt | undefined
   deleteVersion(promptId: string, versionId: string): Prompt | undefined
 
   listCategories(): Category[]
-  createCategory(name: string, color?: string): Category
+  createCategory(input: CategoryPatch): Category
   reorderCategories(idsInOrder: string[]): Category[]
-  updateCategory(id: string, patch: Partial<Pick<Category, 'name' | 'color'>>): Category | undefined
+  updateCategory(id: string, patch: CategoryPatch): Category | undefined
   deleteCategory(id: string): boolean
 
   replaceAll(prompts: Prompt[], categories: Category[], tombstones?: Tombstone[]): void
@@ -356,6 +355,7 @@ export class PromptRepository implements Repository {
       content: input.content ?? '',
       description: input.description ?? '',
       categoryId: input.categoryId ?? null,
+      track: input.track ?? null,
       tags: normalizeTags(input.tags ?? []),
       favorite: input.favorite ?? false,
       pinned: false,
@@ -400,6 +400,7 @@ export class PromptRepository implements Repository {
     if (patch.content !== undefined) prompt.content = patch.content
     if (patch.description !== undefined) prompt.description = patch.description
     if (patch.categoryId !== undefined) prompt.categoryId = patch.categoryId
+    if (patch.track !== undefined) prompt.track = patch.track
     if (patch.tags !== undefined) prompt.tags = normalizeTags(patch.tags)
     if (patch.favorite !== undefined) prompt.favorite = patch.favorite
 
@@ -413,22 +414,6 @@ export class PromptRepository implements Repository {
     // same as toggleFavorite, or the same rule has two answers.
     if (EDIT_FIELDS.some((k) => patch[k] !== undefined)) prompt.updatedAt = now()
     if (patch.favorite !== undefined) this.touchMeta(prompt)
-    this.flush()
-    return prompt
-  }
-
-  /**
-   * Append a tag. Lives here rather than in the caller because "read the tags,
-   * append if absent, write them back" across the IPC boundary races anything
-   * that changes tags in between — a cloud pull, or the next id in a bulk run.
-   */
-  addTag(id: string, tag: string): Prompt | undefined {
-    const prompt = this.getPrompt(id)
-    if (!prompt) return undefined
-    const [clean] = normalizeTags([tag])
-    if (!clean || prompt.tags.includes(clean)) return prompt
-    prompt.tags = [...prompt.tags, clean]
-    prompt.updatedAt = now()
     this.flush()
     return prompt
   }
@@ -516,15 +501,6 @@ export class PromptRepository implements Repository {
     return prompt
   }
 
-  togglePin(id: string): Prompt | undefined {
-    const prompt = this.getPrompt(id)
-    if (!prompt) return undefined
-    prompt.pinned = !prompt.pinned
-    this.touchMeta(prompt)
-    this.flush()
-    return prompt
-  }
-
   /** Record that a prompt was copied/used. Usage is metadata, not an edit. */
   recordUse(id: string): Prompt | undefined {
     const prompt = this.getPrompt(id)
@@ -581,13 +557,14 @@ export class PromptRepository implements Repository {
     )
   }
 
-  createCategory(name: string, color?: string): Category {
+  createCategory(input: CategoryPatch): Category {
     const maxOrder = this.data.categories.reduce((m, c) => Math.max(m, c.order), -1)
     const ts = now()
     const category: Category = {
+      ...input,
       id: nanoid(),
-      name: name.trim() || '未命名分类',
-      color,
+      name: input.name?.trim() || '未命名步骤',
+      stage: input.stage ?? null,
       order: maxOrder + 1,
       createdAt: ts,
       updatedAt: ts
@@ -612,11 +589,12 @@ export class PromptRepository implements Repository {
     return this.listCategories()
   }
 
-  updateCategory(id: string, patch: Partial<Pick<Category, 'name' | 'color'>>): Category | undefined {
+  updateCategory(id: string, patch: CategoryPatch): Category | undefined {
     const category = this.data.categories.find((c) => c.id === id)
     if (!category) return undefined
-    if (patch.name !== undefined) category.name = patch.name.trim() || category.name
-    if (patch.color !== undefined) category.color = patch.color
+    const { name, ...rest } = patch
+    Object.assign(category, rest)
+    if (name !== undefined) category.name = name.trim() || category.name
     category.updatedAt = now()
     this.flush()
     return category

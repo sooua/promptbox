@@ -6,13 +6,13 @@ import type {
   Category,
   ImportMode,
   Language,
-  PromptDiscoverItem,
-  PromptDiscoverResult,
-  PromptSource,
-  PromptSourceConfig,
   Prompt,
   PromptInput,
+  CategoryPatch,
+  Flow,
   S3ConfigInput,
+  StageId,
+  TrackId,
   SyncResult,
   SyncState,
   SyncVersion,
@@ -23,15 +23,45 @@ import type {
 
 const api = window.api
 
-export type View = 'library' | 'settings' | 'discover' | 'trash'
+export type View = 'route' | 'choose' | 'library' | 'settings' | 'trash'
 
-/** Special filter sentinels for the category rail. */
-export type CategoryFilter = string | 'all' | 'favorites' | 'uncategorized' | 'recent'
-
-export const SPECIAL_FILTERS = ['all', 'favorites', 'uncategorized', 'recent'] as const
+/**
+ * What the list shows: everything, favourites, one whole stage (`stage:<id>`),
+ * or one step (a category id).
+ */
+export type CategoryFilter = string | 'all' | 'favorites'
 
 export function isCategoryId(f: CategoryFilter): boolean {
-  return !(SPECIAL_FILTERS as readonly string[]).includes(f)
+  return f !== 'all' && f !== 'favorites' && !f.startsWith('stage:')
+}
+
+export function stageOf(f: CategoryFilter): StageId | null {
+  return f.startsWith('stage:') ? (f.slice(6) as StageId) : null
+}
+
+/**
+ * Where the user is on the route. Device-local (never synced): which project
+ * type, which starting point, the current step, what's done, and which feature
+ * round the build loop is on. `track === null` means the choose screen.
+ */
+export interface RouteState {
+  track: TrackId | null
+  flow: Flow
+  cur: string | null
+  done: string[]
+  feature: number
+}
+
+const ROUTE_KEY = 'promptbox.route'
+const ROUTE_DEFAULT: RouteState = { track: null, flow: 'fresh', cur: null, done: [], feature: 1 }
+
+function loadRoute(): RouteState {
+  try {
+    const raw = localStorage.getItem(ROUTE_KEY)
+    return raw ? { ...ROUTE_DEFAULT, ...(JSON.parse(raw) as Partial<RouteState>) } : ROUTE_DEFAULT
+  } catch {
+    return ROUTE_DEFAULT
+  }
 }
 
 interface State {
@@ -42,10 +72,9 @@ interface State {
   settings: AppSettings | null
 
   view: View
+  route: RouteState
   selectedId: string | null
   categoryFilter: CategoryFilter
-  /** active tag filters combined with AND */
-  tagFilters: string[]
   search: string
   loading: boolean
   paletteOpen: boolean
@@ -68,10 +97,9 @@ interface State {
 
   // navigation / filters
   setView(v: View): void
+  setRoute(patch: Partial<RouteState>): void
   select(id: string | null): void
   setCategoryFilter(f: CategoryFilter): void
-  toggleTagFilter(t: string): void
-  clearTagFilters(): void
   setSearch(s: string): void
 
   // prompt mutations
@@ -85,14 +113,9 @@ interface State {
   restoreDeleted(id: string): Promise<void>
   purgePrompt(id: string): Promise<void>
   purgeAllDeleted(): Promise<number>
-  // batch operations over multiple prompts
-  bulkDeletePrompts(ids: string[]): Promise<void>
+  /** Restore many at once (trash's "恢复全部"). */
   bulkRestoreDeleted(ids: string[]): Promise<void>
-  bulkSetCategory(ids: string[], categoryId: string | null): Promise<void>
-  bulkSetFavorite(ids: string[], favorite: boolean): Promise<void>
-  bulkAddTag(ids: string[], tag: string): Promise<void>
   toggleFavorite(id: string): Promise<void>
-  togglePin(id: string): Promise<void>
   restoreVersion(promptId: string, versionId: string): Promise<void>
   deleteVersion(promptId: string, versionId: string): Promise<void>
   recordUse(id: string): Promise<void>
@@ -133,24 +156,18 @@ interface State {
   restoreSyncVersion(id: string): Promise<SyncResult>
 
   // category mutations
-  createCategory(name: string, color?: string): Promise<void>
-  updateCategory(id: string, patch: { name?: string; color?: string }): Promise<void>
+  createCategory(input: CategoryPatch): Promise<Category>
+  updateCategory(id: string, patch: CategoryPatch): Promise<void>
   deleteCategory(id: string): Promise<void>
   reorderCategories(ids: string[]): Promise<void>
 
   // settings
   setTheme(theme: ThemeMode): Promise<void>
   setLanguage(language: Language): Promise<void>
-  setMarket(enabled: boolean): Promise<void>
   setProxy(proxy: string): Promise<void>
   setCloseAction(action: CloseAction): Promise<void>
-  setPromptSources(sources: PromptSourceConfig[]): Promise<void>
   setHotkey(accelerator: string): Promise<boolean>
 
-  // discover / marketplace
-  listPromptSources(): Promise<PromptSource[]>
-  listPrompts(sourceId: string): Promise<PromptDiscoverResult>
-  importPrompt(item: PromptDiscoverItem): Promise<{ id: string; duplicate: boolean }>
   chooseDataDir(): Promise<void>
   openDataDir(): Promise<void>
   exportData(): Promise<{ ok: boolean; path?: string }>
@@ -198,10 +215,10 @@ export const useStore = create<State>((set, get) => ({
   categories: [],
   settings: null,
 
-  view: 'library',
+  view: 'route',
+  route: loadRoute(),
   selectedId: null,
   categoryFilter: 'all',
-  tagFilters: [],
   search: '',
   loading: true,
   paletteOpen: false,
@@ -244,15 +261,17 @@ export const useStore = create<State>((set, get) => ({
   },
 
   setView: (view) => set({ view }),
+  setRoute: (patch) => {
+    const route = { ...get().route, ...patch }
+    try {
+      localStorage.setItem(ROUTE_KEY, JSON.stringify(route))
+    } catch {
+      /* private mode etc. — progress just won't survive a restart */
+    }
+    set({ route })
+  },
   select: (selectedId) => set({ selectedId, view: 'library' }),
-  setCategoryFilter: (categoryFilter) => set({ categoryFilter, tagFilters: [], view: 'library' }),
-  toggleTagFilter: (tag) =>
-    set((s) => ({
-      tagFilters: s.tagFilters.includes(tag)
-        ? s.tagFilters.filter((t) => t !== tag)
-        : [...s.tagFilters, tag]
-    })),
-  clearTagFilters: () => set({ tagFilters: [] }),
+  setCategoryFilter: (categoryFilter) => set({ categoryFilter, view: 'library' }),
   setSearch: (search) => set({ search }),
 
   async createPrompt(input) {
@@ -304,49 +323,13 @@ export const useStore = create<State>((set, get) => ({
     if (copy) set({ selectedId: copy.id })
   },
 
-  async bulkDeletePrompts(ids) {
-    const idSet = new Set(ids)
-    for (const id of ids) await api.prompts.delete(id)
-    const remaining = get().prompts.filter((p) => !idSet.has(p.id))
-    set({
-      prompts: remaining,
-      selectedId: idSet.has(get().selectedId ?? '')
-        ? (remaining[0]?.id ?? null)
-        : get().selectedId
-    })
-    await get().refreshDeleted()
-  },
-
   async bulkRestoreDeleted(ids) {
     for (const id of ids) await api.prompts.restoreDeleted(id)
     await Promise.all([get().refreshPrompts(), get().refreshDeleted()])
   },
 
-  async bulkSetCategory(ids, categoryId) {
-    for (const id of ids) await api.prompts.update(id, { categoryId })
-    await get().refreshPrompts()
-  },
-
-  async bulkSetFavorite(ids, favorite) {
-    for (const id of ids) await api.prompts.update(id, { favorite })
-    await get().refreshPrompts()
-  },
-
-  async bulkAddTag(ids, tag) {
-    // Normalising and appending both happen in the main process: doing the
-    // read-modify-write here raced anything that changed tags mid-run, and kept
-    // a second copy of the tag rules that could drift from the editor's.
-    for (const id of ids) await api.prompts.addTag(id, tag)
-    await get().refreshPrompts()
-  },
-
   async toggleFavorite(id) {
     await api.prompts.toggleFavorite(id)
-    await get().refreshPrompts()
-  },
-
-  async togglePin(id) {
-    await api.prompts.togglePin(id)
     await get().refreshPrompts()
   },
 
@@ -481,9 +464,10 @@ export const useStore = create<State>((set, get) => ({
     return result
   },
 
-  async createCategory(name, color) {
-    await api.categories.create(name, color)
+  async createCategory(input) {
+    const c = await api.categories.create(input)
     await get().refreshCategories()
+    return c
   },
 
   async updateCategory(id, patch) {
@@ -519,11 +503,6 @@ export const useStore = create<State>((set, get) => ({
     set({ settings })
   },
 
-  async setMarket(enabled) {
-    const settings = await api.settings.setMarket(enabled)
-    set({ settings })
-  },
-
   async setProxy(proxy) {
     const settings = await api.settings.setProxy(proxy)
     set({ settings })
@@ -532,25 +511,6 @@ export const useStore = create<State>((set, get) => ({
   async setCloseAction(action) {
     const settings = await api.settings.setCloseAction(action)
     set({ settings })
-  },
-
-  async setPromptSources(sources) {
-    const settings = await api.settings.setPromptSources(sources)
-    set({ settings })
-  },
-
-  listPromptSources() {
-    return api.market.promptSources()
-  },
-
-  listPrompts(sourceId) {
-    return api.market.promptList(sourceId)
-  },
-
-  async importPrompt(item) {
-    const r = await api.market.promptImport(item)
-    await get().refreshPrompts()
-    return r
   },
 
   async setHotkey(accelerator) {

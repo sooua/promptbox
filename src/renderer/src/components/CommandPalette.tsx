@@ -15,7 +15,10 @@ const MAX_RESULTS = 50
  * common items lead.
  */
 export function CommandPalette(): React.JSX.Element {
-  const prompts = useStore((s) => s.prompts)
+  // Variants written for other project types are noise here: five "选技术栈"
+  // entries would be four wrong answers.
+  const track = useStore((s) => s.route.track)
+  const prompts = useStore((s) => s.prompts.filter((p) => !p.track || p.track === track))
   const categories = useStore((s) => s.categories)
   const closePalette = useStore((s) => s.closePalette)
   const select = useStore((s) => s.select)

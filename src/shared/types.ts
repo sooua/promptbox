@@ -42,6 +42,8 @@ export interface Prompt {
   content: string
   description?: string
   categoryId?: string | null
+  /** variant for one project type; null/undefined = applies to every type */
+  track?: TrackId | null
   tags: string[]
   favorite: boolean
   /** pinned to the top of any list, independent of favorite */
@@ -77,11 +79,73 @@ export interface Prompt {
 /** How long soft-deleted prompts stay recoverable before being purged. */
 export const TRASH_TTL_MS = 30 * 24 * 60 * 60 * 1000
 
+/** The one choice a user makes: what kind of thing they are building. */
+export type TrackId = 'web' | 'cli' | 'desk' | 'mobile' | 'other'
+
+export interface TrackInfo {
+  id: TrackId
+  name: string
+  desc: string
+}
+
+export const TRACKS: TrackInfo[] = [
+  { id: 'web', name: '网站 / Web 应用', desc: '有页面、有账号、部署到服务器' },
+  { id: 'cli', name: '命令行工具', desc: '在终端里跑的小工具，发到 npm 或打成二进制' },
+  { id: 'desk', name: '桌面应用', desc: 'Windows / macOS 窗口程序，要打包和自动更新' },
+  { id: 'mobile', name: '手机 App', desc: 'iOS / Android，要上架商店' },
+  { id: 'other', name: '其他', desc: '脚本、插件、库……走通用路线' }
+]
+
+/**
+ * The fixed stages of a project, in the order they happen. Categories are the
+ * user-editable *steps* inside a stage (see `Category.stage`); the stages
+ * themselves are product skeleton, not user data, so they live in code.
+ * `build` repeats once per feature; the rest happen once.
+ */
+export type StageId = 'think' | 'plan' | 'scaffold' | 'build' | 'ship'
+
+export interface StageInfo {
+  id: StageId
+  name: string
+  /** one line: when you are in this stage */
+  hint: string
+  /** repeated per feature */
+  loop?: boolean
+}
+
+export const STAGES: StageInfo[] = [
+  { id: 'think', name: '想清楚', hint: '从一句话想法到一份需求' },
+  { id: 'plan', name: '定方案', hint: '选技术、定架构和数据' },
+  { id: 'scaffold', name: '搭骨架', hint: '空项目跑起来，底子铺好' },
+  { id: 'build', name: '做功能', hint: '一次一个功能：拆任务、实现、测试、审查', loop: true },
+  { id: 'ship', name: '上线', hint: '让别人用上' }
+]
+
+/** One hue per stage; steps inherit it. */
+export const STAGE_COLORS: Record<StageId, string> = {
+  think: '#c96442',
+  plan: '#b08968',
+  scaffold: '#7a8b6f',
+  build: '#8a7355',
+  ship: '#6b7a8f'
+}
+
+/** Which starting point a step belongs to; undefined = both. */
+export type Flow = 'fresh' | 'existing'
+
 export interface Category {
   id: string
   name: string
   color?: string
-  /** manual sort order; lower comes first */
+  /** which stage this step belongs to; null = 其他 */
+  stage?: StageId | null
+  /** one line shown on the route card: what you are doing in this step */
+  hint?: string
+  /** what this step leaves behind (a file, a running app), shown on the card */
+  output?: string
+  /** only part of the route for one starting point; undefined = both */
+  flow?: Flow
+  /** manual sort order within the stage; lower comes first */
   order: number
   createdAt: number
   /** last change time, used for item-level sync merge */
@@ -101,12 +165,8 @@ export interface AppSettings {
   theme: ThemeMode
   /** UI language */
   language: Language
-  /** allow the Discover page to fetch from the network (never silent/background) */
-  marketEnabled: boolean
-  /** user-added Prompt collection sources (raw CSV/JSON file URLs) */
-  promptSources: PromptSourceConfig[]
   /**
-   * Network proxy for all outbound requests (marketplace, sync, updates).
+   * Network proxy for all outbound requests (sync, updates).
    * '' = follow system; 'direct' = no proxy; else proxy rules, e.g.
    * 'http://127.0.0.1:7890' or 'socks5://127.0.0.1:7891'.
    */
@@ -122,48 +182,6 @@ export interface AppSettings {
 }
 
 export type CloseAction = 'ask' | 'tray' | 'quit'
-
-// ---- Discover / marketplace ----
-
-/** A prompt pulled from a CSV/JSON collection or a markdown repo file. */
-export interface PromptDiscoverItem {
-  /** stable id / source key: promptsrc:<sourceId>@<index|path> */
-  id: string
-  title: string
-  /** the prompt body; empty for repo items until import (fetched lazily) */
-  content: string
-  /** display label of the source it came from */
-  source: string
-  /** secondary line shown when content is not yet available (e.g. category) */
-  subtitle?: string
-  /** already in the local library (matched by title) */
-  imported: boolean
-  /** present for repo-backed items: fetch raw on import */
-  repo?: string
-  branch?: string
-  path?: string
-}
-
-export interface PromptDiscoverResult {
-  items: PromptDiscoverItem[]
-  error?: string
-}
-
-/** A selectable prompt collection (built-in recommendation or user-added). */
-export interface PromptSource {
-  id: string
-  label: string
-  /** false for user-added sources */
-  builtin: boolean
-}
-
-/** A user-added prompt collection: a raw CSV/JSON file URL. */
-export interface PromptSourceConfig {
-  name: string
-  /** raw file URL — CSV with act,prompt columns or JSON array of {act,prompt} */
-  url: string
-  format: 'csv' | 'json'
-}
 
 export const DEFAULT_HOTKEY = 'CommandOrControl+Shift+Space'
 
@@ -189,10 +207,14 @@ export interface PromptInput {
   content: string
   description?: string
   categoryId?: string | null
+  track?: TrackId | null
   tags?: string[]
   favorite?: boolean
   variables?: PromptVariable[]
 }
+
+/** Fields a step (category) can be created or edited with. */
+export type CategoryPatch = Partial<Pick<Category, 'name' | 'color' | 'stage' | 'hint' | 'output' | 'flow'>>
 
 export interface ExportBundle {
   app: 'promptbox'

@@ -25,8 +25,6 @@ export function loadSettings(): AppSettings {
     dataDir: defaultDataDir(),
     theme: 'system',
     language: 'zh',
-    marketEnabled: true,
-    promptSources: [],
     proxy: '',
     globalHotkey: DEFAULT_HOTKEY,
     closeAction: 'ask'
@@ -38,8 +36,6 @@ export function loadSettings(): AppSettings {
       dataDir: parsed.dataDir || fallback.dataDir,
       theme: (parsed.theme as ThemeMode) || fallback.theme,
       language: (parsed.language as Language) || fallback.language,
-      marketEnabled: parsed.marketEnabled ?? fallback.marketEnabled,
-      promptSources: Array.isArray(parsed.promptSources) ? parsed.promptSources : fallback.promptSources,
       proxy: parsed.proxy ?? fallback.proxy,
       globalHotkey: parsed.globalHotkey || fallback.globalHotkey,
       closeAction: CLOSE_ACTIONS.includes(parsed.closeAction as CloseAction)
