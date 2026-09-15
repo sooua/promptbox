@@ -1,4 +1,4 @@
-# PromptBox
+# PBox
 
 [![Release](https://img.shields.io/github/v/release/sooua/promptbox?label=release)](https://github.com/sooua/promptbox/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/sooua/promptbox/total)](https://github.com/sooua/promptbox/releases)

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CloudIcon, DragIcon, ExpandIcon, LayersIcon, PencilIcon, PlusIcon, RouteIcon, SettingsIcon, StarIcon, TrashIcon } from '../icons'
+import { DragIcon, ExpandIcon, LayersIcon, PencilIcon, PlusIcon, RouteIcon, SettingsIcon, StarIcon, TrashIcon } from '../icons'
 import type { Category, StageId } from '@shared/types'
 import { STAGES, STAGE_COLORS } from '@shared/types'
 import { moveStep } from '@shared/steps'
@@ -27,12 +27,6 @@ export function Sidebar(): React.JSX.Element {
   const updateCategory = useStore((s) => s.updateCategory)
   const deleteCategory = useStore((s) => s.deleteCategory)
   const reorderCategories = useStore((s) => s.reorderCategories)
-  const openCloud = useStore((s) => s.openCloud)
-  const syncConnected = useStore((s) => s.syncState?.connected ?? false)
-  const syncFailed = useStore(
-    (s) => s.syncState?.lastStatus === 'error' || (s.syncState?.credentialError ?? false)
-  )
-  const syncNeedsAttention = useStore((s) => s.syncState?.credentialError ?? false)
   const deletedCount = useStore((s) => s.deletedPrompts.length)
 
   const t = useT()
@@ -240,7 +234,7 @@ export function Sidebar(): React.JSX.Element {
           isMac ? 'pl-[78px] pr-4' : 'px-5'
         }`}
       >
-        <div className="text-sm font-semibold tracking-tight text-foreground">PromptBox</div>
+        <div className="text-sm font-semibold tracking-tight text-foreground">PBox</div>
       </div>
 
       <nav className="flex-1 overflow-y-auto border-r border-border px-2.5 pt-3 pb-2">
@@ -367,26 +361,6 @@ export function Sidebar(): React.JSX.Element {
         >
           <SettingsIcon />
           {t('设置')}
-        </Button>
-        <Button
-          variant="ghost"
-          className="w-full justify-start"
-          onClick={openCloud}
-          // A green dot for "connected" hid the case that matters most: connected
-          // but the last sync failed. Colour the dot by outcome, not by config.
-          title={
-            syncNeedsAttention
-              ? t('云同步：凭证无法解密，请重新连接')
-              : syncFailed
-                ? t('云同步：上次同步失败')
-                : t('云同步')
-          }
-        >
-          <CloudIcon />
-          {t('云同步')}
-          {(syncConnected || syncNeedsAttention) && (
-            <span className={`ml-auto h-1.5 w-1.5 rounded-full ${syncFailed ? 'bg-destructive' : 'bg-success'}`} />
-          )}
         </Button>
       </div>
     </aside>

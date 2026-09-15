@@ -139,7 +139,6 @@ export const en: Record<string, string> = {
   '同步': 'Sync',
   '已断开连接': 'Disconnected',
   '断开连接': 'Disconnect',
-  '连接': 'Connect',
   '自动同步': 'Auto-sync',
   '本地改动后自动上传': 'Auto-upload on local changes',
   '已开启自动同步': 'Auto-sync enabled',
@@ -289,7 +288,7 @@ export const en: Record<string, string> = {
   '已恢复': 'Restored',
   '已有的 .md / .txt 提示词可直接导入，支持 front-matter 的 title / description / tags。':
     'Import existing .md / .txt prompts directly; front-matter title / description / tags are read.',
-  '退出 PromptBox': 'Quit PromptBox',
+  '退出 PBox': 'Quit PBox',
   '完全关闭应用，同时移除托盘图标': 'Closes the app completely and removes the tray icon',
   '最小化到托盘可让全局热键继续生效': 'Minimizing to the tray keeps the global hotkey working',
   '已恢复「{title}」': 'Restored “{title}”',
@@ -345,6 +344,10 @@ export const en: Record<string, string> = {
   // ---- Route ----
   '回到路线': 'Back to route',
   '上一步': 'Back',
+  '多设备同步': 'Sync across devices',
+  'GitHub Gist / WebDAV / S3，端到端加密': 'GitHub Gist / WebDAV / S3, end-to-end encrypted',
+  '管理': 'Manage',
+  '连接': 'Connect',
   '展开': 'Expand',
   '折叠': 'Collapse',
   '从零开发': 'From scratch',

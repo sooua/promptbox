@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { CloseIcon, DataIcon, DocumentIcon, DownloadIcon, FolderIcon, InfoIcon, RefreshIcon, SnapshotIcon, UploadIcon } from '../icons'
+import { CloseIcon, CloudIcon, DataIcon, DocumentIcon, DownloadIcon, FolderIcon, InfoIcon, RefreshIcon, SnapshotIcon, UploadIcon } from '../icons'
 import type { CloseAction } from '@shared/types'
-import { HOTKEY_PRESETS } from '@shared/types'
+import { HOTKEY_PRESETS, SYNC_PROVIDERS } from '@shared/types'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 import { Button } from '@/components/ui/button'
@@ -27,6 +27,8 @@ export function SettingsView(): React.JSX.Element {
   const exportData = useStore((s) => s.exportData)
   const importData = useStore((s) => s.importData)
   const quitApp = useStore((s) => s.quitApp)
+  const openCloud = useStore((s) => s.openCloud)
+  const syncState = useStore((s) => s.syncState)
   const setCloseAction = useStore((s) => s.setCloseAction)
   const importPromptFiles = useStore((s) => s.importPromptFiles)
 
@@ -99,6 +101,23 @@ export function SettingsView(): React.JSX.Element {
         </Section>
 
         {/* Network: the proxy serves sync and updates. */}
+        <Section title={t('云同步')}>
+          <Row
+            label={t('多设备同步')}
+            description={
+              syncState?.credentialError
+                ? t('凭证无法在本机解密，请重新连接')
+                : syncState?.connected
+                  ? t('已连接 {name}', { name: SYNC_PROVIDERS.find((p) => p.id === syncState.provider)?.name ?? '' })
+                  : t('GitHub Gist / WebDAV / S3，端到端加密')
+            }
+          >
+            <ActionButton icon={<CloudIcon className="size-4" />} onClick={openCloud}>
+              {syncState?.connected ? t('管理') : t('连接')}
+            </ActionButton>
+          </Row>
+        </Section>
+
         <Section title={t('网络')}>
           <Row
             label={t('代理')}
@@ -188,7 +207,7 @@ export function SettingsView(): React.JSX.Element {
               setting on "tray", Alt+F4 also just hides, leaving the tray menu as
               the only way out, and Windows tucks the tray icon into the overflow
               flyout where people don't find it. */}
-          <Row label={t('退出 PromptBox')} description={t('完全关闭应用，同时移除托盘图标')}>
+          <Row label={t('退出 PBox')} description={t('完全关闭应用，同时移除托盘图标')}>
             <ActionButton icon={<CloseIcon className="size-4" />} danger onClick={() => void quitApp()}>
               {t('退出')}
             </ActionButton>
@@ -196,7 +215,7 @@ export function SettingsView(): React.JSX.Element {
           <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
             <InfoIcon className="size-3.5 shrink-0" />
             <p>
-              {t('PromptBox')}{' '}
+              {t('PBox')}{' '}
               {t('{prompts} 个 Prompt、{categories} 个步骤', {
                 prompts: prompts.length,
                 categories: categories.length

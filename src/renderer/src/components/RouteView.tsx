@@ -16,7 +16,7 @@ import {
   StepperTitle,
   StepperTrigger
 } from '@/components/reui/stepper'
-import { BookIcon, CheckIcon, CloudIcon, CopyIcon, CopySuccessIcon, PencilIcon, RefreshIcon, SettingsIcon } from '../icons'
+import { BookIcon, CheckIcon, CopyIcon, CopySuccessIcon, PencilIcon, RefreshIcon, SettingsIcon } from '../icons'
 import { useStore } from '../store'
 import { routePrompt, routeSteps } from '../selectors'
 import { VariableInput, initialValue } from './VariableInput'
@@ -36,7 +36,6 @@ export function RouteView(): React.JSX.Element {
   const route = useStore((s) => s.route)
   const setRoute = useStore((s) => s.setRoute)
   const setView = useStore((s) => s.setView)
-  const openCloud = useStore((s) => s.openCloud)
   const categories = useStore((s) => s.categories)
   const prompts = useStore((s) => s.prompts)
 
@@ -84,7 +83,7 @@ export function RouteView(): React.JSX.Element {
         }`}
       >
         <div className="flex min-w-0 items-center gap-3 text-sm">
-          <span className="font-semibold tracking-tight text-foreground">PromptBox</span>
+          <span className="font-semibold tracking-tight text-foreground">PBox</span>
           <span className="h-4 w-px bg-border" aria-hidden />
           <span className="truncate text-muted-foreground">
             {t(track.name)}，{route.flow === 'fresh' ? t('从零开发') : t('已有代码')}
@@ -102,10 +101,6 @@ export function RouteView(): React.JSX.Element {
           <Button variant="ghost" size="sm" onClick={() => setView('settings')}>
             <SettingsIcon />
             {t('设置')}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={openCloud}>
-            <CloudIcon />
-            {t('云同步')}
           </Button>
         </div>
       </header>
