@@ -30,7 +30,7 @@ function overlayColors(): { color: string; symbolColor: string } {
     : { color: '#ffffff', symbolColor: '#525252' }
 }
 
-const TITLEBAR_HEIGHT = 40
+const TITLEBAR_HEIGHT = 36
 
 /**
  * First close: explain that the window hides to the tray and let the user pick
