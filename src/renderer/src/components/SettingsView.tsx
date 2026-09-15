@@ -113,7 +113,7 @@ export function SettingsView(): React.JSX.Element {
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
                     settings?.theme === th.value
                       ? 'border-brand/40 bg-brand/10 text-brand-text'
-                      : 'border-line-strong text-muted hover:border-ring hover:text-ink'
+                      : 'border-line-strong text-muted-foreground hover:border-ring hover:text-ink'
                   }`}
                 >
                   {th.icon}
@@ -132,7 +132,7 @@ export function SettingsView(): React.JSX.Element {
                   className={`rounded-xl border px-3 py-1.5 text-sm transition ${
                     (settings?.language ?? 'zh') === lng.value
                       ? 'border-brand/40 bg-brand/10 text-brand-text'
-                      : 'border-line-strong text-muted hover:border-ring hover:text-ink'
+                      : 'border-line-strong text-muted-foreground hover:border-ring hover:text-ink'
                   }`}
                 >
                   {lng.label}
@@ -178,7 +178,7 @@ export function SettingsView(): React.JSX.Element {
         {/* Data */}
         <Section title={t('数据存储')}>
           <Row label={t('数据目录')} description={t('数据保存在本机此目录')}>
-            <code className="max-w-xs truncate rounded-lg bg-surface-2 px-2.5 py-1.5 font-mono text-xs text-muted">
+            <code className="max-w-xs truncate rounded-lg bg-surface-2 px-2.5 py-1.5 font-mono text-xs text-muted-foreground">
               {settings?.dataDir ?? '—'}
             </code>
           </Row>
@@ -329,7 +329,7 @@ function UpdateRow(): React.JSX.Element {
         <button
           onClick={handleCheck}
           disabled={busy}
-          className="flex items-center gap-1.5 rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-muted transition hover:border-ring hover:text-ink disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-muted-foreground transition hover:border-ring hover:text-ink disabled:opacity-50"
         >
           <RefreshCw size={15} className={busy ? 'animate-spin' : ''} />
           {t('检查更新')}
@@ -468,7 +468,7 @@ function ActionButton({
       className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
         danger
           ? 'border-error/30 text-error hover:bg-error/10'
-          : 'border-line-strong text-muted hover:border-ring hover:bg-surface-2 hover:text-ink'
+          : 'border-line-strong text-muted-foreground hover:border-ring hover:bg-surface-2 hover:text-ink'
       }`}
     >
       {icon}

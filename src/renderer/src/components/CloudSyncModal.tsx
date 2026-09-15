@@ -441,7 +441,7 @@ function ConnectForm({ children }: { children: React.ReactNode }): React.JSX.Ele
   return <div className="mt-3 border-t border-line pt-3">{children}</div>
 }
 function Label({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return <label className="mb-1.5 block text-xs text-muted">{children}</label>
+  return <label className="mb-1.5 block text-xs text-muted-foreground">{children}</label>
 }
 function ConnectBtn({ onClick, full }: { onClick(): void; full?: boolean }): React.JSX.Element {
   const t = useT()
@@ -490,7 +490,7 @@ function StatusPanel(): React.JSX.Element {
               ? 'bg-error/12 text-error'
               : status === 'conflict'
                 ? 'bg-brand/15 text-brand-text'
-                : 'bg-surface-2 text-muted'
+                : 'bg-surface-2 text-muted-foreground'
           }`}
         >
           {STATUS_TEXT[status]}
@@ -524,7 +524,7 @@ function HistoryPanel({
   const t = useT()
   return (
     <div>
-      <button onClick={onBack} className="mb-3 text-xs text-muted underline hover:text-ink">
+      <button onClick={onBack} className="mb-3 text-xs text-muted-foreground underline hover:text-ink">
         {t('← 返回')}
       </button>
       {loading ? (
@@ -548,7 +548,7 @@ function HistoryPanel({
               <button
                 onClick={() => onRestore(v)}
                 disabled={busy}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text disabled:opacity-50"
+                className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text disabled:opacity-50"
               >
                 <RotateCcw size={12} />
                 {t('恢复')}
@@ -574,7 +574,7 @@ function TabBtn({
     <button
       onClick={onClick}
       className={`flex-1 rounded-lg py-1.5 text-sm transition ${
-        active ? 'bg-canvas font-medium text-ink shadow-sm' : 'text-muted hover:text-ink'
+        active ? 'bg-canvas font-medium text-ink shadow-sm' : 'text-muted-foreground hover:text-ink'
       }`}
     >
       {children}
@@ -597,7 +597,7 @@ function CardAction({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-muted transition hover:bg-surface-2 hover:text-ink disabled:opacity-50"
+      className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-muted-foreground transition hover:bg-surface-2 hover:text-ink disabled:opacity-50"
     >
       {icon}
       <span className="text-xs">{label}</span>

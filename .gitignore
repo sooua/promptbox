@@ -7,3 +7,4 @@ out
 release
 *.tsbuildinfo
 .serena
+.env.local

@@ -185,7 +185,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           value={prompt.categoryId ?? ''}
           onChange={(e) => flushSave({ categoryId: e.target.value || null })}
           title={t('所属步骤')}
-          className="max-w-[40%] shrink-0 truncate rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted outline-none focus:border-focus"
+          className="max-w-[40%] shrink-0 truncate rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-focus"
         >
           <option value="">{t('未归入步骤')}</option>
           {STAGES.map((stage, i) => (
@@ -211,7 +211,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           value={prompt.track ?? ''}
           onChange={(e) => flushSave({ track: (e.target.value || null) as Prompt['track'] })}
           title={t('适用的项目类型')}
-          className="shrink-0 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted outline-none focus:border-focus"
+          className="shrink-0 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-focus"
         >
           <option value="">{t('所有类型')}</option>
           {TRACKS.map((x) => (
@@ -227,7 +227,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
             scheduleSave({ description: e.target.value })
           }}
           placeholder={t('什么情况下用这条？一句话')}
-          className="min-w-0 flex-1 bg-transparent text-xs text-muted outline-none placeholder:text-faint"
+          className="min-w-0 flex-1 bg-transparent text-xs text-muted-foreground outline-none placeholder:text-faint"
         />
         <span className="shrink-0 text-[11px] text-faint">
           {saveState === 'dirty'
@@ -298,7 +298,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
       {next && (
         <button
           onClick={() => setCategoryFilter(next.step.id)}
-          className="flex items-center gap-2 border-t border-line px-6 py-2.5 text-left text-xs text-muted transition hover:bg-surface-2 hover:text-ink"
+          className="flex items-center gap-2 border-t border-line px-6 py-2.5 text-left text-xs text-muted-foreground transition hover:bg-surface-2 hover:text-ink"
         >
           <span className="text-faint">{t('下一步')}</span>
           <span className="font-medium text-ink">
@@ -354,7 +354,7 @@ function TabButton({
       className={`flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition ${
         active
           ? 'border-brand font-medium text-brand-text'
-          : 'border-transparent text-muted hover:text-ink'
+          : 'border-transparent text-muted-foreground hover:text-ink'
       }`}
     >
       {icon}

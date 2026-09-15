@@ -347,7 +347,7 @@ export function HighlightedEditor({
         <button
           onClick={insertVariable}
           title={t('插入变量 {{ }}')}
-          className="ml-auto flex items-center gap-1 rounded-md border border-line-strong px-2 py-0.5 text-muted transition hover:border-brand hover:text-brand-text"
+          className="ml-auto flex items-center gap-1 rounded-md border border-line-strong px-2 py-0.5 text-muted-foreground transition hover:border-brand hover:text-brand-text"
         >
           <Braces size={12} />
           {t('插入变量')}

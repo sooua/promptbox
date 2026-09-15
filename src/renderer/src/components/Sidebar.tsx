@@ -274,7 +274,7 @@ export function Sidebar(): React.JSX.Element {
                 >
                   <span
                     className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[10px] font-medium ${
-                      active ? 'bg-brand text-on-brand' : 'bg-surface-2 text-muted'
+                      active ? 'bg-brand text-on-brand' : 'bg-surface-2 text-muted-foreground'
                     }`}
                   >
                     {i + 1}
@@ -354,7 +354,7 @@ export function Sidebar(): React.JSX.Element {
           className={`flex flex-1 items-center justify-center gap-2 px-3 py-3.5 text-sm transition ${
             view === 'settings'
               ? 'font-medium text-brand-text'
-              : 'text-muted hover:bg-surface-2 hover:text-ink'
+              : 'text-muted-foreground hover:bg-surface-2 hover:text-ink'
           }`}
         >
           <Settings size={16} />
@@ -371,7 +371,7 @@ export function Sidebar(): React.JSX.Element {
                 ? t('云同步：上次同步失败')
                 : t('云同步')
           }
-          className="relative flex items-center px-4 text-muted transition hover:bg-surface-2 hover:text-ink"
+          className="relative flex items-center px-4 text-muted-foreground transition hover:bg-surface-2 hover:text-ink"
         >
           <Cloud size={16} />
           {(syncConnected || syncNeedsAttention) && (
@@ -415,7 +415,7 @@ function NavItem({
       onClick={onClick}
       className={`flex w-full items-center gap-2.5 rounded-lg py-1.5 pr-2.5 text-sm transition ${
         indent ? 'pl-[38px]' : 'pl-2.5'
-      } ${active ? 'bg-brand/12 font-medium text-brand-text' : 'text-muted hover:bg-surface-2 hover:text-ink'}`}
+      } ${active ? 'bg-brand/12 font-medium text-brand-text' : 'text-muted-foreground hover:bg-surface-2 hover:text-ink'}`}
     >
       {icon && <span className="flex w-4 justify-center text-faint">{icon}</span>}
       <span className="flex-1 truncate text-left">{label}</span>

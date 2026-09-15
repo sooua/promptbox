@@ -152,7 +152,7 @@ export function PromptList(): React.JSX.Element {
               <br />
               <button
                 onClick={() => setSearch('')}
-                className="mt-3 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand-text"
+                className="mt-3 rounded-lg border border-line-strong px-3 py-1.5 text-muted-foreground transition hover:border-brand hover:text-brand-text"
               >
                 {t('清除筛选条件')}
               </button>
@@ -165,7 +165,7 @@ export function PromptList(): React.JSX.Element {
               <div className="mt-4">
                 <button
                   onClick={handleImportFiles}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-3 py-1.5 text-muted transition hover:border-brand hover:text-brand-text"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-3 py-1.5 text-muted-foreground transition hover:border-brand hover:text-brand-text"
                 >
                   <Upload size={14} />
                   {t('从 Markdown 文件导入…')}

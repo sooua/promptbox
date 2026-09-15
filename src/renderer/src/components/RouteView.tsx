@@ -1,8 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, ArrowRight, Box, Check, Cloud, Copy, Library, RefreshCw, Settings } from 'lucide-react'
 import type { Category, Flow, Prompt, StageInfo } from '@shared/types'
-import { STAGES, STAGE_COLORS, TRACKS } from '@shared/types'
+import { STAGES, TRACKS } from '@shared/types'
 import { fillTemplate, missingRequired } from '@shared/variables'
+import { Button } from '@/components/ui/button'
+import { Kbd } from '@/components/ui/kbd'
+import { Frame, FramePanel } from '@/components/reui/frame'
+import {
+  Stepper,
+  StepperIndicator,
+  StepperItem,
+  StepperNav,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger
+} from '@/components/reui/stepper'
+import { BookIcon, CheckIcon, CloudIcon, CopyIcon, CopySuccessIcon, RefreshIcon, SettingsIcon } from '../icons'
 import { useStore } from '../store'
 import { routePrompt, routeSteps } from '../selectors'
 import { VariableInput, initialValue } from './VariableInput'
@@ -55,39 +67,45 @@ export function RouteView(): React.JSX.Element {
   }
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
+    <div className="flex min-w-0 flex-1 flex-col bg-background">
       <header
-        className={`app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-line bg-canvas ${
+        className={`app-drag flex h-14 shrink-0 items-center gap-3 border-b border-border ${
           isMac ? 'pl-[78px] pr-4' : 'pl-5 pr-[150px]'
         }`}
       >
-        {!isMac && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-on-brand">
-            <Box size={18} />
-          </div>
-        )}
         <div className="min-w-0">
-          <div className="font-serif text-[16px] leading-tight text-ink">PromptBox</div>
-          <div className="truncate text-[11px] leading-tight text-faint">
-            {t(track.name)} · {route.flow === 'fresh' ? t('从零开始') : t('已有代码')}
+          <div className="text-[15px] font-semibold leading-tight tracking-tight text-foreground">PromptBox</div>
+          <div className="truncate text-[11px] leading-tight text-muted-foreground">
+            {t(track.name)}，{route.flow === 'fresh' ? t('从零开始') : t('已有代码')}
           </div>
         </div>
-        <div className="ml-auto flex items-center gap-0.5 text-xs text-muted">
-          <HeaderButton icon={<RefreshCw size={13} />} onClick={() => setView('choose')} label={t('换项目类型')} />
-          <HeaderButton icon={<Library size={13} />} onClick={() => setView('library')} label={t('高级 · 全部 Prompt')} />
-          <HeaderButton icon={<Settings size={13} />} onClick={() => setView('settings')} label={t('设置')} />
-          <HeaderButton icon={<Cloud size={13} />} onClick={openCloud} label={t('云同步')} iconOnly />
+        <div className="ml-auto flex items-center gap-1">
+          <Button variant="ghost" size="sm" onClick={() => setView('choose')}>
+            <RefreshIcon />
+            {t('换项目类型')}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setView('library')}>
+            <BookIcon />
+            {t('全部 Prompt')}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setView('settings')}>
+            <SettingsIcon />
+            {t('设置')}
+          </Button>
+          <Button variant="ghost" size="icon-sm" onClick={openCloud} title={t('云同步')}>
+            <CloudIcon />
+          </Button>
         </div>
       </header>
 
       {!cur || !stage ? (
-        <div className="flex flex-1 items-center justify-center text-sm text-faint">
+        <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
           {t('还没有任何步骤。去「全部 Prompt」里给某个阶段新建一个步骤。')}
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-[680px] flex-col gap-8 px-6 pb-10 pt-8">
-            <Stepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
+          <div className="mx-auto flex w-full max-w-[720px] flex-col gap-8 px-6 pb-10 pt-8">
+            <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
             <StepCard
               key={cur.id + (route.track ?? '')}
               step={cur}
@@ -111,11 +129,10 @@ export function RouteView(): React.JSX.Element {
 }
 
 /**
- * Five dots for the five stages. The current one is coloured, finished ones are
- * ticked, the rest are outlines — enough to know where you are without listing
- * every step. Finished stages can be clicked to go back to their first step.
+ * One dot per stage on a ReUI Stepper. Finished stages are ticked and can be
+ * clicked to go back to their first step; upcoming ones are inert.
  */
-function Stepper({
+function StageStepper({
   steps,
   cur,
   done,
@@ -132,47 +149,36 @@ function Stepper({
   const stages = STAGES.filter((st) => steps.some((s) => s.stage === st.id))
   const curIdx = stages.findIndex((st) => st.id === cur.stage)
   return (
-    <ol className="flex items-start" aria-label={t('阶段')}>
-      {stages.map((st, i) => {
-        const mine = steps.filter((s) => s.stage === st.id)
-        const isCur = i === curIdx
-        const reached = i < curIdx || mine.every((s) => done.has(s.id))
-        const color = STAGE_COLORS[st.id]
-        const line = (on: boolean) => ({ background: on ? color : 'var(--color-line-strong)' })
-        return (
-          <li key={st.id} className="flex flex-1 flex-col items-center gap-2">
-            <div className="flex w-full items-center">
-              <span className={`h-px flex-1 ${i === 0 ? 'invisible' : ''}`} style={line(reached || isCur)} />
-              <button
-                onClick={() => reached && onJump(mine[0].id)}
-                disabled={!reached}
-                aria-current={isCur ? 'step' : undefined}
-                title={t(st.hint)}
-                className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border-2 text-[12px] font-medium tabular-nums transition ${
-                  isCur ? 'route-pop' : ''
-                } ${reached ? 'cursor-pointer' : 'cursor-default'}`}
-                style={
-                  reached
-                    ? { background: color, borderColor: color, color: 'var(--color-on-brand)' }
-                    : isCur
-                      ? { borderColor: color, color, background: 'var(--color-surface)' }
-                      : { borderColor: 'var(--color-line-strong)', color: 'var(--color-faint)' }
-                }
-              >
-                {reached ? <Check size={13} /> : i + 1}
-              </button>
-              <span className={`h-px flex-1 ${i === stages.length - 1 ? 'invisible' : ''}`} style={line(reached)} />
-            </div>
-            <span className={`text-center text-xs ${isCur ? 'font-medium text-ink' : reached ? 'text-muted' : 'text-faint'}`}>
-              {t(st.name)}
-              {st.loop && isCur && feature > 1 ? (
-                <span className="block text-[10px] text-faint">{t('第 {n} 个功能', { n: feature })}</span>
-              ) : null}
-            </span>
-          </li>
-        )
-      })}
-    </ol>
+    <Stepper
+      value={curIdx + 1}
+      onValueChange={(n) => {
+        const st = stages[n - 1]
+        const first = steps.find((s) => s.stage === st?.id)
+        if (first && n - 1 <= curIdx) onJump(first.id)
+      }}
+      indicators={{ completed: <CheckIcon className="size-3.5" /> }}
+    >
+      <StepperNav>
+        {stages.map((st, i) => {
+          const mine = steps.filter((s) => s.stage === st.id)
+          const finished = mine.every((s) => done.has(s.id))
+          return (
+            <StepperItem key={st.id} step={i + 1} completed={finished} disabled={i > curIdx && !finished}>
+              <StepperTrigger className="flex flex-col items-center gap-2 px-1 text-center">
+                <StepperIndicator className="size-7 text-xs font-medium">{i + 1}</StepperIndicator>
+                <StepperTitle className="text-xs font-medium text-muted-foreground group-data-[state=active]/step:text-foreground">
+                  {t(st.name)}
+                  {st.loop && i === curIdx && feature > 1 ? (
+                    <span className="block text-[10px] font-normal text-muted-foreground">{t('第 {n} 个功能', { n: feature })}</span>
+                  ) : null}
+                </StepperTitle>
+              </StepperTrigger>
+              {i < stages.length - 1 && <StepperSeparator className="mb-6 group-data-[state=completed]/step:bg-primary" />}
+            </StepperItem>
+          )
+        })}
+      </StepperNav>
+    </Stepper>
   )
 }
 
@@ -207,7 +213,6 @@ function StepCard({
   const copyResolvedAndUse = useStore((s) => s.copyResolvedAndUse)
   const rememberVarValues = useStore((s) => s.rememberVarValues)
   const select = useStore((s) => s.select)
-  const color = STAGE_COLORS[stage.id]
 
   const [values, setValues] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {}
@@ -245,155 +250,120 @@ function StepCard({
   }
 
   return (
-    <div className="route-card-in flex flex-col gap-5 rounded-2xl border border-line-strong bg-surface px-8 py-7 shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-      <div>
-        <div className="flex items-center gap-2.5 text-xs text-faint">
-          <span className="h-2 w-2 rounded-full" style={{ background: color }} />
-          {t(stage.name)} · {t('第 {n} 步 / 共 {total} 步', { n: index + 1, total })}
+    <Frame className="route-card-in" spacing="lg">
+      <FramePanel className="flex flex-col gap-5">
+        <div>
+          <div className="text-xs text-muted-foreground">
+            {t(stage.name)}，{t('第 {n} 步 / 共 {total} 步', { n: index + 1, total })}
+          </div>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">{step.name}</h2>
+          {step.hint && <p className="mt-2 max-w-[40em] text-sm text-muted-foreground">{step.hint}</p>}
         </div>
-        <h2 className="mt-2 font-serif text-[28px] leading-tight text-ink">{step.name}</h2>
-        {step.hint && <p className="mt-2 max-w-[40em] text-sm text-muted">{step.hint}</p>}
-      </div>
 
-      {index === 0 && !copiedOnce && (
-        <ol className="list-decimal space-y-0.5 rounded-xl bg-canvas px-4 py-3 pl-8 text-xs text-muted">
-          <li>{flow === 'fresh' ? t('新建一个空文件夹，作为这个项目的家') : t('找到你的项目文件夹')}</li>
-          <li>{t('在这个文件夹里打开 Claude Code（或 Cursor）')}</li>
-          <li>{t('把下面复制的内容粘贴进去，按回车')}</li>
-        </ol>
-      )}
-
-      {!prompt ? (
-        <div className="rounded-xl border border-dashed border-line-strong px-3 py-2.5 text-xs text-faint">
-          {t('这一步还没有 Prompt。在「全部 Prompt」里给它加一条。')}
-        </div>
-      ) : prompt.variables.length ? (
-        <div
-          className="flex flex-col gap-3"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-              e.preventDefault()
-              void copy()
-            }
-          }}
-        >
-          {prompt.variables.map((v, i) => (
-            <div key={v.name}>
-              <label className="mb-1.5 block text-xs text-muted">{v.label || v.name}</label>
-              <VariableInput
-                variable={v}
-                value={values[v.name] ?? ''}
-                invalid={showErrors && missing.includes(v.name)}
-                onChange={(val) => setValues((s) => ({ ...s, [v.name]: val }))}
-                autoFocus={i === 0}
-              />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-xl border border-dashed border-line-strong px-3 py-2.5 text-xs text-faint">
-          {t('这一步不用你输入。AI 会读上一步写下的文件。')}
-        </div>
-      )}
-
-      <button
-        onClick={copy}
-        disabled={!prompt}
-        aria-live="polite"
-        className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-[15px] font-medium text-on-brand transition hover:bg-brand-strong active:scale-[0.98] disabled:opacity-40"
-      >
-        {copied ? (
-          <>
-            <Check size={16} className="route-pop" />
-            {t('已复制，去 Claude Code 里粘贴')}
-          </>
-        ) : (
-          <>
-            <Copy size={15} />
-            {t('复制，去 Claude Code 里粘贴')}
-            {prompt?.variables.length ? <span className="font-mono text-[11px] opacity-75">⌘↵</span> : null}
-          </>
+        {index === 0 && !copiedOnce && (
+          <ol className="list-decimal space-y-1 rounded-lg bg-muted/60 px-4 py-3 pl-8 text-xs text-muted-foreground">
+            <li>{flow === 'fresh' ? t('新建一个空文件夹，作为这个项目的家') : t('找到你的项目文件夹')}</li>
+            <li>{t('在这个文件夹里打开 Claude Code（或 Cursor）')}</li>
+            <li>{t('把下面复制的内容粘贴进去，按回车')}</li>
+          </ol>
         )}
-      </button>
 
-      {step.output && (
-        <div className="flex flex-wrap items-center gap-1.5 text-xs text-faint">
-          {t('这一步的产物')} →
-          <code className="rounded-md bg-surface-2 px-1.5 py-px font-mono text-[11.5px] text-ink">{step.output}</code>
-          {!isLast && <span>· {t('下一步会读它')}</span>}
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2.5 border-t border-line pt-4">
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-muted transition hover:text-ink"
-          >
-            <ArrowLeft size={14} />
-            {t('上一步')}
-          </button>
-        )}
-        {loopEnd && (
-          <button
-            onClick={onAgain}
-            className="inline-flex items-center gap-2 rounded-xl border border-line-strong bg-canvas px-4 py-2.5 text-sm text-ink transition hover:border-ring"
-          >
-            <RefreshCw size={14} />
-            {t('再做一个功能')}
-          </button>
-        )}
-        <button
-          onClick={onFinish}
-          className="ml-auto inline-flex items-center gap-2 rounded-xl border border-line-strong bg-canvas px-4 py-2.5 text-sm text-ink transition hover:border-ring"
-        >
-          {isDone ? t('下一步') : isLast ? t('完成') : t('完成，下一步')}
-          {isLast && !isDone ? <Check size={14} /> : <ArrowRight size={14} />}
-        </button>
-      </div>
-
-      {prompt && (
-        <details className="-mb-2">
-          <summary className="cursor-pointer text-xs text-muted">
-            {t('看这条 Prompt')}
-            <button
-              onClick={(e) => {
+        {!prompt ? (
+          <div className="rounded-lg border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">
+            {t('这一步还没有 Prompt。在「全部 Prompt」里给它加一条。')}
+          </div>
+        ) : prompt.variables.length ? (
+          <div
+            className="flex flex-col gap-3"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault()
-                select(prompt.id)
-              }}
-              className="ml-2 text-brand-text hover:underline"
-            >
-              {t('去改')}
-            </button>
-          </summary>
-          <pre className="mt-2.5 max-h-64 overflow-auto whitespace-pre-wrap rounded-xl border border-line bg-canvas px-4 py-3.5 font-mono text-xs leading-relaxed text-muted">
-            {prompt.content}
-          </pre>
-        </details>
-      )}
-    </div>
-  )
-}
+                void copy()
+              }
+            }}
+          >
+            {prompt.variables.map((v, i) => (
+              <div key={v.name}>
+                <label className="mb-1.5 block text-xs font-medium text-foreground">{v.label || v.name}</label>
+                <VariableInput
+                  variable={v}
+                  value={values[v.name] ?? ''}
+                  invalid={showErrors && missing.includes(v.name)}
+                  onChange={(val) => setValues((s) => ({ ...s, [v.name]: val }))}
+                  autoFocus={i === 0}
+                />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">
+            {t('这一步不用你输入。AI 会读上一步写下的文件。')}
+          </div>
+        )}
 
-function HeaderButton({
-  icon,
-  label,
-  onClick,
-  iconOnly
-}: {
-  icon: React.ReactNode
-  label: string
-  onClick(): void
-  iconOnly?: boolean
-}): React.JSX.Element {
-  return (
-    <button
-      onClick={onClick}
-      title={label}
-      className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 transition hover:bg-surface-2 hover:text-ink"
-    >
-      {icon}
-      {!iconOnly && <span>{label}</span>}
-    </button>
+        <Button size="lg" onClick={copy} disabled={!prompt} aria-live="polite" className="h-11 w-full text-[15px]">
+          {copied ? (
+            <>
+              <CopySuccessIcon className="route-pop size-[18px]" />
+              {t('已复制，去 Claude Code 里粘贴')}
+            </>
+          ) : (
+            <>
+              <CopyIcon className="size-[18px]" />
+              {t('复制，去 Claude Code 里粘贴')}
+              {prompt?.variables.length ? (
+                <Kbd className="ml-1 bg-primary-foreground/15 text-primary-foreground">{isMac ? '⌘' : 'Ctrl'} ↵</Kbd>
+              ) : null}
+            </>
+          )}
+        </Button>
+
+        {step.output && (
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            {t('这一步的产物')}
+            <code className="rounded-md bg-muted px-1.5 py-px font-mono text-[11.5px] text-foreground">{step.output}</code>
+            {!isLast && <span>{t('下一步会读它')}</span>}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
+          {onBack && (
+            <Button variant="ghost" size="sm" onClick={onBack}>
+              {t('上一步')}
+            </Button>
+          )}
+          {loopEnd && (
+            <Button variant="outline" onClick={onAgain}>
+              <RefreshIcon />
+              {t('再做一个功能')}
+            </Button>
+          )}
+          <Button variant="outline" onClick={onFinish} className="ml-auto">
+            {isDone ? t('下一步') : isLast ? t('完成') : t('完成，下一步')}
+            {isLast && !isDone ? <CheckIcon /> : null}
+          </Button>
+        </div>
+
+        {prompt && (
+          <details className="-mb-2">
+            <summary className="cursor-pointer text-xs text-muted-foreground">
+              {t('看这条 Prompt')}
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  select(prompt.id)
+                }}
+                className="ml-2 font-medium text-foreground underline-offset-4 hover:underline"
+              >
+                {t('去改')}
+              </button>
+            </summary>
+            <pre className="mt-2.5 max-h-64 overflow-auto rounded-lg border border-border bg-background px-4 py-3.5 font-mono text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
+              {prompt.content}
+            </pre>
+          </details>
+        )}
+      </FramePanel>
+    </Frame>
   )
 }

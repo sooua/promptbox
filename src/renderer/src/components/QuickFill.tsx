@@ -94,7 +94,7 @@ export function QuickFill(): React.JSX.Element | null {
           <div className="space-y-3">
             {prompt.variables.map((v, i) => (
               <div key={v.name}>
-                <label className="mb-1 block text-xs text-muted">
+                <label className="mb-1 block text-xs text-muted-foreground">
                   <code className="var-chip">{v.label || v.name}</code>
                   {v.required && <span className="ml-1 text-error" title={t('必填')}>*</span>}
                   {v.description && <span className="ml-2 text-faint">{v.description}</span>}
@@ -111,7 +111,7 @@ export function QuickFill(): React.JSX.Element | null {
           </div>
 
           <div className="mt-4">
-            <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
+            <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <FileText size={13} />
               {t('预览结果')}
             </div>
@@ -124,7 +124,7 @@ export function QuickFill(): React.JSX.Element | null {
         <div className="flex items-center gap-2 border-t border-line px-5 py-3">
           <button
             onClick={copyRaw}
-            className="rounded-xl border border-line-strong px-3 py-1.5 text-sm text-muted transition hover:border-ring hover:text-ink"
+            className="rounded-xl border border-line-strong px-3 py-1.5 text-sm text-muted-foreground transition hover:border-ring hover:text-ink"
           >
             {t('复制原始模板')}
           </button>

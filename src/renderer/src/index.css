@@ -4,109 +4,140 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Claude / Anthropic design language — warm parchment canvas, terracotta brand,
- * exclusively warm-toned neutrals, serif headlines, ring-based depth.
- *
- * Colors are declared as SEMANTIC tokens so the same utility classes
- * (bg-canvas, text-ink, border-line…) adapt automatically: the `.dark` block
- * below overrides the same CSS variables, and every Tailwind utility resolves
- * through var(), so the cascade flips the whole UI to warm-dark.
+ * shadcn / ReUI neutral palette (base-nova). The app's older semantic names
+ * (canvas / ink / line / brand…) are kept as aliases of these tokens in the
+ * `@theme inline` block so screens not yet rebuilt on shadcn components pick up
+ * the same look. New code should use the shadcn names directly.
  */
-@theme {
-  --font-sans:
-    'Anthropic Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter,
-    'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
-  --font-serif:
-    'Anthropic Serif', Georgia, 'Songti SC', 'Noto Serif SC', 'Times New Roman',
-    serif;
-  --font-mono:
-    'Anthropic Mono', 'JetBrains Mono', 'Fira Code', ui-monospace,
-    SFMono-Regular, Menlo, monospace;
-
-  /* Surfaces */
-  --color-canvas: #f5f4ed; /* Parchment — page background */
-  --color-surface: #faf9f5; /* Ivory — cards / elevated containers */
-  --color-surface-2: #e8e6dc; /* Warm Sand — buttons / prominent surfaces */
-  --color-white: #ffffff;
-
-  /* Text */
-  --color-ink: #141413; /* Near Black — primary text (17.5:1 on surface) */
-  --color-muted: #5e5d59; /* Olive Gray — secondary text (6.3:1) */
-  /* Stone Gray measured 3.3:1 on the parchment canvas — below the 4.5:1 floor,
-     and it carries every hint, timestamp and shortcut key in the app. Darkened
-     to 4.9:1 while staying a visible step lighter than muted. The dark theme's
-     own faint already passes at 4.6:1 and is left alone. */
-  --color-faint: #6b6a63; /* Stone Gray — tertiary / metadata (4.9:1) */
-
-  /* Lines & rings */
-  --color-line: #f0eee6; /* Border Cream — standard light border */
-  --color-line-strong: #e8e6dc; /* Border Warm — prominent dividers */
-  --color-ring: #d1cfc5; /* Ring Warm — hover/focus ring */
-
-  /* Brand & semantic */
-  --color-brand: #c96442; /* Terracotta — fills, indicators, borders (3.7:1 — non-text only) */
-  --color-brand-strong: #b65535; /* darker terracotta for hover */
-  /* Terracotta as *text* is 3.7:1 on both light surfaces, under the 4.5:1 floor.
-     The identity colour stays put for fills; brand-coloured labels use this
-     darker step instead. Same split Radix draws between its solid and text
-     accent steps. */
-  --color-brand-text: #a94a2e; /* 5.4:1 on surface, 4.8:1 on a brand/10 tint */
-  /* Cream on the identity terracotta is 3.7:1 — fine for an icon (3:1) but not
-     for the label on a solid button. Buttons that carry text sit one step
-     darker; the identity colour keeps the icon squares and the toggle fills.
-     Theme-independent, because the text on top is always cream. */
-  --color-brand-solid: #b65535; /* cream text 4.6:1 */
-  --color-brand-solid-hover: #a94a2e; /* cream text 5.4:1 */
-  --color-on-brand: #faf9f5; /* Ivory text/icons on a terracotta surface (stays cream in both themes) */
-  --color-coral: #d97757; /* Coral — accents on dark, links */
-  --color-error: #b53333; /* Error Crimson (5.5:1 on canvas) */
-  /* The diff view and the sync dots reached for Tailwind's emerald/rose ramps,
-     which know nothing about the theme: emerald-600 is 3.4:1 on the parchment
-     canvas and emerald-700 is 3.4:1 on the dark one, so each failed in one
-     theme or the other. */
-  --color-success: #2c7349; /* 5.2:1 on canvas */
-  --color-focus: #3898ec; /* Focus Blue — the only cool color */
-}
-
-/* Warm-dark theme: Near Black canvas, warm charcoal surfaces, parchment text. */
-.dark {
-  --color-canvas: #141413;
-  --color-surface: #1e1d1b;
-  --color-surface-2: #30302e;
-  --color-white: #30302e;
-
-  --color-ink: #f5f4ed;
-  --color-muted: #b0aea5;
-  --color-faint: #87867f;
-
-  --color-line: #30302e;
-  --color-line-strong: #3d3d3a;
-  --color-ring: #3d3d3a;
-
-  --color-brand: #c96442;
-  --color-brand-strong: #d97757;
-  --color-brand-text: #d97757; /* 5.4:1 on the dark surface */
-  /* brand-solid / brand-solid-hover are deliberately NOT overridden: the label
-     on them is cream in both themes, so the background must stay dark enough
-     in both. */
-  --color-coral: #d97757;
-  /* Crimson was never overridden for dark: at 2.8:1 on the charcoal surface the
-     danger buttons (replace-import, quit) were barely legible. */
-  --color-error: #e06a6a; /* 5.2:1 on the dark surface */
-  --color-success: #57b782; /* 7.5:1 on the dark canvas */
-}
-
 :root {
   color-scheme: light dark;
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
 }
 
-/* The app had no focus style of its own: buttons fell back to the browser ring
- * (cool blue, out of key with everything else) and inputs replaced it with a
- * 1px border-colour change, which is too weak to find. One warm ring, applied
- * only for keyboard focus so mouse users never see it. */
-:where(button, a, [role='switch'], [role='option'], [tabindex]):focus-visible,
-:where(input, select, textarea):focus-visible {
-  outline: 2px solid var(--color-focus);
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-600);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-600);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-600);
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
+}
+
+@theme inline {
+  --font-sans:
+    Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Microsoft YaHei', system-ui, sans-serif;
+  /* No serif voice any more: headings share the sans so the `font-serif`
+     helper still used by older screens renders the same face. */
+  --font-serif: var(--font-sans);
+  --font-mono:
+    'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-invert: var(--invert);
+  --color-invert-foreground: var(--invert-foreground);
+
+  /* ---- legacy aliases (screens not yet on shadcn components) ---- */
+  --color-canvas: var(--background);
+  --color-surface: var(--card);
+  --color-surface-2: var(--muted);
+  --color-white: var(--card);
+  --color-ink: var(--foreground);
+  --color-faint: var(--muted-foreground);
+  --color-line: var(--border);
+  --color-line-strong: var(--border);
+  --color-brand: var(--primary);
+  --color-brand-strong: var(--primary);
+  --color-brand-text: var(--foreground);
+  --color-brand-solid: var(--primary);
+  --color-brand-solid-hover: var(--primary);
+  --color-on-brand: var(--primary-foreground);
+  --color-coral: var(--primary);
+  --color-error: var(--destructive);
+  --color-focus: var(--ring);
+}
+
+/* Keyboard-only focus ring for elements not yet on shadcn components. */
+:where(button, a, [role='switch'], [role='option'], [tabindex]):not([data-slot]):focus-visible,
+:where(input, select, textarea):not([data-slot]):focus-visible {
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: inherit;
 }
@@ -142,10 +173,10 @@ body {
   background-clip: padding-box;
 }
 
-/* Serif headline helper — weight 500, single voice across all sizes. */
+/* Former serif headline helper; now just a weight, same face as body. */
 .font-serif {
-  font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 /*
@@ -171,8 +202,7 @@ body {
 .md h1,
 .md h2,
 .md h3 {
-  font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 600;
 }
 .md h1 { font-size: 1.7em; line-height: 1.2; margin: 0.8em 0 0.4em; }
 .md h2 { font-size: 1.4em; line-height: 1.2; margin: 0.8em 0 0.4em; }

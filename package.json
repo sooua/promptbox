@@ -21,6 +21,10 @@
     "publish": "electron-vite build && electron-builder --publish always"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
+    "class-variance-authority": "^0.7.1",
+    "cmdk": "^1.1.1",
+    "cn": "^0.3.0",
     "electron-updater": "^6.3.9",
     "pinyin-pro": "^3.28.1"
   },

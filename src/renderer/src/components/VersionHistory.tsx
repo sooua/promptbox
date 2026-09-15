@@ -23,7 +23,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-1.5 text-xs font-medium text-muted">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <History size={14} />
         {t('历史版本（{n}）', { n: prompt.versions.length })}
       </div>
@@ -37,7 +37,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                 className={`flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[11px] transition ${
                   diffId === v.id
                     ? 'border-brand text-brand-text'
-                    : 'border-line-strong text-muted hover:border-brand hover:text-brand-text'
+                    : 'border-line-strong text-muted-foreground hover:border-brand hover:text-brand-text'
                 }`}
               >
                 <GitCompare size={11} />
@@ -49,7 +49,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                   await restoreVersion(prompt.id, v.id)
                   toast.success(t('已恢复到该版本'))
                 }}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted transition hover:border-brand hover:text-brand-text"
+                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted-foreground transition hover:border-brand hover:text-brand-text"
               >
                 <RotateCcw size={11} />
                 {t('恢复')}
@@ -64,7 +64,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                   toast.success(t('已删除该历史版本'))
                 }}
                 title={t('删除该版本')}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted transition hover:border-error hover:text-error"
+                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted-foreground transition hover:border-error hover:text-error"
               >
                 <Trash2 size={11} />
               </button>
@@ -76,7 +76,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
               <DiffView previous={v.content} current={prompt.content} />
             </div>
           ) : (
-            <pre className="mt-2 max-h-24 overflow-hidden whitespace-pre-wrap font-mono text-[11px] text-muted">
+            <pre className="mt-2 max-h-24 overflow-hidden whitespace-pre-wrap font-mono text-[11px] text-muted-foreground">
               {v.content.slice(0, 220) || t('（空）')}
             </pre>
           )}

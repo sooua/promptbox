@@ -48,7 +48,7 @@ export const toast = {
 const icons = {
   success: <CheckCircle2 size={16} className="text-brand-text" />,
   error: <XCircle size={16} className="text-error" />,
-  info: <Info size={16} className="text-muted" />
+  info: <Info size={16} className="text-muted-foreground" />
 }
 
 export function ToastHost(): React.JSX.Element {

@@ -80,13 +80,13 @@ export function TrashView(): React.JSX.Element {
                     cheaper one. */}
                 <button
                   onClick={handleRestoreAll}
-                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text"
+                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text"
                 >
                   {t('全部恢复')}
                 </button>
                 <button
                   onClick={handlePurgeAll}
-                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-error hover:text-error"
+                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-error hover:text-error"
                 >
                   {t('清空回收站')}
                 </button>
@@ -115,7 +115,7 @@ export function TrashView(): React.JSX.Element {
                   </div>
                   <button
                     onClick={() => void handleRestore(p.id, p.title)}
-                    className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted transition hover:border-brand hover:text-brand-text"
+                    className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text"
                   >
                     <RotateCcw size={12} />
                     {t('恢复')}
@@ -123,7 +123,7 @@ export function TrashView(): React.JSX.Element {
                   <button
                     onClick={() => void handlePurge(p.id, p.title)}
                     title={t('永久删除')}
-                    className="shrink-0 rounded-lg border border-line-strong p-1.5 text-muted transition hover:border-error hover:text-error"
+                    className="shrink-0 rounded-lg border border-line-strong p-1.5 text-muted-foreground transition hover:border-error hover:text-error"
                   >
                     <Trash2 size={13} />
                   </button>

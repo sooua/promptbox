@@ -119,7 +119,7 @@ export function CommandPalette(): React.JSX.Element {
                     i === active ? 'bg-brand/12' : 'hover:bg-surface-2'
                   }`}
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted-foreground">
                     <Blocks size={13} />
                   </span>
                   <div className="min-w-0 flex-1">

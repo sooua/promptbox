@@ -82,14 +82,14 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-1.5 text-xs font-medium text-muted">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
         <Wand2 size={14} />
         {t('变量填充')}
       </div>
       {prompt.variables.map((v) => (
         <div key={v.name}>
           <div className="mb-1 flex items-center justify-between">
-            <label className="text-xs text-muted">
+            <label className="text-xs text-muted-foreground">
               <code className="var-chip">{v.label || v.name}</code>
               {v.required && <span className="ml-1 text-error" title={t('必填')}>*</span>}
               {v.description && <span className="ml-2 text-faint">{v.description}</span>}
@@ -120,7 +120,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
 
       <div>
         <div className="mb-1 flex items-center justify-between">
-          <span className="text-xs font-medium text-muted">{t('预览结果')}</span>
+          <span className="text-xs font-medium text-muted-foreground">{t('预览结果')}</span>
           <button
             onClick={copyResolved}
             className="flex items-center gap-1 rounded-lg bg-brand-solid px-2.5 py-1 text-xs text-on-brand transition hover:bg-brand-solid-hover"
@@ -154,7 +154,7 @@ function AddVariable({ onAdd }: { onAdd(name: string): boolean }): React.JSX.Ele
       />
       <button
         onClick={submit}
-        className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs text-muted transition hover:border-brand hover:text-brand-text"
+        className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text"
       >
         <Plus size={13} />
         {t('新建变量')}
@@ -200,7 +200,7 @@ function VariableSettings({
         placeholder={t('说明（可选）')}
         className={fieldCls}
       />
-      <label className="flex items-center gap-1.5 text-xs text-muted">
+      <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <input
           type="checkbox"
           checked={variable.required ?? false}

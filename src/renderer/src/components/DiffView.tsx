@@ -34,7 +34,7 @@ export function DiffView({
                 ? 'bg-success/10 text-success'
                 : op.type === 'del'
                   ? 'bg-error/10 text-error'
-                  : 'text-muted'
+                  : 'text-muted-foreground'
             }
           >
             <span className="select-none opacity-60">

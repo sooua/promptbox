@@ -1,8 +1,8 @@
 import type { PromptVariable } from '@shared/types'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useT } from '../i18n'
-
-const inputCls =
-  'w-full rounded-xl border border-line-strong bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-focus'
 
 /** Renders the right control for a variable based on its type. */
 export function VariableInput({
@@ -20,50 +20,44 @@ export function VariableInput({
   invalid?: boolean
 }): React.JSX.Element {
   const t = useT()
-  const cls = invalid ? `${inputCls} border-error focus:border-error` : inputCls
+  const placeholder = variable.defaultValue || t('输入 {name}…', { name: variable.name })
   if (variable.type === 'select' && variable.options?.length) {
     return (
-      <select autoFocus={autoFocus} value={value} onChange={(e) => onChange(e.target.value)} className={cls}>
-        <option value="">{t('（请选择）')}</option>
-        {variable.options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
-      </select>
+      <Select value={value || null} onValueChange={(v) => onChange((v as string) ?? '')}>
+        <SelectTrigger aria-invalid={invalid || undefined} className="w-full">
+          <SelectValue placeholder={t('（请选择）')} />
+        </SelectTrigger>
+        <SelectContent>
+          {variable.options.map((o) => (
+            <SelectItem key={o} value={o}>
+              {o}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     )
   }
   if (variable.type === 'multiline') {
     return (
-      <textarea
+      <Textarea
         autoFocus={autoFocus}
         rows={3}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder={variable.defaultValue || t('输入 {name}…', { name: variable.name })}
-        className={`${cls} resize-y`}
-      />
-    )
-  }
-  if (variable.type === 'number' || variable.type === 'date') {
-    return (
-      <input
-        type={variable.type}
-        autoFocus={autoFocus}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={variable.defaultValue || t('输入 {name}…', { name: variable.name })}
-        className={cls}
+        placeholder={placeholder}
+        aria-invalid={invalid || undefined}
+        className="min-h-24 resize-y text-[15px]"
       />
     )
   }
   return (
-    <input
+    <Input
+      type={variable.type === 'number' || variable.type === 'date' ? variable.type : 'text'}
       autoFocus={autoFocus}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      placeholder={variable.defaultValue || t('输入 {name}…', { name: variable.name })}
-      className={cls}
+      placeholder={placeholder}
+      aria-invalid={invalid || undefined}
     />
   )
 }
