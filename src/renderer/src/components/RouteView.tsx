@@ -71,7 +71,7 @@ export function RouteView(): React.JSX.Element {
   return (
     <div className="flex min-w-0 flex-1 flex-col bg-background">
       <header
-        className={`app-drag flex h-10 shrink-0 items-center gap-3 border-b border-border ${
+        className={`app-drag flex h-[41px] shrink-0 items-center gap-3 border-b border-border ${
           isMac ? 'pl-[78px] pr-4' : 'pl-5 pr-[150px]'
         }`}
       >
@@ -111,7 +111,7 @@ export function RouteView(): React.JSX.Element {
           <div className="mx-auto w-full max-w-[720px] shrink-0 px-6 pt-7">
             <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
           </div>
-          <div className="mx-auto flex w-full max-w-[1120px] flex-col px-6 pt-6 pb-8">
+          <div className="mx-auto flex w-full max-w-[1120px] flex-col px-6 pt-10 pb-8">
             <div className="grid items-start gap-5 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
             <StepCard
               key={cur.id + (route.track ?? '')}

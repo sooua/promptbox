@@ -220,7 +220,7 @@ export function Sidebar(): React.JSX.Element {
           past the buttons (see trafficLightPosition in main), keeping only the
           wordmark. */}
       <div
-        className={`app-drag flex h-10 shrink-0 items-center border-b border-border ${
+        className={`app-drag flex h-[41px] shrink-0 items-center border-b border-border ${
           isMac ? 'pl-[78px] pr-4' : 'px-5'
         }`}
       >
