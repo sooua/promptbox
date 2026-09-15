@@ -345,6 +345,8 @@ export const en: Record<string, string> = {
   // ---- Route ----
   '回到路线': 'Back to route',
   '上一步': 'Back',
+  '展开': 'Expand',
+  '折叠': 'Collapse',
   '从零开发': 'From scratch',
   '第一次用？三步': 'First time? Three steps',
   '打开': 'Open',

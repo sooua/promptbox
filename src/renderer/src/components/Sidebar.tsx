@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CloudIcon, DragIcon, LayersIcon, PencilIcon, PlusIcon, RouteIcon, SettingsIcon, StarIcon, TrashIcon } from '../icons'
+import { CloudIcon, DragIcon, ExpandIcon, LayersIcon, PencilIcon, PlusIcon, RouteIcon, SettingsIcon, StarIcon, TrashIcon } from '../icons'
 import type { Category, StageId } from '@shared/types'
 import { STAGES, STAGE_COLORS } from '@shared/types'
 import { moveStep } from '@shared/steps'
@@ -43,6 +43,22 @@ export function Sidebar(): React.JSX.Element {
   const [overId, setOverId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
+  // Collapsed stages, remembered per device.
+  const [collapsed, setCollapsed] = useState<Set<StageId>>(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('promptbox.collapsedStages') ?? '[]') as StageId[])
+    } catch {
+      return new Set()
+    }
+  })
+  function toggleStage(id: StageId) {
+    setCollapsed((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      localStorage.setItem('promptbox.collapsedStages', JSON.stringify([...next]))
+      return next
+    })
+  }
 
   const countFor = (id: string) => prompts.filter((p) => p.categoryId === id).length
   const countForStage = (stage: StageId) =>
@@ -268,13 +284,24 @@ export function Sidebar(): React.JSX.Element {
                 </button>
                 <button
                   className="ml-0.5 rounded-md p-1 text-muted-foreground opacity-0 transition hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
-                  onClick={() => setAdding(stage.id)}
+                  onClick={() => {
+                    setAdding(stage.id)
+                    if (collapsed.has(stage.id)) toggleStage(stage.id)
+                  }}
                   title={t('新建步骤')}
                 >
                   <PlusIcon className="size-3.5" />
                 </button>
+                <button
+                  className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                  onClick={() => toggleStage(stage.id)}
+                  aria-expanded={!collapsed.has(stage.id)}
+                  title={collapsed.has(stage.id) ? t('展开') : t('折叠')}
+                >
+                  <ExpandIcon className={`size-3.5 transition-transform ${collapsed.has(stage.id) ? '-rotate-90' : ''}`} />
+                </button>
               </div>
-              {stepsOf(categories, stage.id).map(renderStep)}
+              {!collapsed.has(stage.id) && stepsOf(categories, stage.id).map(renderStep)}
               {renderNewInput(stage.id)}
             </div>
           )
