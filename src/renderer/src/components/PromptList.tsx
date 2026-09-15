@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useRef } from 'react'
-import { Copy, Plus, Search, Star, Trash2, Upload } from 'lucide-react'
+import { CopyIcon, PlusIcon, SearchIcon, StarIcon, TrashIcon, UploadIcon } from '../icons'
 import { STAGES, TRACKS } from '@shared/types'
 import { useStore, isCategoryId, stageOf } from '../store'
 import { categoryById, filterPrompts, stepsOf } from '../selectors'
@@ -98,17 +98,17 @@ export function PromptList(): React.JSX.Element {
   const hasSearch = search.trim().length > 0
 
   return (
-    <section className="flex w-80 shrink-0 flex-col border-r border-line bg-canvas">
+    <section className="flex w-80 shrink-0 flex-col border-r border-border bg-background">
       {heading && (
-        <div className="border-b border-line px-4 pb-3 pt-4">
-          <div className="font-serif text-[17px] leading-tight text-ink">{heading.title}</div>
-          <div className="mt-1 text-xs text-faint">{heading.hint}</div>
+        <div className="border-b border-border px-4 pb-3 pt-4">
+          <div className="font-semibold tracking-tight text-[17px] leading-tight text-foreground">{heading.title}</div>
+          <div className="mt-1 text-xs text-muted-foreground">{heading.hint}</div>
         </div>
       )}
 
       <div className="flex items-center gap-2 p-3">
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-faint" />
+          <SearchIcon className="size-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             data-search-input
             value={search}
@@ -130,29 +130,29 @@ export function PromptList(): React.JSX.Element {
               }
             }}
             placeholder={t('筛选…（Ctrl/⌘ + F）')}
-            className="w-full rounded-xl border border-line-strong bg-surface py-2 pl-8 pr-3 text-sm text-ink outline-none transition focus:border-focus"
+            className="w-full rounded-xl border border-border bg-card py-2 pl-8 pr-3 text-sm text-foreground outline-none transition focus:border-ring"
           />
         </div>
         <button
           onClick={handleNew}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-on-brand shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-brand-strong"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-[0_0_0_1px_var(--color-brand)] transition hover:bg-primary/80"
           title={t('新建 Prompt')}
         >
-          <Plus size={18} />
+          <PlusIcon className="size-4.5" />
         </button>
       </div>
 
       {filtered.length === 0 ? (
         // Two different empty states: "your search hides everything" needs a way
         // back, "nothing here yet" needs a way forward.
-        <div className="flex-1 px-4 pt-16 text-center text-sm text-faint">
+        <div className="flex-1 px-4 pt-16 text-center text-sm text-muted-foreground">
           {hasSearch ? (
             <>
               {t('没有匹配的 Prompt。')}
               <br />
               <button
                 onClick={() => setSearch('')}
-                className="mt-3 rounded-lg border border-line-strong px-3 py-1.5 text-muted-foreground transition hover:border-brand hover:text-brand-text"
+                className="mt-3 rounded-lg border border-border px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-foreground"
               >
                 {t('清除筛选条件')}
               </button>
@@ -161,13 +161,13 @@ export function PromptList(): React.JSX.Element {
             <>
               {t('这里还没有 Prompt。')}
               <br />
-              {t('点击')} <span className="text-brand-text">＋</span> {t('新建一个。')}
+              {t('点击')} <span className="text-foreground">＋</span> {t('新建一个。')}
               <div className="mt-4">
                 <button
                   onClick={handleImportFiles}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-line-strong px-3 py-1.5 text-muted-foreground transition hover:border-brand hover:text-brand-text"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-foreground"
                 >
-                  <Upload size={14} />
+                  <UploadIcon className="size-3.5" />
                   {t('从 Markdown 文件导入…')}
                 </button>
               </div>
@@ -197,13 +197,13 @@ export function PromptList(): React.JSX.Element {
                 aria-selected={isSel}
                 onClick={() => select(p.id)}
                 className={`group relative mb-1 w-full cursor-pointer rounded-xl border px-3 py-2 text-left transition ${
-                  isSel ? 'border-brand/30 bg-brand/8' : 'border-transparent hover:bg-surface'
+                  isSel ? 'border-primary/30 bg-primary/8' : 'border-transparent hover:bg-card'
                 }`}
               >
                 <div className="flex items-start gap-2">
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-ink">{p.title}</div>
-                    <div className="mt-0.5 truncate text-xs text-faint">
+                    <div className="truncate text-sm font-medium text-foreground">{p.title}</div>
+                    <div className="mt-0.5 truncate text-xs text-muted-foreground">
                       {p.description || p.content.slice(0, 80) || t('空内容')}
                     </div>
                   </div>
@@ -216,11 +216,11 @@ export function PromptList(): React.JSX.Element {
                       title={p.favorite ? t('取消收藏') : t('收藏')}
                       className={`rounded p-0.5 ${
                         p.favorite
-                          ? 'text-brand-text'
-                          : 'text-faint opacity-0 transition-opacity hover:text-brand-text focus-visible:opacity-100 group-hover:opacity-100'
+                          ? 'text-foreground'
+                          : 'text-muted-foreground opacity-0 transition-opacity hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100'
                       }`}
                     >
-                      <Star size={15} fill={p.favorite ? 'currentColor' : 'none'} />
+                      <StarIcon className="size-4" />
                     </button>
                     <button
                       onClick={(e) => {
@@ -233,13 +233,13 @@ export function PromptList(): React.JSX.Element {
                         )
                       }}
                       title={t('删除')}
-                      className="rounded p-0.5 text-faint opacity-0 transition-opacity hover:text-error focus-visible:opacity-100 group-hover:opacity-100"
+                      className="rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
                     >
-                      <Trash2 size={14} />
+                      <TrashIcon className="size-3.5" />
                     </button>
                   </div>
                 </div>
-                <div className="mt-1 flex items-center gap-1.5 text-[10px] text-faint">
+                <div className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
                   {step && (
                     <span className="flex items-center gap-1 truncate">
                       <span
@@ -251,12 +251,12 @@ export function PromptList(): React.JSX.Element {
                     </span>
                   )}
                   {p.track && (
-                    <span className="rounded border border-line-strong px-1">
+                    <span className="rounded border border-border px-1">
                       {t(TRACKS.find((x) => x.id === p.track)?.name ?? p.track)}
                     </span>
                   )}
                   {p.variables.length > 0 && (
-                    <span className="rounded bg-surface-2 px-1.5">
+                    <span className="rounded bg-muted px-1.5">
                       {t('{n} 个变量', { n: p.variables.length })}
                     </span>
                   )}
@@ -268,9 +268,9 @@ export function PromptList(): React.JSX.Element {
                     void requestCopy(p.id)
                   }}
                   title={t('复制内容')}
-                  className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-brand-solid px-2 py-1 text-[10px] text-on-brand transition hover:bg-brand-solid-hover group-hover:flex"
+                  className="absolute bottom-2 right-2 hidden items-center gap-1 rounded-lg bg-primary px-2 py-1 text-[10px] text-primary-foreground transition hover:bg-primary/80 group-hover:flex"
                 >
-                  <Copy size={11} />
+                  <CopyIcon className="size-3" />
                   {t('复制')}
                 </button>
               </div>

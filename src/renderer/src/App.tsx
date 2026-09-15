@@ -153,14 +153,14 @@ export default function App(): React.JSX.Element {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-canvas font-serif text-faint">
+      <div className="flex h-full items-center justify-center bg-background font-semibold tracking-tight text-muted-foreground">
         {t('加载中…')}
       </div>
     )
   }
 
   return (
-    <div className="flex h-full bg-canvas text-ink">
+    <div className="flex h-full bg-background text-foreground">
       {view === 'route' && hasTrack ? (
         <RouteView />
       ) : view === 'route' || view === 'choose' ? (

@@ -10,7 +10,7 @@ export function MarkdownPreview({ content }: { content: string }): React.JSX.Ele
   const segments = useMemo(() => splitVariables(content), [content])
 
   if (!content.trim()) {
-    return <div className="text-sm text-faint">（空内容）</div>
+    return <div className="text-sm text-muted-foreground">（空内容）</div>
   }
 
   return (

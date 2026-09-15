@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { Braces } from 'lucide-react'
+import { CodeIcon } from '../icons'
 import { extractVariableNames } from '@shared/variables'
 import { useT } from '../i18n'
 
@@ -274,7 +274,7 @@ export function HighlightedEditor({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="relative flex-1 overflow-hidden rounded-2xl border border-line-strong bg-surface focus-within:border-focus">
+      <div className="relative flex-1 overflow-hidden rounded-2xl border border-border bg-card focus-within:border-ring">
         <pre
           ref={preRef}
           aria-hidden
@@ -310,13 +310,13 @@ export function HighlightedEditor({
           }}
           placeholder={placeholder}
           spellCheck={false}
-          className={`hl-input absolute inset-0 h-full w-full resize-none bg-transparent outline-none placeholder:text-faint ${SHARED}`}
+          className={`hl-input absolute inset-0 h-full w-full resize-none bg-transparent outline-none placeholder:text-muted-foreground ${SHARED}`}
           style={{ color: 'transparent', caretColor: 'var(--color-ink)' }}
         />
 
         {suggest && (
           <ul
-            className="absolute z-10 max-h-52 w-52 overflow-y-auto rounded-xl border border-line-strong bg-surface py-1 shadow-[rgba(0,0,0,0.12)_0px_8px_28px]"
+            className="absolute z-10 max-h-52 w-52 overflow-y-auto rounded-xl border border-border bg-card py-1 shadow-[rgba(0,0,0,0.12)_0px_8px_28px]"
             style={{ top: suggest.top, left: suggest.left }}
           >
             {suggest.items.map((name, i) => (
@@ -328,11 +328,11 @@ export function HighlightedEditor({
                   }}
                   onMouseEnter={() => setSuggest({ ...suggest, active: i })}
                   className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-xs ${
-                    i === suggest.active ? 'bg-brand/12 text-brand-text' : 'text-ink hover:bg-surface-2'
+                    i === suggest.active ? 'bg-accent text-foreground' : 'text-foreground hover:bg-muted'
                   }`}
                 >
                   <code className="var-chip">{`{{${name}}}`}</code>
-                  {!suggestions.includes(name) && <span className="text-faint">{t('新建')}</span>}
+                  {!suggestions.includes(name) && <span className="text-muted-foreground">{t('新建')}</span>}
                 </button>
               </li>
             ))}
@@ -340,16 +340,16 @@ export function HighlightedEditor({
         )}
       </div>
 
-      <div className="mt-2 flex items-center gap-4 px-1 text-[11px] text-faint">
+      <div className="mt-2 flex items-center gap-4 px-1 text-[11px] text-muted-foreground">
         <span>{t('{n} 字符', { n: counts.chars })}</span>
         <span>{t('{n} 行', { n: counts.lines })}</span>
         <span>{t('{n} 个变量', { n: counts.vars })}</span>
         <button
           onClick={insertVariable}
           title={t('插入变量 {{ }}')}
-          className="ml-auto flex items-center gap-1 rounded-md border border-line-strong px-2 py-0.5 text-muted-foreground transition hover:border-brand hover:text-brand-text"
+          className="ml-auto flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-muted-foreground transition hover:border-primary hover:text-foreground"
         >
-          <Braces size={12} />
+          <CodeIcon className="size-3" />
           {t('插入变量')}
         </button>
       </div>

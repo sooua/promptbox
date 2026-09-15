@@ -4,5 +4,5 @@
  * the sidebar brand block so the top edge lines up.
  */
 export function TitleBar(): React.JSX.Element {
-  return <div className="app-drag h-14 shrink-0 border-b border-line bg-canvas" />
+  return <div className="app-drag h-14 shrink-0 border-b border-border bg-background" />
 }

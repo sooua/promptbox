@@ -1,15 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Copy,
-  CopyPlus,
-  Eye,
-  FileText,
-  History as HistoryIcon,
-  Pencil,
-  Trash2,
-  ArrowRight,
-  Wand2
-} from 'lucide-react'
+import { CheckIcon, CodeIcon, CopyIcon, DocumentIcon, DuplicateIcon, EyeIcon, HistoryIcon, PencilIcon, TrashIcon } from '../icons'
 import type { Prompt, PromptInput } from '@shared/types'
 import { STAGES, TRACKS } from '@shared/types'
 import { useStore } from '../store'
@@ -30,12 +20,12 @@ export function EditorPanel(): React.JSX.Element {
 
   if (!prompt) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center bg-canvas text-faint">
-        <FileText size={40} className="mb-3 opacity-40" />
-        <p className="font-serif text-base">{t('选择左侧 Prompt，或新建一个开始')}</p>
-        <p className="mt-2 text-xs text-faint">
-          <kbd className="rounded border border-line-strong px-1">Ctrl/⌘ + N</kbd> {t('新建')} ·{' '}
-          <kbd className="rounded border border-line-strong px-1">Ctrl/⌘ + K</kbd> {t('快速调用')}
+      <div className="flex flex-1 flex-col items-center justify-center bg-background text-muted-foreground">
+        <DocumentIcon className="size-4 mb-3 opacity-40" />
+        <p className="font-semibold tracking-tight text-base">{t('选择左侧 Prompt，或新建一个开始')}</p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          <kbd className="rounded border border-border px-1">Ctrl/⌘ + N</kbd> {t('新建')} ·{' '}
+          <kbd className="rounded border border-border px-1">Ctrl/⌘ + K</kbd> {t('快速调用')}
         </p>
       </div>
     )
@@ -144,16 +134,16 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
   }
 
   return (
-    <div className="flex flex-1 flex-col bg-canvas">
+    <div className="flex flex-1 flex-col bg-background">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 border-b border-line px-6 py-3.5">
+      <div className="flex items-center gap-2 border-b border-border px-6 py-3.5">
         <input
           value={title}
           onChange={(e) => {
             setTitle(e.target.value)
             scheduleSave({ title: e.target.value })
           }}
-          className="min-w-0 flex-1 bg-transparent font-serif text-[22px] leading-tight text-ink outline-none placeholder:text-faint"
+          className="min-w-0 flex-1 bg-transparent font-semibold tracking-tight text-[22px] leading-tight text-foreground outline-none placeholder:text-muted-foreground"
           placeholder={t('Prompt 标题')}
         />
         {/* Pin and favourite live on the list row, not here. The list pane is
@@ -161,7 +151,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
             so a second pair of toggles was the same two controls twice at the
             same time. */}
         <ToolbarButton title={t('复制内容')} onClick={copyContent}>
-          <Copy size={17} />
+          <CopyIcon className="size-4" />
         </ToolbarButton>
         <ToolbarButton
           title={t('创建副本')}
@@ -170,22 +160,22 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
             toast.success(t('已创建副本'))
           }}
         >
-          <CopyPlus size={17} />
+          <DuplicateIcon className="size-4" />
         </ToolbarButton>
         <ToolbarButton title={t('删除')} danger onClick={handleDelete}>
-          <Trash2 size={17} />
+          <TrashIcon className="size-4" />
         </ToolbarButton>
       </div>
 
       {/* Step + "when to use" + autosave state. The description doubles as the
           recommendation line shown in the list, so it asks for the situation,
           not a summary of the body. */}
-      <div className="flex items-center gap-3 border-b border-line px-6 py-2">
+      <div className="flex items-center gap-3 border-b border-border px-6 py-2">
         <select
           value={prompt.categoryId ?? ''}
           onChange={(e) => flushSave({ categoryId: e.target.value || null })}
           title={t('所属步骤')}
-          className="max-w-[40%] shrink-0 truncate rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-focus"
+          className="max-w-[40%] shrink-0 truncate rounded-md border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-ring"
         >
           <option value="">{t('未归入步骤')}</option>
           {STAGES.map((stage, i) => (
@@ -211,7 +201,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           value={prompt.track ?? ''}
           onChange={(e) => flushSave({ track: (e.target.value || null) as Prompt['track'] })}
           title={t('适用的项目类型')}
-          className="shrink-0 rounded-md border border-line-strong bg-surface px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-focus"
+          className="shrink-0 rounded-md border border-border bg-card px-1.5 py-0.5 text-[11px] text-muted-foreground outline-none focus:border-ring"
         >
           <option value="">{t('所有类型')}</option>
           {TRACKS.map((x) => (
@@ -227,9 +217,9 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
             scheduleSave({ description: e.target.value })
           }}
           placeholder={t('什么情况下用这条？一句话')}
-          className="min-w-0 flex-1 bg-transparent text-xs text-muted-foreground outline-none placeholder:text-faint"
+          className="min-w-0 flex-1 bg-transparent text-xs text-muted-foreground outline-none placeholder:text-muted-foreground"
         />
-        <span className="shrink-0 text-[11px] text-faint">
+        <span className="shrink-0 text-[11px] text-muted-foreground">
           {saveState === 'dirty'
             ? t('编辑中…')
             : saveState === 'saved' && savedAt
@@ -239,21 +229,21 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-line px-4">
-        <TabButton active={tab === 'edit'} onClick={() => setTab('edit')} icon={<Pencil size={14} />}>
+      <div className="flex items-center gap-1 border-b border-border px-4">
+        <TabButton active={tab === 'edit'} onClick={() => setTab('edit')} icon={<PencilIcon className="size-3.5" />}>
           {t('编辑')}
         </TabButton>
-        <TabButton active={tab === 'preview'} onClick={() => setTab('preview')} icon={<Eye size={14} />}>
+        <TabButton active={tab === 'preview'} onClick={() => setTab('preview')} icon={<EyeIcon className="size-3.5" />}>
           {t('预览')}
         </TabButton>
         <TabButton
           active={tab === 'variables'}
           onClick={() => setTab('variables')}
-          icon={<Wand2 size={14} />}
+          icon={<CodeIcon className="size-3.5" />}
         >
           {t('变量')}
           {prompt.variables.length > 0 && (
-            <span className="ml-1 rounded-full bg-brand/15 px-1.5 text-[10px] text-brand-text">
+            <span className="ml-1 rounded-full bg-primary/15 px-1.5 text-[10px] text-foreground">
               {prompt.variables.length}
             </span>
           )}
@@ -261,11 +251,11 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
         <TabButton
           active={tab === 'history'}
           onClick={() => setTab('history')}
-          icon={<HistoryIcon size={14} />}
+          icon={<HistoryIcon className="size-3.5" />}
         >
           {t('历史')}
           {prompt.versions.length > 0 && (
-            <span className="ml-1 rounded-full bg-surface-2 px-1.5 text-[10px] text-faint">
+            <span className="ml-1 rounded-full bg-muted px-1.5 text-[10px] text-muted-foreground">
               {prompt.versions.length}
             </span>
           )}
@@ -287,7 +277,7 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
           />
         )}
         {tab === 'preview' && (
-          <div className="rounded-2xl border border-line-strong bg-surface p-6 shadow-[rgba(0,0,0,0.05)_0px_4px_24px]">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-[rgba(0,0,0,0.05)_0px_4px_24px]">
             <MarkdownPreview content={content} />
           </div>
         )}
@@ -298,13 +288,13 @@ function Editor({ prompt }: { prompt: Prompt; selectedId: string }): React.JSX.E
       {next && (
         <button
           onClick={() => setCategoryFilter(next.step.id)}
-          className="flex items-center gap-2 border-t border-line px-6 py-2.5 text-left text-xs text-muted-foreground transition hover:bg-surface-2 hover:text-ink"
+          className="flex items-center gap-2 border-t border-border px-6 py-2.5 text-left text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
-          <span className="text-faint">{t('下一步')}</span>
-          <span className="font-medium text-ink">
+          <span className="text-muted-foreground">{t('下一步')}</span>
+          <span className="font-medium text-foreground">
             {STAGES.indexOf(next.stage) + 1} · {t(next.stage.name)} / {next.step.name}
           </span>
-          <ArrowRight size={13} className="ml-auto text-faint" />
+          <CheckIcon className="size-3.5 ml-auto text-muted-foreground" />
         </button>
       )}
     </div>
@@ -328,8 +318,8 @@ function ToolbarButton({
       onClick={onClick}
       className={`rounded-lg p-2 transition ${
         danger
-          ? 'text-faint hover:bg-error/10 hover:text-error'
-          : 'text-faint hover:bg-surface-2 hover:text-ink'
+          ? 'text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
       }`}
     >
       {children}
@@ -353,8 +343,8 @@ function TabButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-sm transition ${
         active
-          ? 'border-brand font-medium text-brand-text'
-          : 'border-transparent text-muted-foreground hover:text-ink'
+          ? 'border-primary font-medium text-foreground'
+          : 'border-transparent text-muted-foreground hover:text-foreground'
       }`}
     >
       {icon}

@@ -1,16 +1,5 @@
 import { useState } from 'react'
-import {
-  Box,
-  Cloud,
-  GripVertical,
-  Layers,
-  Map,
-  Pencil,
-  Plus,
-  Settings,
-  Star,
-  Trash2
-} from 'lucide-react'
+import { CloudIcon, DragIcon, LayersIcon, OtherIcon, PencilIcon, PlusIcon, RouteIcon, SettingsIcon, StarIcon, TrashIcon } from '../icons'
 import type { Category, StageId } from '@shared/types'
 import { STAGES, STAGE_COLORS } from '@shared/types'
 import { moveStep } from '@shared/steps'
@@ -136,7 +125,7 @@ export function Sidebar(): React.JSX.Element {
             if (e.key === 'Enter') submitRename()
             if (e.key === 'Escape') setEditingId(null)
           }}
-          className="mx-2 my-0.5 w-[calc(100%-1rem)] rounded-md border border-line-strong bg-surface px-2 py-1 text-sm text-ink outline-none focus:border-focus"
+          className="mx-2 my-0.5 w-[calc(100%-1rem)] rounded-md border border-border bg-card px-2 py-1 text-sm text-foreground outline-none focus:border-ring"
         />
       )
     }
@@ -159,7 +148,7 @@ export function Sidebar(): React.JSX.Element {
           void handleDrop(c)
         }}
         className={`group relative rounded-lg transition ${dragId === c.id ? 'opacity-40' : ''} ${
-          overId === c.id ? 'ring-1 ring-brand/50' : ''
+          overId === c.id ? 'ring-1 ring-ring' : ''
         }`}
       >
         <div onDoubleClick={() => startRename(c)}>
@@ -172,28 +161,28 @@ export function Sidebar(): React.JSX.Element {
           />
         </div>
         <div className="absolute right-1 top-1/2 hidden -translate-y-1/2 items-center gap-0.5 group-hover:flex">
-          <span className="cursor-grab text-faint active:cursor-grabbing" title={t('拖拽排序')}>
-            <GripVertical size={13} />
+          <span className="cursor-grab text-muted-foreground active:cursor-grabbing" title={t('拖拽排序')}>
+            <DragIcon className="size-3.5" />
           </span>
           <button
-            className="rounded p-1 text-faint hover:text-ink"
+            className="rounded p-1 text-muted-foreground hover:text-foreground"
             title={t('重命名步骤')}
             onClick={(e) => {
               e.stopPropagation()
               startRename(c)
             }}
           >
-            <Pencil size={13} />
+            <PencilIcon className="size-3.5" />
           </button>
           <button
-            className="rounded p-1 text-faint hover:text-error"
+            className="rounded p-1 text-muted-foreground hover:text-destructive"
             title={t('删除步骤')}
             onClick={(e) => {
               e.stopPropagation()
               void handleDelete(c)
             }}
           >
-            <Trash2 size={13} />
+            <TrashIcon className="size-3.5" />
           </button>
         </div>
       </div>
@@ -216,7 +205,7 @@ export function Sidebar(): React.JSX.Element {
           }
         }}
         placeholder={t('步骤名称…')}
-        className="mx-2 mt-1 w-[calc(100%-1rem)] rounded-[10px] border border-line-strong bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-focus"
+        className="mx-2 mt-1 w-[calc(100%-1rem)] rounded-[10px] border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-ring"
       />
     )
   }
@@ -224,37 +213,37 @@ export function Sidebar(): React.JSX.Element {
   const legacySteps = stepsOf(categories, null)
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-canvas">
+    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-background">
       {/* macOS draws its traffic lights over the top-left of the window, exactly
           where the logo square would sit. There we drop the square and indent
           past the buttons (see trafficLightPosition in main), keeping only the
           wordmark. */}
       <div
-        className={`app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-line ${
+        className={`app-drag flex h-14 shrink-0 items-center gap-2.5 border-b border-border ${
           isMac ? 'pl-[78px] pr-4' : 'px-5'
         }`}
       >
         {!isMac && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-brand text-on-brand">
-            <Box size={18} />
+          <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-primary text-primary-foreground">
+            <OtherIcon className="size-4.5" />
           </div>
         )}
         <div className="min-w-0">
-          <div className="font-serif text-[16px] leading-tight text-ink">PromptBox</div>
-          <div className="truncate text-[11px] leading-tight text-faint">{t('高级 · 全部 Prompt')}</div>
+          <div className="font-semibold tracking-tight text-[16px] leading-tight text-foreground">PromptBox</div>
+          <div className="truncate text-[11px] leading-tight text-muted-foreground">{t('高级 · 全部 Prompt')}</div>
         </div>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2.5 pt-3 pb-2">
-        <NavItem icon={<Map size={15} />} label={t('回到路线')} active={false} onClick={() => setView('route')} />
-        <div className="my-2 border-t border-line" />
+        <NavItem icon={<RouteIcon className="size-4" />} label={t('回到路线')} active={false} onClick={() => setView('route')} />
+        <div className="my-2 border-t border-border" />
         {STAGES.map((stage, i) => {
           const filter = `stage:${stage.id}`
           const active = view === 'library' && categoryFilter === filter
           return (
             <div key={stage.id} className="mb-2">
               <div
-                className={`group flex items-center rounded-lg pr-1 ${overId === stage.id ? 'ring-1 ring-brand/50' : ''}`}
+                className={`group flex items-center rounded-lg pr-1 ${overId === stage.id ? 'ring-1 ring-ring' : ''}`}
                 onDragOver={(e) => {
                   e.preventDefault()
                   if (dragId) setOverId(stage.id)
@@ -269,25 +258,25 @@ export function Sidebar(): React.JSX.Element {
                   onClick={() => setCategoryFilter(filter)}
                   title={t(stage.hint)}
                   className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-sm transition ${
-                    active ? 'bg-brand/12 font-medium text-brand-text' : 'text-ink hover:bg-surface-2'
+                    active ? 'bg-accent font-medium text-foreground' : 'text-foreground hover:bg-muted'
                   }`}
                 >
                   <span
                     className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full text-[10px] font-medium ${
-                      active ? 'bg-brand text-on-brand' : 'bg-surface-2 text-muted-foreground'
+                      active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
                     }`}
                   >
                     {i + 1}
                   </span>
                   <span className="flex-1 truncate text-left">{t(stage.name)}</span>
-                  <span className="text-[11px] text-faint">{countForStage(stage.id)}</span>
+                  <span className="text-[11px] text-muted-foreground">{countForStage(stage.id)}</span>
                 </button>
                 <button
-                  className="ml-0.5 rounded-md p-1 text-faint opacity-0 transition hover:bg-surface-2 hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+                  className="ml-0.5 rounded-md p-1 text-muted-foreground opacity-0 transition hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
                   onClick={() => setAdding(stage.id)}
                   title={t('新建步骤')}
                 >
-                  <Plus size={13} />
+                  <PlusIcon className="size-3.5" />
                 </button>
               </div>
               {stepsOf(categories, stage.id).map(renderStep)}
@@ -299,7 +288,7 @@ export function Sidebar(): React.JSX.Element {
         {legacySteps.length > 0 && (
           <div className="mb-2">
             <div
-              className={`flex items-center justify-between rounded-lg pr-1 ${overId === 'other' ? 'ring-1 ring-brand/50' : ''}`}
+              className={`flex items-center justify-between rounded-lg pr-1 ${overId === 'other' ? 'ring-1 ring-ring' : ''}`}
               onDragOver={(e) => {
                 e.preventDefault()
                 if (dragId) setOverId('other')
@@ -312,11 +301,11 @@ export function Sidebar(): React.JSX.Element {
             >
               <SectionLabel>{t('其他')}</SectionLabel>
               <button
-                className="rounded-md p-1 text-faint transition hover:bg-surface-2 hover:text-ink"
+                className="rounded-md p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 onClick={() => setAdding(null)}
                 title={t('新建步骤')}
               >
-                <Plus size={13} />
+                <PlusIcon className="size-3.5" />
               </button>
             </div>
             {legacySteps.map(renderStep)}
@@ -324,23 +313,23 @@ export function Sidebar(): React.JSX.Element {
           </div>
         )}
 
-        <div className="my-2 border-t border-line" />
+        <div className="my-2 border-t border-border" />
         <NavItem
-          icon={<Star size={15} />}
+          icon={<StarIcon className="size-4" />}
           label={t('收藏')}
           active={view === 'library' && categoryFilter === 'favorites'}
           count={favCount}
           onClick={() => setCategoryFilter('favorites')}
         />
         <NavItem
-          icon={<Layers size={15} />}
+          icon={<LayersIcon className="size-4" />}
           label={t('全部')}
           active={view === 'library' && categoryFilter === 'all'}
           count={prompts.length}
           onClick={() => setCategoryFilter('all')}
         />
         <NavItem
-          icon={<Trash2 size={15} />}
+          icon={<TrashIcon className="size-4" />}
           label={t('回收站')}
           active={view === 'trash'}
           count={deletedCount}
@@ -348,16 +337,16 @@ export function Sidebar(): React.JSX.Element {
         />
       </nav>
 
-      <div className="flex border-t border-line">
+      <div className="flex border-t border-border">
         <button
           onClick={() => setView('settings')}
           className={`flex flex-1 items-center justify-center gap-2 px-3 py-3.5 text-sm transition ${
             view === 'settings'
-              ? 'font-medium text-brand-text'
-              : 'text-muted-foreground hover:bg-surface-2 hover:text-ink'
+              ? 'font-medium text-foreground'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
         >
-          <Settings size={16} />
+          <SettingsIcon className="size-4" />
           {t('设置')}
         </button>
         <button
@@ -371,13 +360,13 @@ export function Sidebar(): React.JSX.Element {
                 ? t('云同步：上次同步失败')
                 : t('云同步')
           }
-          className="relative flex items-center px-4 text-muted-foreground transition hover:bg-surface-2 hover:text-ink"
+          className="relative flex items-center px-4 text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
-          <Cloud size={16} />
+          <CloudIcon className="size-4" />
           {(syncConnected || syncNeedsAttention) && (
             <span
               className={`absolute right-2.5 top-3 h-1.5 w-1.5 rounded-full ${
-                syncFailed ? 'bg-error' : 'bg-success'
+                syncFailed ? 'bg-destructive' : 'bg-success'
               }`}
             />
           )}
@@ -389,7 +378,7 @@ export function Sidebar(): React.JSX.Element {
 
 function SectionLabel({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
-    <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-[0.5px] text-faint">
+    <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-[0.5px] text-muted-foreground">
       {children}
     </div>
   )
@@ -415,11 +404,11 @@ function NavItem({
       onClick={onClick}
       className={`flex w-full items-center gap-2.5 rounded-lg py-1.5 pr-2.5 text-sm transition ${
         indent ? 'pl-[38px]' : 'pl-2.5'
-      } ${active ? 'bg-brand/12 font-medium text-brand-text' : 'text-muted-foreground hover:bg-surface-2 hover:text-ink'}`}
+      } ${active ? 'bg-accent font-medium text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}
     >
-      {icon && <span className="flex w-4 justify-center text-faint">{icon}</span>}
+      {icon && <span className="flex w-4 justify-center text-muted-foreground">{icon}</span>}
       <span className="flex-1 truncate text-left">{label}</span>
-      {count !== undefined && <span className="text-[11px] text-faint">{count}</span>}
+      {count !== undefined && <span className="text-[11px] text-muted-foreground">{count}</span>}
     </button>
   )
 }

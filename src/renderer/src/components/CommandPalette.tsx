@@ -1,5 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import { Blocks, CornerDownLeft, Pencil, Search, Wand2 } from 'lucide-react'
+import { BlocksIcon, CheckIcon, CodeIcon, PencilIcon, SearchIcon } from '../icons'
 import type { Prompt } from '@shared/types'
 import { useStore } from '../store'
 import { categoryById, rankCommand } from '../selectors'
@@ -77,11 +77,11 @@ export function CommandPalette(): React.JSX.Element {
     <Modal
       onClose={closePalette}
       ariaLabel={t('命令面板')}
-      className="w-full max-w-xl overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
+      className="w-full max-w-xl overflow-hidden rounded-3xl border border-border bg-card shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
     >
       <div onKeyDown={onKeyDown}>
-        <div className="flex items-center gap-2 border-b border-line px-5">
-          <Search size={17} className="text-faint" />
+        <div className="flex items-center gap-2 border-b border-border px-5">
+          <SearchIcon className="size-4 text-muted-foreground" />
           <input
             ref={inputRef}
             value={query}
@@ -92,13 +92,13 @@ export function CommandPalette(): React.JSX.Element {
             aria-controls="command-results"
             aria-activedescendant={results[active] ? `cmd-${results[active].id}` : undefined}
             aria-autocomplete="list"
-            className="w-full bg-transparent py-4 text-sm text-ink outline-none placeholder:text-faint"
+            className="w-full bg-transparent py-4 text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
         </div>
 
         <div id="command-results" role="listbox" className="max-h-[50vh] overflow-y-auto p-2">
           {results.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-faint">{t('没有匹配的结果')}</div>
+            <div className="px-4 py-10 text-center text-sm text-muted-foreground">{t('没有匹配的结果')}</div>
           ) : (
             results.map((entry, i) => {
               const cat = categoryById(categories, entry.categoryId)
@@ -116,35 +116,35 @@ export function CommandPalette(): React.JSX.Element {
                   onMouseEnter={() => setActive(i)}
                   onClick={() => copy(entry)}
                   className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
-                    i === active ? 'bg-brand/12' : 'hover:bg-surface-2'
+                    i === active ? 'bg-accent' : 'hover:bg-muted'
                   }`}
                 >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-surface-2 text-muted-foreground">
-                    <Blocks size={13} />
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <BlocksIcon className="size-3.5" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate text-sm font-medium text-ink">{entry.title}</span>
+                      <span className="truncate text-sm font-medium text-foreground">{entry.title}</span>
                       {varCount > 0 && (
-                        <span className="flex shrink-0 items-center gap-0.5 rounded-md bg-brand/15 px-1.5 text-[10px] text-brand-text">
-                          <Wand2 size={9} />
+                        <span className="flex shrink-0 items-center gap-0.5 rounded-md bg-primary/15 px-1.5 text-[10px] text-foreground">
+                          <CodeIcon className="size-4" />
                           {varCount}
                         </span>
                       )}
                     </div>
-                    <div className="truncate text-xs text-faint">{subtitle}</div>
+                    <div className="truncate text-xs text-muted-foreground">{subtitle}</div>
                   </div>
-                  {i === active && <CornerDownLeft size={14} className="shrink-0 text-brand-text" />}
+                  {i === active && <CheckIcon className="size-3.5 shrink-0 text-foreground" />}
                 </button>
               )
             })
           )}
         </div>
 
-        <div className="flex items-center gap-4 border-t border-line px-5 py-2.5 text-[11px] text-faint">
-          <Hint icon={<CornerDownLeft size={11} />}>{t('复制')}</Hint>
-          <Hint icon={<Pencil size={11} />}>{t('⌘/Ctrl + Enter 打开')}</Hint>
-          <Hint icon={<Search size={11} />}>{t('↑↓ 选择')}</Hint>
+        <div className="flex items-center gap-4 border-t border-border px-5 py-2.5 text-[11px] text-muted-foreground">
+          <Hint icon={<CheckIcon className="size-3" />}>{t('复制')}</Hint>
+          <Hint icon={<PencilIcon className="size-3" />}>{t('⌘/Ctrl + Enter 打开')}</Hint>
+          <Hint icon={<SearchIcon className="size-3" />}>{t('↑↓ 选择')}</Hint>
           <span className="ml-auto">{t('Esc 关闭')}</span>
         </div>
       </div>

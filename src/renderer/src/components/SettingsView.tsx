@@ -1,18 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Camera,
-  Download,
-  FolderOpen,
-  Monitor,
-  Moon,
-  RefreshCw,
-  Sun,
-  Upload,
-  Database,
-  FileText,
-  Info,
-  Power
-} from 'lucide-react'
+import { CloseIcon, DataIcon, DocumentIcon, DownloadIcon, FolderIcon, InfoIcon, MoonIcon, RefreshIcon, SnapshotIcon, SunIcon, UploadIcon, WebIcon } from '../icons'
 import type { CloseAction, Language, ThemeMode } from '@shared/types'
 import { HOTKEY_PRESETS } from '@shared/types'
 import { useStore } from '../store'
@@ -83,9 +70,9 @@ export function SettingsView(): React.JSX.Element {
   }
 
   const themes: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
-    { value: 'light', label: '浅色', icon: <Sun size={15} /> },
-    { value: 'dark', label: '深色', icon: <Moon size={15} /> },
-    { value: 'system', label: '跟随系统', icon: <Monitor size={15} /> }
+    { value: 'light', label: '浅色', icon: <SunIcon className="size-4" /> },
+    { value: 'dark', label: '深色', icon: <MoonIcon className="size-4" /> },
+    { value: 'system', label: '跟随系统', icon: <WebIcon className="size-4" /> }
   ]
   const languages: { value: Language; label: string }[] = [
     { value: 'zh', label: '中文' },
@@ -93,9 +80,9 @@ export function SettingsView(): React.JSX.Element {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto bg-canvas">
+    <div className="flex-1 overflow-y-auto bg-background">
       <div className="mx-auto max-w-2xl px-8 pb-16 pt-12">
-        <h1 className="mb-10 font-serif text-[32px] leading-tight text-ink">{t('设置')}</h1>
+        <h1 className="mb-10 font-semibold tracking-tight text-[32px] leading-tight text-foreground">{t('设置')}</h1>
 
         {/* Appearance.
             Control vocabulary rule for this page: up to three short options
@@ -112,8 +99,8 @@ export function SettingsView(): React.JSX.Element {
                   aria-pressed={settings?.theme === th.value}
                   className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
                     settings?.theme === th.value
-                      ? 'border-brand/40 bg-brand/10 text-brand-text'
-                      : 'border-line-strong text-muted-foreground hover:border-ring hover:text-ink'
+                      ? 'border-primary/40 bg-accent text-foreground'
+                      : 'border-border text-muted-foreground hover:border-ring hover:text-foreground'
                   }`}
                 >
                   {th.icon}
@@ -131,8 +118,8 @@ export function SettingsView(): React.JSX.Element {
                   aria-pressed={(settings?.language ?? 'zh') === lng.value}
                   className={`rounded-xl border px-3 py-1.5 text-sm transition ${
                     (settings?.language ?? 'zh') === lng.value
-                      ? 'border-brand/40 bg-brand/10 text-brand-text'
-                      : 'border-line-strong text-muted-foreground hover:border-ring hover:text-ink'
+                      ? 'border-primary/40 bg-accent text-foreground'
+                      : 'border-border text-muted-foreground hover:border-ring hover:text-foreground'
                   }`}
                 >
                   {lng.label}
@@ -153,7 +140,7 @@ export function SettingsView(): React.JSX.Element {
               id="set-hotkey"
               value={settings?.globalHotkey ?? ''}
               onChange={(e) => handleHotkey(e.target.value)}
-              className="rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-focus"
+              className="rounded-xl border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-ring"
             >
               {HOTKEY_PRESETS.map((h) => (
                 <option key={h.value} value={h.value}>
@@ -178,15 +165,15 @@ export function SettingsView(): React.JSX.Element {
         {/* Data */}
         <Section title={t('数据存储')}>
           <Row label={t('数据目录')} description={t('数据保存在本机此目录')}>
-            <code className="max-w-xs truncate rounded-lg bg-surface-2 px-2.5 py-1.5 font-mono text-xs text-muted-foreground">
+            <code className="max-w-xs truncate rounded-lg bg-muted px-2.5 py-1.5 font-mono text-xs text-muted-foreground">
               {settings?.dataDir ?? '—'}
             </code>
           </Row>
           <div className="flex gap-2 pt-1">
-            <ActionButton icon={<Database size={15} />} onClick={chooseDataDir}>
+            <ActionButton icon={<DataIcon className="size-4" />} onClick={chooseDataDir}>
               {t('更改目录')}
             </ActionButton>
-            <ActionButton icon={<FolderOpen size={15} />} onClick={openDataDir}>
+            <ActionButton icon={<FolderIcon className="size-4" />} onClick={openDataDir}>
               {t('打开目录')}
             </ActionButton>
           </div>
@@ -195,23 +182,23 @@ export function SettingsView(): React.JSX.Element {
         {/* Import / Export */}
         <Section title={t('导入 / 导出')}>
           <div className="flex flex-wrap gap-2">
-            <ActionButton icon={<Download size={15} />} onClick={handleExport}>
+            <ActionButton icon={<DownloadIcon className="size-4" />} onClick={handleExport}>
               {t('导出全部')}
             </ActionButton>
-            <ActionButton icon={<Upload size={15} />} onClick={() => handleImport('merge')}>
+            <ActionButton icon={<UploadIcon className="size-4" />} onClick={() => handleImport('merge')}>
               {t('导入（合并）')}
             </ActionButton>
-            <ActionButton icon={<Upload size={15} />} danger onClick={() => handleImport('replace')}>
+            <ActionButton icon={<UploadIcon className="size-4" />} danger onClick={() => handleImport('replace')}>
               {t('导入（替换）')}
             </ActionButton>
           </div>
-          <div className="mt-3 border-t border-line pt-3">
-            <p className="mb-2 text-xs text-faint">
+          <div className="mt-3 border-t border-border pt-3">
+            <p className="mb-2 text-xs text-muted-foreground">
               {/* The parser reads `key: value` lines, not YAML — calling it YAML
                   promised nested structures and anchors that silently fail. */}
               {t('已有的 .md / .txt 提示词可直接导入，支持 front-matter 的 title / description / tags。')}
             </p>
-            <ActionButton icon={<FileText size={15} />} onClick={handleImportFiles}>
+            <ActionButton icon={<DocumentIcon className="size-4" />} onClick={handleImportFiles}>
               {t('从 Markdown 文件导入…')}
             </ActionButton>
           </div>
@@ -237,7 +224,7 @@ export function SettingsView(): React.JSX.Element {
               id="set-close-action"
               value={settings?.closeAction ?? 'ask'}
               onChange={(e) => void setCloseAction(e.target.value as CloseAction)}
-              className="rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 text-sm text-ink outline-none focus:border-focus"
+              className="rounded-xl border border-border bg-card px-2.5 py-1.5 text-sm text-foreground outline-none focus:border-ring"
             >
               {CLOSE_ACTIONS.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -251,12 +238,12 @@ export function SettingsView(): React.JSX.Element {
               the only way out, and Windows tucks the tray icon into the overflow
               flyout where people don't find it. */}
           <Row label={t('退出 PromptBox')} description={t('完全关闭应用，同时移除托盘图标')}>
-            <ActionButton icon={<Power size={15} />} danger onClick={() => void quitApp()}>
+            <ActionButton icon={<CloseIcon className="size-4" />} danger onClick={() => void quitApp()}>
               {t('退出')}
             </ActionButton>
           </Row>
-          <div className="mt-4 flex items-center gap-2 text-xs text-faint">
-            <Info size={14} className="shrink-0" />
+          <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+            <InfoIcon className="size-3.5 shrink-0" />
             <p>
               {t('PromptBox · 本地 AI Prompt 资产库')} ·{' '}
               {t('{prompts} 个 Prompt、{categories} 个步骤', {
@@ -312,26 +299,26 @@ function UpdateRow(): React.JSX.Element {
   })()
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
       <div className="min-w-0">
-        <div className="text-sm text-ink">{t('版本 v{version}', { version: appVersion || '—' })}</div>
-        {statusText && <div className="mt-0.5 text-xs text-faint">{statusText}</div>}
+        <div className="text-sm text-foreground">{t('版本 v{version}', { version: appVersion || '—' })}</div>
+        {statusText && <div className="mt-0.5 text-xs text-muted-foreground">{statusText}</div>}
       </div>
       {st === 'downloaded' ? (
         <button
           onClick={() => void installUpdate()}
-          className="flex items-center gap-1.5 rounded-xl bg-brand-solid px-3 py-1.5 text-sm text-on-brand transition hover:bg-brand-solid-hover"
+          className="flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-sm text-primary-foreground transition hover:bg-primary/80"
         >
-          <Download size={15} />
+          <DownloadIcon className="size-4" />
           {t('重启安装')}
         </button>
       ) : (
         <button
           onClick={handleCheck}
           disabled={busy}
-          className="flex items-center gap-1.5 rounded-xl border border-line-strong bg-surface px-3 py-1.5 text-sm text-muted-foreground transition hover:border-ring hover:text-ink disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition hover:border-ring hover:text-foreground disabled:opacity-50"
         >
-          <RefreshCw size={15} className={busy ? 'animate-spin' : ''} />
+          <RefreshIcon className={"size-4 " + busy ? 'animate-spin' : ''} />
           {t('检查更新')}
         </button>
       )}
@@ -354,12 +341,12 @@ function BackupSection(): React.JSX.Element {
   // automatically. Bring the list back if people ask how to roll back.
   return (
     <div>
-      <p className="mb-3 text-xs text-faint">{t('自动保存快照，最多保留 20 份。要回滚时，把快照文件用「导入（替换）」导入即可。')}</p>
+      <p className="mb-3 text-xs text-muted-foreground">{t('自动保存快照，最多保留 20 份。要回滚时，把快照文件用「导入（替换）」导入即可。')}</p>
       <div className="flex flex-wrap gap-2">
-        <ActionButton icon={<Camera size={15} />} onClick={handleCreate}>
+        <ActionButton icon={<SnapshotIcon className="size-4" />} onClick={handleCreate}>
           {t('立即备份')}
         </ActionButton>
-        <ActionButton icon={<FolderOpen size={15} />} onClick={openBackupDir}>
+        <ActionButton icon={<FolderIcon className="size-4" />} onClick={openBackupDir}>
           {t('打开备份文件夹')}
         </ActionButton>
       </div>
@@ -393,7 +380,7 @@ function ProxyInput({
       placeholder={t('http://127.0.0.1:7890')}
       spellCheck={false}
       // Fixed 16rem overflowed the row in a narrow window; cap instead.
-      className="w-full max-w-64 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 font-mono text-xs text-ink outline-none focus:border-focus"
+      className="w-full max-w-64 rounded-xl border border-border bg-card px-2.5 py-1.5 font-mono text-xs text-foreground outline-none focus:border-ring"
     />
   )
 }
@@ -412,8 +399,8 @@ function Section({
     // rule and real whitespace separate them just as clearly, and the boxes
     // that remain (the update banner, a snapshot row, an input) now mean
     // "this is an object you can act on" instead of "this is a section".
-    <section className="mb-10 border-t border-line-strong pt-8 first:mt-0 first:border-0 first:pt-0 last:mb-0">
-      <h2 className="mb-4 font-serif text-[20px] text-ink">{title}</h2>
+    <section className="mb-10 border-t border-border pt-8 first:mt-0 first:border-0 first:pt-0 last:mb-0">
+      <h2 className="mb-4 font-semibold tracking-tight text-[20px] text-foreground">{title}</h2>
       {children}
     </section>
   )
@@ -441,10 +428,10 @@ function Row({
     // a narrow window side by side.
     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-1.5">
       <div className="min-w-0">
-        <Label htmlFor={controlId} className="block text-sm text-ink">
+        <Label htmlFor={controlId} className="block text-sm text-foreground">
           {label}
         </Label>
-        {description && <div className="text-xs text-faint">{description}</div>}
+        {description && <div className="text-xs text-muted-foreground">{description}</div>}
       </div>
       {children}
     </div>
@@ -467,8 +454,8 @@ function ActionButton({
       onClick={onClick}
       className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-sm transition ${
         danger
-          ? 'border-error/30 text-error hover:bg-error/10'
-          : 'border-line-strong text-muted-foreground hover:border-ring hover:bg-surface-2 hover:text-ink'
+          ? 'border-destructive/30 text-destructive hover:bg-destructive/10'
+          : 'border-border text-muted-foreground hover:border-ring hover:bg-muted hover:text-foreground'
       }`}
     >
       {icon}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { GitCompare, History, RotateCcw, Trash2 } from 'lucide-react'
+import { CompareIcon, HistoryIcon, TrashIcon } from '../icons'
 import type { Prompt } from '@shared/types'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
@@ -15,7 +15,7 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
 
   if (prompt.versions.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
+      <div className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
         {t('暂无历史版本。修改后自动留存上一版。')}
       </div>
     )
@@ -24,23 +24,23 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        <History size={14} />
+        <HistoryIcon className="size-3.5" />
         {t('历史版本（{n}）', { n: prompt.versions.length })}
       </div>
       {prompt.versions.map((v) => (
-        <div key={v.id} className="rounded-xl border border-line-strong bg-surface p-3">
+        <div key={v.id} className="rounded-xl border border-border bg-card p-3">
           <div className="flex items-center justify-between gap-2">
-            <span className="min-w-0 truncate text-xs font-medium text-ink">{v.title}</span>
+            <span className="min-w-0 truncate text-xs font-medium text-foreground">{v.title}</span>
             <div className="flex shrink-0 items-center gap-1">
               <button
                 onClick={() => setDiffId(diffId === v.id ? null : v.id)}
                 className={`flex items-center gap-1 rounded-lg border px-2 py-0.5 text-[11px] transition ${
                   diffId === v.id
-                    ? 'border-brand text-brand-text'
-                    : 'border-line-strong text-muted-foreground hover:border-brand hover:text-brand-text'
+                    ? 'border-primary text-foreground'
+                    : 'border-border text-muted-foreground hover:border-primary hover:text-foreground'
                 }`}
               >
-                <GitCompare size={11} />
+                <CompareIcon className="size-3" />
                 {t('改动')}
               </button>
               <button
@@ -49,9 +49,9 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                   await restoreVersion(prompt.id, v.id)
                   toast.success(t('已恢复到该版本'))
                 }}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted-foreground transition hover:border-brand hover:text-brand-text"
+                className="flex items-center gap-1 rounded-lg border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition hover:border-primary hover:text-foreground"
               >
-                <RotateCcw size={11} />
+                <HistoryIcon className="size-3" />
                 {t('恢复')}
               </button>
               <button
@@ -64,13 +64,13 @@ export function VersionHistory({ prompt }: { prompt: Prompt }): React.JSX.Elemen
                   toast.success(t('已删除该历史版本'))
                 }}
                 title={t('删除该版本')}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2 py-0.5 text-[11px] text-muted-foreground transition hover:border-error hover:text-error"
+                className="flex items-center gap-1 rounded-lg border border-border px-2 py-0.5 text-[11px] text-muted-foreground transition hover:border-destructive hover:text-destructive"
               >
-                <Trash2 size={11} />
+                <TrashIcon className="size-3" />
               </button>
             </div>
           </div>
-          <div className="mt-1 text-[10px] text-faint">{formatDate(v.createdAt)}</div>
+          <div className="mt-1 text-[10px] text-muted-foreground">{formatDate(v.createdAt)}</div>
           {diffId === v.id ? (
             <div className="mt-2">
               <DiffView previous={v.content} current={prompt.content} />

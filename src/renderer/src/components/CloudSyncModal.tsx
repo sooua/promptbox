@@ -1,15 +1,5 @@
 import { useState } from 'react'
-import {
-  Cloud,
-  CloudOff,
-  Database,
-  Github,
-  History,
-  RefreshCw,
-  RotateCcw,
-  Server,
-  X
-} from 'lucide-react'
+import { CloseIcon, CloudIcon, DataIcon, GithubIcon, HistoryIcon, RefreshIcon, ServerIcon } from '../icons'
 import type { SyncProviderId, SyncStatus, SyncVersion } from '@shared/types'
 import { SYNC_PROVIDERS } from '@shared/types'
 import { useStore } from '../store'
@@ -20,9 +10,9 @@ import { Switch } from './Switch'
 import { toast } from './Toast'
 
 const ICONS: Record<SyncProviderId, React.ReactNode> = {
-  gist: <Github size={22} />,
-  webdav: <Server size={22} />,
-  s3: <Database size={22} />
+  gist: <GithubIcon className="size-5" />,
+  webdav: <ServerIcon className="size-5" />,
+  s3: <DataIcon className="size-5" />
 }
 
 const STATUS_TEXT: Record<SyncStatus, string> = {
@@ -139,11 +129,11 @@ export function CloudSyncModal(): React.JSX.Element {
       onClose={close}
       ariaLabel={t('云同步')}
       overlayClassName="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[8vh]"
-      className="flex max-h-[82vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-line-strong bg-canvas shadow-[rgba(0,0,0,0.14)_0px_16px_56px]"
+      className="flex max-h-[82vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-border bg-background shadow-[rgba(0,0,0,0.14)_0px_16px_56px]"
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-          <div className="flex flex-1 gap-1 rounded-xl bg-surface-2 p-1">
+        <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+          <div className="flex flex-1 gap-1 rounded-xl bg-muted p-1">
             <TabBtn active={tab === 'services'} onClick={() => setTab('services')}>
               {t('云服务')}
             </TabBtn>
@@ -151,8 +141,8 @@ export function CloudSyncModal(): React.JSX.Element {
               {t('同步状态')}
             </TabBtn>
           </div>
-          <button onClick={close} className="rounded-lg p-1.5 text-faint transition hover:bg-surface-2 hover:text-ink">
-            <X size={18} />
+          <button onClick={close} className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground">
+            <CloseIcon className="size-4.5" />
           </button>
         </div>
 
@@ -171,14 +161,14 @@ export function CloudSyncModal(): React.JSX.Element {
                 const connected = syncState?.provider === prov.id && syncState.connected
                 const isConnecting = connectingId === prov.id
                 return (
-                  <div key={prov.id} className="rounded-2xl border border-line-strong bg-surface p-4">
+                  <div key={prov.id} className="rounded-2xl border border-border bg-card p-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-2 text-ink">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-foreground">
                         {ICONS[prov.id]}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-ink">{prov.name}</span>
+                          <span className="font-medium text-foreground">{prov.name}</span>
                           <span
                             className={`inline-block h-2 w-2 rounded-full ${
                               connected ? 'bg-success' : 'bg-faint/50'
@@ -188,8 +178,8 @@ export function CloudSyncModal(): React.JSX.Element {
                         <div
                           className={`text-xs ${
                             credentialBroken && syncState?.provider === prov.id
-                              ? 'text-error'
-                              : 'text-faint'
+                              ? 'text-destructive'
+                              : 'text-muted-foreground'
                           }`}
                         >
                           {connected
@@ -205,39 +195,39 @@ export function CloudSyncModal(): React.JSX.Element {
                       {connected ? (
                         <div className="flex items-center gap-1 text-sm">
                           <CardAction
-                            icon={<RefreshCw size={15} className={syncBusy ? 'animate-spin' : ''} />}
+                            icon={<RefreshIcon className={"size-4 " + syncBusy ? 'animate-spin' : ''} />}
                             label={t('同步')}
                             onClick={handleSync}
                             disabled={syncBusy}
                           />
-                          <CardAction icon={<History size={15} />} label={t('历史版本')} onClick={openHistory} />
+                          <CardAction icon={<HistoryIcon className="size-4" />} label={t('历史版本')} onClick={openHistory} />
                           <button
                             onClick={async () => {
                               await disconnectSync()
                               toast.info(t('已断开连接'))
                             }}
                             title={t('断开连接')}
-                            className="rounded-lg p-1.5 text-faint transition hover:text-error"
+                            className="rounded-lg p-1.5 text-muted-foreground transition hover:text-destructive"
                           >
-                            <CloudOff size={16} />
+                            <CloudIcon className="size-4" />
                           </button>
                         </div>
                       ) : (
                         <button
                           onClick={() => setConnectingId(isConnecting ? null : prov.id)}
-                          className="flex items-center gap-1.5 rounded-xl bg-brand-solid px-3.5 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover"
+                          className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm text-primary-foreground transition hover:bg-primary/80"
                         >
-                          <Cloud size={15} />
+                          <CloudIcon className="size-4" />
                           {t('连接')}
                         </button>
                       )}
                     </div>
 
                     {connected && (
-                      <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+                      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                         <div>
-                          <div className="text-sm text-ink">{t('自动同步')}</div>
-                          <div className="text-xs text-faint">{t('本地改动后自动上传')}</div>
+                          <div className="text-sm text-foreground">{t('自动同步')}</div>
+                          <div className="text-xs text-muted-foreground">{t('本地改动后自动上传')}</div>
                         </div>
                         <Switch
                           label={t('自动同步')}
@@ -251,11 +241,11 @@ export function CloudSyncModal(): React.JSX.Element {
                     )}
 
                     {connected && (
-                      <div className="mt-3 border-t border-line pt-3">
+                      <div className="mt-3 border-t border-border pt-3">
                         <div className="flex items-center justify-between">
                           <div>
-                            <div className="text-sm text-ink">{t('端到端加密')}</div>
-                            <div className="text-xs text-faint">
+                            <div className="text-sm text-foreground">{t('端到端加密')}</div>
+                            <div className="text-xs text-muted-foreground">
                               {t('用口令加密上传的数据，云端只存密文（其它设备需相同口令）')}
                             </div>
                           </div>
@@ -270,7 +260,7 @@ export function CloudSyncModal(): React.JSX.Element {
                         </div>
                         {encOpen && !syncState?.encrypted && (
                           <div className="mt-2 space-y-2">
-                            <p className="text-xs text-error">
+                            <p className="text-xs text-destructive">
                               {t('口令只保存在本机，无法找回。忘记后云端数据将永久无法解密。')}
                             </p>
                             <input
@@ -278,7 +268,7 @@ export function CloudSyncModal(): React.JSX.Element {
                               value={passphrase}
                               onChange={(e) => setPassphrase(e.target.value)}
                               placeholder={t('设置同步口令…')}
-                              className="w-full rounded-xl border border-line-strong bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-focus"
+                              className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring"
                             />
                             <div className="flex gap-2">
                               <input
@@ -287,20 +277,20 @@ export function CloudSyncModal(): React.JSX.Element {
                                 onChange={(e) => setPassphrase2(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && applyEncryption()}
                                 placeholder={t('再次输入口令')}
-                                className={`flex-1 rounded-xl border bg-canvas px-3 py-2 text-sm text-ink outline-none ${
-                                  passMismatch ? 'border-error' : 'border-line-strong focus:border-focus'
+                                className={`flex-1 rounded-xl border bg-background px-3 py-2 text-sm text-foreground outline-none ${
+                                  passMismatch ? 'border-destructive' : 'border-border focus:border-ring'
                                 }`}
                               />
                               <button
                                 onClick={applyEncryption}
                                 disabled={!passphrase.trim() || passMismatch || !passphrase2}
-                                className="rounded-xl bg-brand-solid px-3 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover disabled:opacity-40"
+                                className="rounded-xl bg-primary px-3 py-2 text-sm text-primary-foreground transition hover:bg-primary/80 disabled:opacity-40"
                               >
                                 {t('启用')}
                               </button>
                             </div>
                             {passMismatch && (
-                              <p className="text-xs text-error">{t('两次输入的口令不一致')}</p>
+                              <p className="text-xs text-destructive">{t('两次输入的口令不一致')}</p>
                             )}
                           </div>
                         )}
@@ -435,10 +425,10 @@ export function CloudSyncModal(): React.JSX.Element {
 }
 
 const inputCls =
-  'flex-1 w-full rounded-xl border border-line-strong bg-canvas px-3 py-2 text-sm text-ink outline-none focus:border-focus'
+  'flex-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-ring'
 
 function ConnectForm({ children }: { children: React.ReactNode }): React.JSX.Element {
-  return <div className="mt-3 border-t border-line pt-3">{children}</div>
+  return <div className="mt-3 border-t border-border pt-3">{children}</div>
 }
 function Label({ children }: { children: React.ReactNode }): React.JSX.Element {
   return <label className="mb-1.5 block text-xs text-muted-foreground">{children}</label>
@@ -448,7 +438,7 @@ function ConnectBtn({ onClick, full }: { onClick(): void; full?: boolean }): Rea
   return (
     <button
       onClick={onClick}
-      className={`rounded-xl bg-brand-solid px-3 py-2 text-sm text-on-brand transition hover:bg-brand-solid-hover ${
+      className={`rounded-xl bg-primary px-3 py-2 text-sm text-primary-foreground transition hover:bg-primary/80 ${
         full ? 'w-full' : ''
       }`}
     >
@@ -458,7 +448,7 @@ function ConnectBtn({ onClick, full }: { onClick(): void; full?: boolean }): Rea
 }
 function LinkBtn({ onClick, children }: { onClick(): void; children: React.ReactNode }): React.JSX.Element {
   return (
-    <button onClick={onClick} className="mt-2 text-xs text-brand-text underline">
+    <button onClick={onClick} className="mt-2 text-xs text-foreground underline">
       {children}
     </button>
   )
@@ -470,7 +460,7 @@ function StatusPanel(): React.JSX.Element {
   const t = useT()
   if (!syncState?.connected) {
     return (
-      <div className="px-2 py-10 text-center text-sm text-faint">
+      <div className="px-2 py-10 text-center text-sm text-muted-foreground">
         {syncState?.credentialError
           ? t('已配置云服务，但凭证无法在本机解密。请在「云服务」页重新连接。')
           : t('尚未连接任何云服务。')}
@@ -487,10 +477,10 @@ function StatusPanel(): React.JSX.Element {
         <span
           className={`rounded-md px-2 py-0.5 text-xs ${
             status === 'error'
-              ? 'bg-error/12 text-error'
+              ? 'bg-destructive/12 text-destructive'
               : status === 'conflict'
-                ? 'bg-brand/15 text-brand-text'
-                : 'bg-surface-2 text-muted-foreground'
+                ? 'bg-primary/15 text-foreground'
+                : 'bg-muted text-muted-foreground'
           }`}
         >
           {STATUS_TEXT[status]}
@@ -502,7 +492,7 @@ function StatusPanel(): React.JSX.Element {
       </Field>
       <Field label={t('本地条目')}>{t('{count} 个 Prompt', { count: prompts.length })}</Field>
       <Field label={t('设备 ID')}>
-        <code className="font-mono text-xs text-faint">{syncState.deviceId.slice(0, 12)}</code>
+        <code className="font-mono text-xs text-muted-foreground">{syncState.deviceId.slice(0, 12)}</code>
       </Field>
     </div>
   )
@@ -524,23 +514,23 @@ function HistoryPanel({
   const t = useT()
   return (
     <div>
-      <button onClick={onBack} className="mb-3 text-xs text-muted-foreground underline hover:text-ink">
+      <button onClick={onBack} className="mb-3 text-xs text-muted-foreground underline hover:text-foreground">
         {t('← 返回')}
       </button>
       {loading ? (
-        <div className="py-8 text-center text-sm text-faint">{t('加载中…')}</div>
+        <div className="py-8 text-center text-sm text-muted-foreground">{t('加载中…')}</div>
       ) : versions.length === 0 ? (
-        <div className="py-8 text-center text-sm text-faint">{t('暂无历史版本。')}</div>
+        <div className="py-8 text-center text-sm text-muted-foreground">{t('暂无历史版本。')}</div>
       ) : (
         <div className="space-y-2">
           {versions.map((v) => (
             <div
               key={v.id}
-              className="flex items-center justify-between rounded-xl border border-line-strong bg-surface px-3 py-2.5"
+              className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5"
             >
               <div>
-                <div className="text-sm text-ink">{formatDate(v.createdAt)}</div>
-                <div className="font-mono text-[10px] text-faint">
+                <div className="text-sm text-foreground">{formatDate(v.createdAt)}</div>
+                <div className="font-mono text-[10px] text-muted-foreground">
                   {v.id.slice(0, 18)}
                   {v.label ? ` · ${v.label}` : ''}
                 </div>
@@ -548,9 +538,9 @@ function HistoryPanel({
               <button
                 onClick={() => onRestore(v)}
                 disabled={busy}
-                className="flex items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text disabled:opacity-50"
+                className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground disabled:opacity-50"
               >
-                <RotateCcw size={12} />
+                <HistoryIcon className="size-3" />
                 {t('恢复')}
               </button>
             </div>
@@ -574,7 +564,7 @@ function TabBtn({
     <button
       onClick={onClick}
       className={`flex-1 rounded-lg py-1.5 text-sm transition ${
-        active ? 'bg-canvas font-medium text-ink shadow-sm' : 'text-muted-foreground hover:text-ink'
+        active ? 'bg-background font-medium text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
       }`}
     >
       {children}
@@ -597,7 +587,7 @@ function CardAction({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-muted-foreground transition hover:bg-surface-2 hover:text-ink disabled:opacity-50"
+      className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground disabled:opacity-50"
     >
       {icon}
       <span className="text-xs">{label}</span>
@@ -607,9 +597,9 @@ function CardAction({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }): React.JSX.Element {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-line py-2">
-      <span className="text-xs text-faint">{label}</span>
-      <span className="text-ink">{children}</span>
+    <div className="flex items-center justify-between gap-4 border-b border-border py-2">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-foreground">{children}</span>
     </div>
   )
 }

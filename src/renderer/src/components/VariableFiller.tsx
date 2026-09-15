@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Copy, Plus, Settings2, Wand2 } from 'lucide-react'
+import { CodeIcon, CopyIcon, PlusIcon, SettingsIcon } from '../icons'
 import type { Prompt, PromptVariable, VariableType } from '@shared/types'
 import { fillTemplate, missingRequired } from '@shared/variables'
 import { useStore } from '../store'
@@ -71,7 +71,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
   if (prompt.variables.length === 0) {
     return (
       <div className="space-y-3">
-        <div className="rounded-2xl border border-dashed border-line-strong p-5 text-center text-sm text-faint">
+        <div className="rounded-2xl border border-dashed border-border p-5 text-center text-sm text-muted-foreground">
           {t('暂无变量。在内容里写')} <code className="var-chip">{'{{变量名}}'}</code>{' '}
           {t('，或在下方新建。')}
         </div>
@@ -83,7 +83,7 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-        <Wand2 size={14} />
+        <CodeIcon className="size-3.5" />
         {t('变量填充')}
       </div>
       {prompt.variables.map((v) => (
@@ -91,15 +91,15 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
           <div className="mb-1 flex items-center justify-between">
             <label className="text-xs text-muted-foreground">
               <code className="var-chip">{v.label || v.name}</code>
-              {v.required && <span className="ml-1 text-error" title={t('必填')}>*</span>}
-              {v.description && <span className="ml-2 text-faint">{v.description}</span>}
+              {v.required && <span className="ml-1 text-destructive" title={t('必填')}>*</span>}
+              {v.description && <span className="ml-2 text-muted-foreground">{v.description}</span>}
             </label>
             <button
               onClick={() => setEditing(editing === v.name ? null : v.name)}
               title={t('变量设置')}
-              className={`rounded p-0.5 ${editing === v.name ? 'text-brand-text' : 'text-faint hover:text-ink'}`}
+              className={`rounded p-0.5 ${editing === v.name ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
-              <Settings2 size={13} />
+              <SettingsIcon className="size-3.5" />
             </button>
           </div>
 
@@ -123,13 +123,13 @@ export function VariableFiller({ prompt }: { prompt: Prompt }): React.JSX.Elemen
           <span className="text-xs font-medium text-muted-foreground">{t('预览结果')}</span>
           <button
             onClick={copyResolved}
-            className="flex items-center gap-1 rounded-lg bg-brand-solid px-2.5 py-1 text-xs text-on-brand transition hover:bg-brand-solid-hover"
+            className="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-xs text-primary-foreground transition hover:bg-primary/80"
           >
-            <Copy size={12} />
+            <CopyIcon className="size-3" />
             {t('复制结果')}
           </button>
         </div>
-        <pre className="max-h-60 overflow-auto whitespace-pre-wrap rounded-xl border border-line-strong bg-surface p-3 font-mono text-xs text-ink">
+        <pre className="max-h-60 overflow-auto whitespace-pre-wrap rounded-xl border border-border bg-card p-3 font-mono text-xs text-foreground">
           {resolved}
         </pre>
       </div>
@@ -150,13 +150,13 @@ function AddVariable({ onAdd }: { onAdd(name: string): boolean }): React.JSX.Ele
         onChange={(e) => setName(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && submit()}
         placeholder={t('新建变量名（支持中文）')}
-        className="flex-1 rounded-lg border border-line-strong bg-canvas px-2.5 py-1.5 text-xs text-ink outline-none focus:border-focus"
+        className="flex-1 rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring"
       />
       <button
         onClick={submit}
-        className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1.5 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text"
+        className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground"
       >
-        <Plus size={13} />
+        <PlusIcon className="size-3.5" />
         {t('新建变量')}
       </button>
     </div>
@@ -172,9 +172,9 @@ function VariableSettings({
 }): React.JSX.Element {
   const t = useT()
   const fieldCls =
-    'w-full rounded-lg border border-line-strong bg-canvas px-2.5 py-1.5 text-xs text-ink outline-none focus:border-focus'
+    'w-full rounded-lg border border-border bg-background px-2.5 py-1.5 text-xs text-foreground outline-none focus:border-ring'
   return (
-    <div className="mb-2 space-y-2 rounded-xl border border-line-strong bg-surface p-3">
+    <div className="mb-2 space-y-2 rounded-xl border border-border bg-card p-3">
       <div className="flex gap-2">
         <input
           value={variable.label ?? ''}

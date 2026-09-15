@@ -1,4 +1,4 @@
-import { RotateCcw, Trash2 } from 'lucide-react'
+import { HistoryIcon, TrashIcon } from '../icons'
 import { TRASH_TTL_MS } from '@shared/types'
 import { useStore } from '../store'
 import { formatDate } from '../selectors'
@@ -56,37 +56,37 @@ export function TrashView(): React.JSX.Element {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-canvas">
+    <div className="flex-1 overflow-y-auto bg-background">
       <div className="mx-auto max-w-2xl px-8 py-10">
         <div className="mb-2 flex items-center gap-2">
-          <Trash2 size={22} className="text-brand-text" />
-          <h1 className="font-serif text-[32px] leading-tight text-ink">{t('回收站')}</h1>
+          <TrashIcon className="size-5 text-foreground" />
+          <h1 className="font-semibold tracking-tight text-[32px] leading-tight text-foreground">{t('回收站')}</h1>
         </div>
-        <p className="mb-6 text-xs text-faint">
+        <p className="mb-6 text-xs text-muted-foreground">
           {t('删除的 Prompt 会在这里保留 {days} 天，之后自动永久删除。', { days })}
         </p>
 
         {deleted.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-line-strong p-10 text-center text-sm text-faint">
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
             {t('回收站是空的。')}
           </div>
         ) : (
           <>
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs text-faint">{t('{n} 项', { n: deleted.length })}</span>
+              <span className="text-xs text-muted-foreground">{t('{n} 项', { n: deleted.length })}</span>
               <div className="flex items-center gap-2">
                 {/* Recovering a mis-fired bulk delete was 20 individual clicks,
                     while wiping all 20 was one — the destructive path was the
                     cheaper one. */}
                 <button
                   onClick={handleRestoreAll}
-                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text"
+                  className="rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground"
                 >
                   {t('全部恢复')}
                 </button>
                 <button
                   onClick={handlePurgeAll}
-                  className="rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-error hover:text-error"
+                  className="rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:border-destructive hover:text-destructive"
                 >
                   {t('清空回收站')}
                 </button>
@@ -96,17 +96,17 @@ export function TrashView(): React.JSX.Element {
               {deleted.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3"
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
                 >
                   {/* One truncated line is often not enough to tell two similar
                       prompts apart, and there is no preview in here to fall back
                       on before an irreversible purge. */}
                   <div className="min-w-0 flex-1" title={p.content.slice(0, 600)}>
-                    <div className="truncate text-sm font-medium text-ink">{p.title}</div>
-                    <div className="mt-0.5 line-clamp-1 text-xs text-faint">
+                    <div className="truncate text-sm font-medium text-foreground">{p.title}</div>
+                    <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                       {p.description || p.content.slice(0, 80) || t('空内容')}
                     </div>
-                    <div className="mt-1 text-[10px] text-faint">
+                    <div className="mt-1 text-[10px] text-muted-foreground">
                       {t('删除于 {date} · {n} 天后永久删除', {
                         date: formatDate(p.deletedAt ?? 0),
                         n: daysLeft(p.deletedAt ?? 0)
@@ -115,17 +115,17 @@ export function TrashView(): React.JSX.Element {
                   </div>
                   <button
                     onClick={() => void handleRestore(p.id, p.title)}
-                    className="flex shrink-0 items-center gap-1 rounded-lg border border-line-strong px-2.5 py-1 text-xs text-muted-foreground transition hover:border-brand hover:text-brand-text"
+                    className="flex shrink-0 items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-xs text-muted-foreground transition hover:border-primary hover:text-foreground"
                   >
-                    <RotateCcw size={12} />
+                    <HistoryIcon className="size-3" />
                     {t('恢复')}
                   </button>
                   <button
                     onClick={() => void handlePurge(p.id, p.title)}
                     title={t('永久删除')}
-                    className="shrink-0 rounded-lg border border-line-strong p-1.5 text-muted-foreground transition hover:border-error hover:text-error"
+                    className="shrink-0 rounded-lg border border-border p-1.5 text-muted-foreground transition hover:border-destructive hover:text-destructive"
                   >
-                    <Trash2 size={13} />
+                    <TrashIcon className="size-3.5" />
                   </button>
                 </div>
               ))}

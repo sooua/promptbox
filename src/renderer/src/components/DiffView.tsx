@@ -15,17 +15,17 @@ export function DiffView({
   const stat = useMemo(() => diffStat(ops), [ops])
 
   if (stat.added === 0 && stat.removed === 0) {
-    return <div className="px-1 py-2 text-[11px] text-faint">{t('与当前内容相同。')}</div>
+    return <div className="px-1 py-2 text-[11px] text-muted-foreground">{t('与当前内容相同。')}</div>
   }
 
   return (
     <div>
-      <div className="mb-1 flex items-center gap-2 text-[10px] text-faint">
+      <div className="mb-1 flex items-center gap-2 text-[10px] text-muted-foreground">
         <span className="text-success">+{stat.added}</span>
-        <span className="text-error">−{stat.removed}</span>
+        <span className="text-destructive">−{stat.removed}</span>
         <span>{t('相对当前内容')}</span>
       </div>
-      <pre className="max-h-48 overflow-auto rounded-lg border border-line bg-canvas p-2 font-mono text-[11px] leading-relaxed">
+      <pre className="max-h-48 overflow-auto rounded-lg border border-border bg-background p-2 font-mono text-[11px] leading-relaxed">
         {ops.map((op, i) => (
           <div
             key={i}
@@ -33,7 +33,7 @@ export function DiffView({
               op.type === 'add'
                 ? 'bg-success/10 text-success'
                 : op.type === 'del'
-                  ? 'bg-error/10 text-error'
+                  ? 'bg-destructive/10 text-destructive'
                   : 'text-muted-foreground'
             }
           >

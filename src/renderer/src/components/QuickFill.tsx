@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Copy, CornerDownLeft, FileText, Wand2, X } from 'lucide-react'
+import { CheckIcon, CloseIcon, CodeIcon, CopyIcon, DocumentIcon } from '../icons'
 import { useStore } from '../store'
 import { fillTemplate, missingRequired } from '@shared/variables'
 import { VariableInput, initialValue } from './VariableInput'
@@ -76,17 +76,17 @@ export function QuickFill(): React.JSX.Element | null {
       onClose={close}
       ariaLabel={t('填充变量后复制')}
       overlayClassName="fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[10vh]"
-      className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-line-strong bg-surface shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
+      className="flex max-h-[80vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-[rgba(0,0,0,0.12)_0px_12px_48px]"
     >
       <div className="flex min-h-0 flex-1 flex-col" onKeyDown={onKeyDown}>
-        <div className="flex items-center gap-2 border-b border-line px-5 py-3.5">
-          <Wand2 size={16} className="text-brand-text" />
+        <div className="flex items-center gap-2 border-b border-border px-5 py-3.5">
+          <CodeIcon className="size-4 text-foreground" />
           <div className="min-w-0 flex-1">
-            <div className="truncate font-serif text-[17px] text-ink">{prompt.title}</div>
-            <div className="text-[11px] text-faint">{t('填充变量后复制')} · {t('{n} 个变量', { n: prompt.variables.length })}</div>
+            <div className="truncate font-semibold tracking-tight text-[17px] text-foreground">{prompt.title}</div>
+            <div className="text-[11px] text-muted-foreground">{t('填充变量后复制')} · {t('{n} 个变量', { n: prompt.variables.length })}</div>
           </div>
-          <button onClick={close} className="rounded-lg p-1 text-faint transition hover:bg-surface-2 hover:text-ink">
-            <X size={16} />
+          <button onClick={close} className="rounded-lg p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground">
+            <CloseIcon className="size-4" />
           </button>
         </div>
 
@@ -96,8 +96,8 @@ export function QuickFill(): React.JSX.Element | null {
               <div key={v.name}>
                 <label className="mb-1 block text-xs text-muted-foreground">
                   <code className="var-chip">{v.label || v.name}</code>
-                  {v.required && <span className="ml-1 text-error" title={t('必填')}>*</span>}
-                  {v.description && <span className="ml-2 text-faint">{v.description}</span>}
+                  {v.required && <span className="ml-1 text-destructive" title={t('必填')}>*</span>}
+                  {v.description && <span className="ml-2 text-muted-foreground">{v.description}</span>}
                 </label>
                 <VariableInput
                   variable={v}
@@ -112,30 +112,30 @@ export function QuickFill(): React.JSX.Element | null {
 
           <div className="mt-4">
             <div className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-              <FileText size={13} />
+              <DocumentIcon className="size-3.5" />
               {t('预览结果')}
             </div>
-            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-xl border border-line bg-canvas p-3 font-mono text-xs text-ink">
+            <pre className="max-h-40 overflow-auto whitespace-pre-wrap rounded-xl border border-border bg-background p-3 font-mono text-xs text-foreground">
               {resolved}
             </pre>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 border-t border-line px-5 py-3">
+        <div className="flex items-center gap-2 border-t border-border px-5 py-3">
           <button
             onClick={copyRaw}
-            className="rounded-xl border border-line-strong px-3 py-1.5 text-sm text-muted-foreground transition hover:border-ring hover:text-ink"
+            className="rounded-xl border border-border px-3 py-1.5 text-sm text-muted-foreground transition hover:border-ring hover:text-foreground"
           >
             {t('复制原始模板')}
           </button>
-          <span className="ml-auto text-[11px] text-faint">⌘/Ctrl + Enter</span>
+          <span className="ml-auto text-[11px] text-muted-foreground">⌘/Ctrl + Enter</span>
           <button
             onClick={copyFilled}
-            className="flex items-center gap-1.5 rounded-xl bg-brand-solid px-3.5 py-1.5 text-sm text-on-brand transition hover:bg-brand-solid-hover"
+            className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-sm text-primary-foreground transition hover:bg-primary/80"
           >
-            <Copy size={14} />
+            <CopyIcon className="size-3.5" />
             {t('复制填充结果')}
-            <CornerDownLeft size={13} className="opacity-70" />
+            <CheckIcon className="size-3.5 opacity-70" />
           </button>
         </div>
       </div>

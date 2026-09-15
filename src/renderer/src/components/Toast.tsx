@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { CheckCircle2, Info, Undo2, XCircle } from 'lucide-react'
+import { CheckIcon, CloseIcon, HistoryIcon, RefreshIcon } from '../icons'
 import { t } from '../i18n'
 
 type ToastKind = 'success' | 'error' | 'info'
@@ -46,9 +46,9 @@ export const toast = {
 }
 
 const icons = {
-  success: <CheckCircle2 size={16} className="text-brand-text" />,
-  error: <XCircle size={16} className="text-error" />,
-  info: <Info size={16} className="text-muted-foreground" />
+  success: <CheckIcon className="size-4 text-success" />,
+  error: <CloseIcon className="size-4 text-destructive" />,
+  info: <HistoryIcon className="size-4 text-muted-foreground" />
 }
 
 export function ToastHost(): React.JSX.Element {
@@ -66,7 +66,7 @@ export function ToastHost(): React.JSX.Element {
         <div
           key={t.id}
           role={t.kind === 'error' ? 'alert' : undefined}
-          className="pointer-events-auto flex items-center gap-2 rounded-xl border border-line-strong bg-surface px-4 py-2 text-sm text-ink shadow-[rgba(0,0,0,0.08)_0px_4px_24px]"
+          className="pointer-events-auto flex items-center gap-2 rounded-lg border border-border bg-popover px-4 py-2 text-sm text-popover-foreground shadow-lg"
         >
           {icons[t.kind]}
           <span>{t.message}</span>
@@ -76,14 +76,14 @@ export function ToastHost(): React.JSX.Element {
                 t.action!.onClick()
                 dismiss(t.id)
               }}
-              className="ml-1 flex items-center gap-1 rounded-md bg-brand-solid px-2 py-0.5 text-xs text-on-brand transition hover:bg-brand-solid-hover"
+              className="ml-1 flex items-center gap-1 rounded-md bg-primary px-2 py-0.5 text-xs text-primary-foreground transition hover:bg-primary/80"
             >
-              <Undo2 size={12} />
+              <RefreshIcon className="size-3" />
               {t.action.label}
             </button>
           )}
-          <button onClick={() => dismiss(t.id)} className="ml-1 text-faint hover:text-ink">
-            <XCircle size={14} />
+          <button onClick={() => dismiss(t.id)} className="ml-1 text-muted-foreground hover:text-foreground">
+            <CloseIcon className="size-3.5" />
           </button>
         </div>
       ))}

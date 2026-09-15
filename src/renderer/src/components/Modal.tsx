@@ -77,7 +77,7 @@ export function Modal({
 
   return (
     <div
-      className={overlayClassName ?? 'fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[12vh]'}
+      className={overlayClassName ?? 'fixed inset-0 z-50 flex items-start justify-center bg-black/50 pt-[12vh]'}
       onClick={onClose}
     >
       <div
