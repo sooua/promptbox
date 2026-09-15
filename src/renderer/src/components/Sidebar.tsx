@@ -91,16 +91,29 @@ export function Sidebar(): React.JSX.Element {
     setCategoryFilter(c.id as CategoryFilter)
   }
 
-  function handleDrop(target: Category) {
+  /**
+   * Drop a step before another step, or onto a stage header (end of that
+   * stage). Dropping into a different stage re-files the step there — the only
+   * way to move a pre-route category with all its prompts onto the route at once.
+   */
+  async function handleDrop(target: Category | StageId | null) {
     const from = categories.find((c) => c.id === dragId)
-    // Steps only reorder inside their own stage; the stages themselves are fixed.
-    if (from && from.id !== target.id && (from.stage ?? null) === (target.stage ?? null)) {
-      const ids = categories.map((c) => c.id).filter((id) => id !== from.id)
-      ids.splice(ids.indexOf(target.id), 0, from.id)
-      void reorderCategories(ids)
-    }
     setDragId(null)
     setOverId(null)
+    if (!from) return
+    const stage = typeof target === 'object' && target ? (target.stage ?? null) : target
+    const ids = categories.map((c) => c.id).filter((id) => id !== from.id)
+    if (typeof target === 'object' && target) {
+      if (target.id === from.id) return
+      ids.splice(ids.indexOf(target.id), 0, from.id)
+    } else {
+      const last = stepsOf(categories, stage).filter((c) => c.id !== from.id).at(-1)
+      ids.splice(last ? ids.indexOf(last.id) + 1 : ids.length, 0, from.id)
+    }
+    if ((from.stage ?? null) !== stage) {
+      await updateCategory(from.id, { stage, color: stage ? STAGE_COLORS[stage] : undefined })
+    }
+    await reorderCategories(ids)
   }
 
   async function handleDelete(c: Category) {
@@ -150,7 +163,7 @@ export function Sidebar(): React.JSX.Element {
         onDragLeave={() => setOverId((id) => (id === c.id ? null : id))}
         onDrop={(e) => {
           e.preventDefault()
-          handleDrop(c)
+          void handleDrop(c)
         }}
         className={`group relative rounded-lg transition ${dragId === c.id ? 'opacity-40' : ''} ${
           overId === c.id ? 'ring-1 ring-brand/50' : ''
@@ -247,7 +260,18 @@ export function Sidebar(): React.JSX.Element {
           const active = view === 'library' && categoryFilter === filter
           return (
             <div key={stage.id} className="mb-2">
-              <div className="group flex items-center pr-1">
+              <div
+                className={`group flex items-center rounded-lg pr-1 ${overId === stage.id ? 'ring-1 ring-brand/50' : ''}`}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  if (dragId) setOverId(stage.id)
+                }}
+                onDragLeave={() => setOverId((id) => (id === stage.id ? null : id))}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  void handleDrop(stage.id)
+                }}
+              >
                 <button
                   onClick={() => setCategoryFilter(filter)}
                   title={t(stage.hint)}
@@ -281,7 +305,18 @@ export function Sidebar(): React.JSX.Element {
 
         {legacySteps.length > 0 && (
           <div className="mb-2">
-            <div className="flex items-center justify-between pr-1">
+            <div
+              className={`flex items-center justify-between rounded-lg pr-1 ${overId === 'other' ? 'ring-1 ring-brand/50' : ''}`}
+              onDragOver={(e) => {
+                e.preventDefault()
+                if (dragId) setOverId('other')
+              }}
+              onDragLeave={() => setOverId((id) => (id === 'other' ? null : id))}
+              onDrop={(e) => {
+                e.preventDefault()
+                void handleDrop(null)
+              }}
+            >
               <SectionLabel>{t('其他')}</SectionLabel>
               <button
                 className="rounded-md p-1 text-faint transition hover:bg-surface-2 hover:text-ink"

@@ -8,7 +8,7 @@ product
 
 Developers building web projects with AI tools — from beginners who don't yet know which prompt to reach for, to power users with a large library. The beginner is the design target: they should never have to *choose* from a pile, only follow the steps.
 
-Their context is mid-task: they're working inside Claude Code, the Claude apps, or a terminal, and need to reach for the right prompt without breaking flow. The primary job is *retrieval and reuse* — find the prompt, fill its variables, get it onto the clipboard in as few keystrokes as possible. The global hotkey and command palette exist for exactly this moment.
+Their context: PromptBox sits next to Claude Code or Cursor. They read what the current step is for, type at most one sentence, copy, paste into the AI tool, come back and press "next". They may not know what a tech stack or a migration is; the prompts ask the AI to explain and decide, and the step copy explains in plain words what is happening. The power user still gets the three-pane library, the command palette and the global hotkey, but nothing on the route depends on knowing they exist.
 
 ## Product Purpose
 
@@ -16,7 +16,7 @@ PromptBox is a local-first desktop guide through the prompts of a software proje
 
 The route *is* the recommendation: only the current step is on screen, with a one-line "what you're doing now", the one input it needs, and a copy button. The three-pane library survives as an "advanced" entry for editing. Free-form organisation (tags, pins, batch operations, a marketplace) was removed because it put the sorting burden back on the user.
 
-Success is the shortest path from "I need that prompt" to "it's filled in and on my clipboard" — measured in keystrokes — with an ironclad guarantee that the user never loses their words (autosave, automatic backups, corrupt-file recovery, undo).
+Success is a beginner getting from "I have an idea" to "other people can use it" without ever asking "which prompt do I use now?" — and, for anyone who edits prompts, an ironclad guarantee that they never lose their words (autosave, automatic backups, corrupt-file recovery, undo).
 
 ## Brand Personality
 
@@ -30,7 +30,7 @@ Warm, precise, unobtrusive. The voice is calm and expert: plain, specific Chines
 
 ## Design Principles
 
-1. **Keystrokes are the unit of cost.** Every frequent action (find, fill, copy, new, duplicate, search) is reachable from the keyboard. The fastest path always wins; the mouse is optional, never required.
+1. **Never make the user choose.** One question up front, then one step at a time; the route decides what comes next. A feature earns its place only if a beginner would otherwise get stuck. Keyboard paths (⌘K, ⌘/Ctrl+Enter to copy, the global hotkey) stay for people who want speed, but nothing requires them.
 2. **Never lose the user's words.** Autosave, version history, periodic + on-quit backups, corrupt-file quarantine/recovery, and undo are non-negotiable. Trust is earned by never dropping data.
 3. **Calm over clever.** Warm, quiet surfaces; restrained motion; strong-but-soft hierarchy. The content (the prompt) is the hero and chrome stays out of the way.
 4. **Local-first and user-owned.** Data lives in plain files the user controls. Sync and encryption are opt-in, transparent, and reversible — never a lock-in.

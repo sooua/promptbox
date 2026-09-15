@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { ArrowRight, Box, Check, Cloud, Copy, Library, RefreshCw, Settings } from 'lucide-react'
-import type { Category, Prompt } from '@shared/types'
+import type { Category, Flow, Prompt } from '@shared/types'
 import { STAGES, STAGE_COLORS, TRACKS } from '@shared/types'
 import { fillTemplate, missingRequired } from '@shared/variables'
 import { useStore } from '../store'
@@ -170,6 +170,7 @@ export function RouteView(): React.JSX.Element {
           index={idx}
           total={steps.length}
           feature={route.feature}
+          flow={route.flow}
           prompt={routePrompt(prompts, cur.id, route.track)}
           isDone={done.has(cur.id)}
           isLast={isLast}
@@ -189,6 +190,7 @@ function StepCard({
   index,
   total,
   feature,
+  flow,
   prompt,
   isDone,
   isLast,
@@ -201,6 +203,7 @@ function StepCard({
   index: number
   total: number
   feature: number
+  flow: Flow
   prompt: Prompt | undefined
   isDone: boolean
   isLast: boolean
@@ -253,7 +256,7 @@ function StepCard({
 
       {index === 0 && !copiedOnce && (
         <ol className="list-decimal space-y-0.5 rounded-xl border border-line-strong bg-surface px-4 py-3 pl-8 text-xs text-muted">
-          <li>{t('新建一个空文件夹，作为这个项目的家')}</li>
+          <li>{flow === 'fresh' ? t('新建一个空文件夹，作为这个项目的家') : t('找到你的项目文件夹')}</li>
           <li>{t('在这个文件夹里打开 Claude Code（或 Cursor）')}</li>
           <li>{t('把下面复制的内容粘贴进去，按回车')}</li>
         </ol>
