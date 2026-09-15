@@ -106,8 +106,9 @@ export function RouteView(): React.JSX.Element {
           {t('还没有任何步骤。去「全部 Prompt」里给某个阶段新建一个步骤。')}
         </div>
       ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-6 pb-10 pt-8">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {/* my-auto centres the block when it fits, and degrades to a normal top-anchored scroll when it doesn't. */}
+          <div className="mx-auto my-auto flex w-full max-w-[1120px] flex-col gap-8 px-6 py-8">
             <div className="mx-auto w-full max-w-[720px]">
               <StageStepper steps={steps} cur={cur} done={done} feature={route.feature} onJump={(id) => setRoute({ cur: id })} />
             </div>
