@@ -230,8 +230,8 @@ export const en: Record<string, string> = {
   '导入': 'Import',
   '网络': 'Network',
   '代理': 'Proxy',
-  '留空跟随系统；direct 为直连；或填 http:// 、socks5:// 地址':
-    'Empty follows the system; "direct" for no proxy; or enter an http:// or socks5:// address',
+  '云同步和检查更新用。留空跟随系统，direct 直连，或填 http:// 、socks5:// 地址':
+    'Used by cloud sync and update checks. Empty follows the system, "direct" for no proxy, or an http:// or socks5:// address',
   '添加': 'Add',
 
   // ---- Safety rails / recovery ----

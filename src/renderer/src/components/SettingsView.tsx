@@ -116,12 +116,9 @@ export function SettingsView(): React.JSX.Element {
               {syncState?.connected ? t('管理') : t('连接')}
             </ActionButton>
           </Row>
-        </Section>
-
-        <Section title={t('网络')}>
           <Row
             label={t('代理')}
-            description={t('留空跟随系统；direct 为直连；或填 http:// 、socks5:// 地址')}
+            description={t('云同步和检查更新用。留空跟随系统，direct 直连，或填 http:// 、socks5:// 地址')}
             controlId="set-proxy"
           >
             <ProxyInput id="set-proxy" value={settings?.proxy ?? ''} onSave={(v) => void setProxy(v)} />
