@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo, useRef } from 'react'
 import { CopyIcon, PlusIcon, SearchIcon, StarIcon, TrashIcon, UploadIcon } from '../icons'
-import { STAGES, TRACKS, TRACK_COLORS } from '@shared/types'
+import { STAGES, TRACKS } from '@shared/types'
 import { useStore, isCategoryId, stageOf } from '../store'
 import { categoryById, filterPrompts, stepsOf } from '../selectors'
 import { requestCopy } from '../copy'
@@ -242,14 +242,14 @@ export function PromptList(): React.JSX.Element {
                     <span className="flex items-center gap-1 truncate">
                       <span
                         className="inline-block h-2 w-2 shrink-0 rounded-full"
-                        style={{ background: step.color ?? 'var(--primary)' }}
+                        style={{ background: 'var(--primary)' }}
                       />
                       {stage ? `${STAGES.indexOf(stage) + 1} ` : ''}
                       {step.name}
                     </span>
                   )}
                   {p.track && (
-                    <Badge size="xs" variant="outline" className="border-transparent" style={{ background: `color-mix(in srgb, ${TRACK_COLORS[p.track]} 12%, transparent)`, color: TRACK_COLORS[p.track] }}>
+                    <Badge size="xs" variant="outline">
                       {t(TRACKS.find((x) => x.id === p.track)?.name ?? p.track)}
                     </Badge>
                   )}

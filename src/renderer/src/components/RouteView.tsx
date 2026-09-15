@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Category, Flow, Prompt, StageInfo } from '@shared/types'
-import { STAGES, STAGE_COLORS, TRACKS } from '@shared/types'
+import { STAGES, TRACKS } from '@shared/types'
 import { fillTemplate, missingRequired } from '@shared/variables'
 import { Button } from '@/components/ui/button'
 import { Kbd } from '@/components/ui/kbd'
@@ -170,10 +170,9 @@ function StageStepper({
               step={i + 1}
               completed={finished}
               disabled={i > curIdx && !finished}
-              style={{ '--stage': STAGE_COLORS[st.id] } as React.CSSProperties}
             >
               <StepperTrigger className="flex flex-col items-center gap-2 px-1 text-center">
-                <StepperIndicator className="size-7 text-xs font-medium data-[state=active]:bg-[var(--stage)] data-[state=active]:text-white data-[state=active]:ring-4 data-[state=active]:ring-[color-mix(in_srgb,var(--stage)_22%,transparent)] data-[state=completed]:bg-[var(--stage)] data-[state=completed]:text-white">
+                <StepperIndicator className="size-7 text-xs font-medium data-[state=active]:ring-4 data-[state=active]:ring-primary/20">
                   {i + 1}
                 </StepperIndicator>
                 <StepperTitle className="text-xs font-medium text-muted-foreground group-data-[state=active]/step:text-foreground">
@@ -184,7 +183,7 @@ function StageStepper({
                 </StepperTitle>
               </StepperTrigger>
               {i < stages.length - 1 && (
-                <StepperSeparator className="mb-6 group-data-[state=completed]/step:bg-[var(--stage)]" />
+                <StepperSeparator className="mb-6 group-data-[state=completed]/step:bg-primary" />
               )}
             </StepperItem>
           )
@@ -266,12 +265,7 @@ function StepCard({
       <FramePanel className="flex flex-col gap-5">
         <div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Badge
-              size="sm"
-              variant="outline"
-              className="gap-1.5 border-transparent"
-              style={{ background: `color-mix(in srgb, ${STAGE_COLORS[stage.id]} 12%, transparent)`, color: STAGE_COLORS[stage.id] }}
-            >
+            <Badge size="sm" variant="primary-light">
               {t(stage.name)}
             </Badge>
             {t('第 {n} 步 / 共 {total} 步', { n: index + 1, total })}

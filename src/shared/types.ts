@@ -122,21 +122,24 @@ export const STAGES: StageInfo[] = [
 ]
 
 /** One hue per stage; steps inherit it. */
+/**
+ * One accent for the whole app; stages and project types share it. Kept as
+ * maps so a step's stored colour and the tags still resolve through one place.
+ */
+export const ACCENT = '#2563eb'
 export const STAGE_COLORS: Record<StageId, string> = {
-  think: '#8b5cf6',
-  plan: '#3b82f6',
-  scaffold: '#10b981',
-  build: '#f59e0b',
-  ship: '#f43f5e'
+  think: ACCENT,
+  plan: ACCENT,
+  scaffold: ACCENT,
+  build: ACCENT,
+  ship: ACCENT
 }
-
-/** One hue per project type, for the choose cards and list tags. */
 export const TRACK_COLORS: Record<TrackId, string> = {
-  web: '#3b82f6',
-  cli: '#10b981',
-  desk: '#8b5cf6',
-  mobile: '#f43f5e',
-  other: '#f59e0b'
+  web: ACCENT,
+  cli: ACCENT,
+  desk: ACCENT,
+  mobile: ACCENT,
+  other: ACCENT
 }
 
 /** Which starting point a step belongs to; undefined = both. */

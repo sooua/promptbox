@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Flow, TrackId } from '@shared/types'
-import { TRACKS, TRACK_COLORS } from '@shared/types'
+import { TRACKS } from '@shared/types'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CliIcon, DeskIcon, MobileIcon, OtherIcon, WebIcon } from '../icons'
@@ -77,12 +77,9 @@ export function ChooseView(): React.JSX.Element {
               }`}
             >
               <span
-                className="grid size-10 place-items-center rounded-lg transition-colors"
-                style={
-                  on
-                    ? { background: TRACK_COLORS[x.id], color: '#fff' }
-                    : { background: `color-mix(in srgb, ${TRACK_COLORS[x.id]} 12%, transparent)`, color: TRACK_COLORS[x.id] }
-                }
+                className={`grid size-10 place-items-center rounded-lg transition-colors ${
+                  on ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground'
+                }`}
               >
                 <Icon className="size-5" />
               </span>
